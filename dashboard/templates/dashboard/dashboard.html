@@ -1,0 +1,33 @@
+<!-- templates/dashboard/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendar Dashboard</title>
+  {% load static %}
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="{% static 'dashboard/js/worldclock.js' %}"></script>
+  <script src="{% static 'dashboard/js/calendar.js' %}"></script>
+  <style>
+    #calendar { max-width: 900px; margin: 20px auto; }
+    #worldclock { display: flex; gap: 1rem; justify-content: center; margin-top: 20px; }
+    .clock-item { font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>Calendar Dashboard</h1>
+  <p id="dashboard-feedback">Loading calendar and world clock…</p>
+  <div id="calendar"></div>
+
+  <div id="worldclock"
+       data-timezones='["Europe/London","America/New_York","Asia/Tokyo"]'>
+    <p>Loading clocks…</p>
+  </div>
+
+  <script>
+    console.log('Dashboard HTML loaded');
+    document.getElementById('dashboard-feedback').textContent = 'If the calendar remains blank, open browser console for errors.';
+  </script>
+</body>
+</html>
