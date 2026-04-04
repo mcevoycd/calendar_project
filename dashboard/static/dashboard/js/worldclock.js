@@ -1,41 +1,302 @@
 // static/dashboard/js/worldclock.js
 console.log('worldclock.js loaded');
-function formatTime(date) {
-  return date.toLocaleTimeString('en-GB', {
+
+const TZ_FLAGS = {
+  'Europe/London': 'UK',
+  'America/New_York': 'US',
+  'Asia/Tokyo': 'JP',
+  'Europe/Paris': 'FR',
+  'Europe/Berlin': 'DE',
+  'America/Los_Angeles': 'US',
+  'Australia/Sydney': 'AU',
+  'Asia/Singapore': 'SG',
+  'America/Chicago': 'US',
+  'America/Denver': 'US',
+  'America/Anchorage': 'US',
+  'America/Mexico_City': 'MX',
+  'America/Sao_Paulo': 'BR',
+  'Asia/Dubai': 'AE',
+  'Asia/Hong_Kong': 'HK',
+  'America/Toronto': 'CA',
+  'Europe/Madrid': 'ES',
+  'Asia/Manila': 'PH',
+  'UTC': 'UTC'
+};
+
+const CITY_TO_TZ = {
+  'london': 'Europe/London',
+  'new york': 'America/New_York',
+  'nyc': 'America/New_York',
+  'tokyo': 'Asia/Tokyo',
+  'paris': 'Europe/Paris',
+  'berlin': 'Europe/Berlin',
+  'los angeles': 'America/Los_Angeles',
+  'la': 'America/Los_Angeles',
+  'sydney': 'Australia/Sydney',
+  'singapore': 'Asia/Singapore',
+  'chicago': 'America/Chicago',
+  'denver': 'America/Denver',
+  'anchorage': 'America/Anchorage',
+  'mexico city': 'America/Mexico_City',
+  'sao paulo': 'America/Sao_Paulo',
+  'dubai': 'Asia/Dubai',
+  'hong kong': 'Asia/Hong_Kong',
+  'toronto': 'America/Toronto',
+  'madrid': 'Europe/Madrid',
+  'dallas': 'America/Chicago',
+  'texas': 'America/Chicago',
+  'manila': 'Asia/Manila',
+  'manilla': 'Asia/Manila',
+  'utc': 'UTC'
+};
+
+function formatClock(timeZone, hour12) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone,
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
+    second: '2-digit',
+    hour12
+  }).format(new Date());
+}
+
+function parseDateParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+  const result = {};
+  parts.forEach(part => {
+    if (part.type !== 'literal') {
+      result[part.type] = part.value;
+    }
   });
+  return result;
+}
+
+function formatOffset(timeZone) {
+  try {
+    const date = new Date();
+    const zoneParts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    }).formatToParts(date);
+    const zoneNamePart = zoneParts.find(part => part.type === 'timeZoneName');
+    const abbreviation = zoneNamePart ? zoneNamePart.value : '';
+
+    const localParts = parseDateParts(date, timeZone);
+    const utcParts = parseDateParts(date, 'UTC');
+    const localTimestamp = Date.UTC(
+      Number(localParts.year),
+      Number(localParts.month) - 1,
+      Number(localParts.day),
+      Number(localParts.hour),
+      Number(localParts.minute),
+      Number(localParts.second)
+    );
+    const utcTimestamp = Date.UTC(
+      Number(utcParts.year),
+      Number(utcParts.month) - 1,
+      Number(utcParts.day),
+      Number(utcParts.hour),
+      Number(utcParts.minute),
+      Number(utcParts.second)
+    );
+    const offsetMinutes = (localTimestamp - utcTimestamp) / 60000;
+    const offsetHours = Math.round(offsetMinutes / 60);
+    const sign = offsetHours >= 0 ? '+' : '-';
+    const gmtLabel = `GMT${sign}${Math.abs(offsetHours)}`;
+    return abbreviation ? `${abbreviation} (${gmtLabel})` : `(${gmtLabel})`;
+  } catch (error) {
+    return '';
+  }
+}
+
+function getFlag(timeZone) {
+  return TZ_FLAGS[timeZone] || '🌍';
+}
+
+function isValidTimezone(value) {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: value });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function normalizeText(value) {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function resolveTimezone(value) {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (trimmed.includes('/')) {
+    const maybeTz = trimmed.split('/').map(part => part.trim()).join('/');
+    if (isValidTimezone(maybeTz)) {
+      return maybeTz;
+    }
+  }
+
+  const normalized = normalizeText(trimmed);
+  if (CITY_TO_TZ[normalized]) {
+    return CITY_TO_TZ[normalized];
+  }
+
+  const found = Object.keys(TZ_FLAGS).find(tz => tz.toLowerCase().endsWith('/' + normalized));
+  if (found) {
+    return found;
+  }
+
+  return null;
 }
 
 function renderWorldClock() {
-  const container = document.getElementById('worldclock');
-  if (!container) return;
+  const container = document.getElementById('worldclock-container');
+  const toggle = document.getElementById('toggle-time-format');
+  const addButton = document.getElementById('add-timezone');
+  const timezoneInput = document.getElementById('timezone-input');
+  console.log('renderWorldClock init', { container, toggle, addButton, timezoneInput });
+  if (!container) {
+    console.error('World clock container not found');
+    return;
+  }
+  if (!toggle) {
+    console.warn('World clock toggle button not found');
+  }
+  if (!addButton) {
+    console.warn('World clock add button not found');
+  }
+  if (!timezoneInput) {
+    console.warn('World clock timezone input not found');
+  }
 
-  const timezones = JSON.parse(container.getAttribute('data-timezones') || '[]');
-  container.innerHTML = '';
+  const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let hour12 = localStorage.getItem('worldclockHour12') !== 'false';
+  let timezones = JSON.parse(container.getAttribute('data-timezones') || '[]');
 
-  timezones.forEach(tz => {
-    const div = document.createElement('div');
-    div.className = 'clock-item';
-    div.dataset.tz = tz;
-    container.appendChild(div);
-  });
+  function saveTimezones() {
+    container.setAttribute('data-timezones', JSON.stringify(timezones));
+  }
 
-  function tick() {
-    const now = new Date();
-    container.querySelectorAll('.clock-item').forEach(el => {
-      const tz = el.dataset.tz;
-      const time = now.toLocaleString('en-GB', {
-        timeZone: tz,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+  function updateToggleText() {
+    toggle.textContent = hour12 ? 'AM/PM' : '24-hour';
+    toggle.classList.toggle('btn-outline-primary', !hour12);
+    toggle.classList.toggle('btn-primary', hour12);
+  }
+
+  function buildItems() {
+    container.innerHTML = '';
+    timezones.forEach(tz => {
+      const card = document.createElement('div');
+      card.className = 'clock-item';
+      if (tz === localTimezone) {
+        card.classList.add('highlight');
+      }
+
+      const zone = document.createElement('div');
+      zone.className = 'clock-zone';
+      zone.textContent = tz.split('/').pop().replace(/_/g, ' ');
+      card.dataset.tz = tz;
+
+      const time = document.createElement('div');
+      time.className = 'clock-time';
+      time.textContent = formatClock(tz, hour12);
+
+      const info = document.createElement('div');
+      info.className = 'clock-subtitle';
+      info.textContent = formatOffset(tz) + (tz === localTimezone ? ' · Local timezone' : '');
+
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.justifyContent = 'flex-end';
+
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-sm btn-outline-secondary';
+      removeButton.textContent = 'Remove';
+      removeButton.addEventListener('click', function () {
+        timezones = timezones.filter(existing => existing !== tz);
+        saveTimezones();
+        buildItems();
       });
-      el.textContent = `${tz}: ${time}`;
+
+      actions.appendChild(removeButton);
+      card.appendChild(zone);
+      card.appendChild(time);
+      card.appendChild(info);
+      card.appendChild(actions);
+      container.appendChild(card);
     });
   }
 
+  function tick() {
+    container.querySelectorAll('.clock-item').forEach(card => {
+      const tz = card.dataset.tz;
+      const timeEl = card.querySelector('.clock-time');
+      if (!tz || !timeEl) return;
+      timeEl.textContent = formatClock(tz, hour12);
+    });
+  }
+
+  toggle.addEventListener('click', function () {
+    hour12 = !hour12;
+    localStorage.setItem('worldclockHour12', String(hour12));
+    updateToggleText();
+    buildItems();
+  });
+
+  function addTimezone(value) {
+    const resolved = resolveTimezone(value);
+    if (!resolved) {
+      alert('Invalid city or timezone. Enter a city like Paris or a valid IANA timezone.');
+      return;
+    }
+    if (timezones.includes(resolved)) {
+      alert('This timezone is already in your list.');
+      return;
+    }
+    if (timezones.length >= 3) {
+      alert('Maximum of 3 clocks allowed. Remove one before adding another.');
+      return;
+    }
+    timezones.push(resolved);
+    saveTimezones();
+    buildItems();
+    if (timezoneInput) {
+      timezoneInput.value = '';
+      timezoneInput.focus();
+    }
+  }
+
+  if (addButton) {
+    addButton.addEventListener('click', function () {
+      if (!timezoneInput) return;
+      if (!timezoneInput.value.trim()) return;
+      addTimezone(timezoneInput.value);
+    });
+  }
+
+  if (timezoneInput) {
+    timezoneInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        addTimezone(timezoneInput.value);
+      }
+    });
+  }
+
+  updateToggleText();
+  buildItems();
   tick();
   setInterval(tick, 1000);
 }

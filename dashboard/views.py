@@ -1,12 +1,15 @@
 # dashboard/views.py
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.utils.dateparse import parse_datetime
 from .models import Event
 
+@login_required
 def dashboard_view(request):
     return render(request, 'dashboard/dashboard.html')
 
+@login_required
 def events_api(request):
     # FullCalendar will send start/end params; you can filter if you want
     events = Event.objects.all()
@@ -20,6 +23,7 @@ def events_api(request):
         })
     return JsonResponse(data, safe=False)
 
+@login_required
 def diary_view(request, date=None, event_id=None):
     # You can branch on date vs event_id later
     context = {
