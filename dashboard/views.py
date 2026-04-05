@@ -648,6 +648,32 @@ def todo_view(request):
         },
     )
 
+
+@login_required
+def notes_view(request):
+    today = datetime.today().date()
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+    week_key = week_start.isoformat()
+
+    notes_by_week = request.session.get('notes_by_week', {})
+    if not isinstance(notes_by_week, dict):
+        notes_by_week = {}
+
+    if request.method == 'POST':
+        note_text = request.POST.get('note_text', '')
+        notes_by_week[week_key] = note_text[:20000]
+        request.session['notes_by_week'] = notes_by_week
+        request.session.modified = True
+        return HttpResponseRedirect(reverse('notes'))
+
+    note_text = notes_by_week.get(week_key, '')
+    context = {
+        'note_text': note_text,
+        'week_range_label': f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
+    }
+    return render(request, 'dashboard/notes.html', context)
+
 @login_required
 def add_diary_entry(request):
     if request.method == 'POST':
