@@ -515,34 +515,34 @@
                               <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="toggle_todo_completed">
-                                <input type="hidden" name="task_day" value="{{ day.name }}">
-                                <input type="hidden" name="task_section" value="{{ section.key }}">
-                                <input type="hidden" name="task_index" value="{{ forloop.counter0 }}">
+                                <input type="hidden" name="task_id" value="{{ task.id }}">
                                 <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
                               </form>
                               <button
                                 type="button"
                                 class="todo-task-hit{% if task.completed %} is-completed{% endif %}"
+                                data-id="{{ task.id }}"
                                 data-title="{{ task.title|escape }}"
                                 data-notes="{{ task.notes|default:''|escape }}"
                                 data-priority="{{ task.priority|default:'medium' }}"
                                 data-completed="{% if task.completed %}true{% else %}false{% endif %}"
-                                data-day="{{ day.name }}"
+                                data-start-day="{{ task.start_day }}"
+                                data-end-day="{{ task.end_day }}"
                                 data-section="{{ section.key }}"
-                                data-index="{{ forloop.counter0 }}"
                               >
                                 <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
                                 <span class="todo-task-title">{{ task.title }}</span>
                                 {% if task.notes %}
                                   <span class="todo-task-notes">{{ task.notes }}</span>
                                 {% endif %}
+                                {% if task.start_day != task.end_day %}
+                                  <span class="todo-task-notes">{{ task.start_day }} to {{ task.end_day }}</span>
+                                {% endif %}
                               </button>
                               <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="delete_todo_entry">
-                                <input type="hidden" name="task_day" value="{{ day.name }}">
-                                <input type="hidden" name="task_section" value="{{ section.key }}">
-                                <input type="hidden" name="task_index" value="{{ forloop.counter0 }}">
+                                <input type="hidden" name="task_id" value="{{ task.id }}">
                                 <button type="submit" class="todo-delete-btn" aria-label="Delete task" title="Delete task">
                                   <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false">
                                     <path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v8h-2V9zm4 0h2v8h-2V9zM7 9h2v8H7V9z"/>
@@ -569,14 +569,22 @@
           <form class="todo-form" action="{% url 'todo' %}" method="post" id="todo-entry-form">
             {% csrf_token %}
             <input type="hidden" name="form_type" id="todo-form-type" value="add_todo_entry">
-            <input type="hidden" name="task_index" id="task-index-input" value="">
+            <input type="hidden" name="task_id" id="task-id-input" value="">
             <label>
               Task title
               <input type="text" name="task_title" id="task-title-input" placeholder="Write task title" required>
             </label>
             <label>
-              Day
-              <select name="task_day" id="task-day-input" required>
+              Start day
+              <select name="task_start_day" id="task-start-day-input" required>
+                {% for day in day_lists %}
+                  <option value="{{ day.name }}">{{ day.name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              End day
+              <select name="task_end_day" id="task-end-day-input" required>
                 {% for day in day_lists %}
                   <option value="{{ day.name }}">{{ day.name }}</option>
                 {% endfor %}
@@ -635,9 +643,10 @@
       if (!form) return;
 
       const formTypeInput = document.getElementById('todo-form-type');
-      const taskIndexInput = document.getElementById('task-index-input');
+      const taskIdInput = document.getElementById('task-id-input');
       const titleInput = document.getElementById('task-title-input');
-      const dayInput = document.getElementById('task-day-input');
+      const startDayInput = document.getElementById('task-start-day-input');
+      const endDayInput = document.getElementById('task-end-day-input');
       const sectionInput = document.getElementById('task-section-input');
       const notesInput = document.getElementById('task-notes-input');
       const priorityInput = document.getElementById('task-priority-input');
@@ -649,7 +658,7 @@
 
       function setAddMode() {
         formTypeInput.value = 'add_todo_entry';
-        taskIndexInput.value = '';
+        taskIdInput.value = '';
         submitBtn.textContent = 'Add Task';
         cancelBtn.style.display = 'none';
         taskButtons.forEach(function (btn) {
@@ -659,13 +668,14 @@
 
       taskButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
+          taskIdInput.value = btn.dataset.id || '';
           titleInput.value = btn.dataset.title || '';
           notesInput.value = btn.dataset.notes || '';
           priorityInput.value = btn.dataset.priority || 'medium';
           completedInput.checked = (btn.dataset.completed || 'false') === 'true';
-          dayInput.value = btn.dataset.day || dayInput.value;
+          startDayInput.value = btn.dataset.startDay || startDayInput.value;
+          endDayInput.value = btn.dataset.endDay || endDayInput.value;
           sectionInput.value = btn.dataset.section || sectionInput.value;
-          taskIndexInput.value = btn.dataset.index || '';
           formTypeInput.value = 'edit_todo_entry';
           submitBtn.textContent = 'Save Task';
           cancelBtn.style.display = 'inline-flex';
