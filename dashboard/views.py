@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from uuid import uuid4
+import json
 
 TODO_SECTION_CONFIG = [
     ("planning", "Planning", "todo-section-planning"),
@@ -34,6 +35,14 @@ TODO_PRIORITY_CHOICES = {
     "high": "High",
     "medium": "Medium",
     "low": "Low",
+}
+
+TODO_SECTION_COLORS = {
+    "planning": "#38BDF8",
+    "next": "#A3E635",
+    "progress": "#FACC15",
+    "review": "#FB7185",
+    "done": "#34D399",
 }
 
 
@@ -201,6 +210,9 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
         "end_day": end_day,
         "start_date": parsed_start.isoformat() if parsed_start else "",
         "end_date": parsed_end.isoformat() if parsed_end else "",
+        "source": str(raw_item.get("source", "")).strip()[:40],
+        "source_week": str(raw_item.get("source_week", "")).strip()[:10],
+        "source_box_id": str(raw_item.get("source_box_id", "")).strip()[:80],
     }
 
 
@@ -550,6 +562,7 @@ def todo_view(request):
                 default_section=current_task.get('section', 'planning'),
             )
         else:
+            existing_task = task_items[task_pos]
             updated_title = request.POST.get('task_title', '').strip()[:120]
             updated_notes = request.POST.get('task_notes', '').strip()[:180]
             updated_priority = request.POST.get('task_priority', '').strip().lower()
@@ -590,6 +603,9 @@ def todo_view(request):
                 "end_day": updated_end_day,
                 "start_date": updated_start_date.isoformat(),
                 "end_date": updated_end_date.isoformat(),
+                "source": existing_task.get('source', ''),
+                "source_week": existing_task.get('source_week', ''),
+                "source_box_id": existing_task.get('source_box_id', ''),
             }
 
         normalized_items = []
@@ -655,21 +671,230 @@ def notes_view(request):
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
     week_key = week_start.isoformat()
+    todo_sections = get_todo_sections(request)
 
-    notes_by_week = request.session.get('notes_by_week', {})
-    if not isinstance(notes_by_week, dict):
-        notes_by_week = {}
+    note_type_options = ['Note']
+    note_type_colors = {'Note': '#F6C35C'}
+    seen_titles = {'Note'.casefold()}
+    for section in todo_sections:
+        title = section.get('title', '')
+        section_key = section.get('key', '')
+        if not isinstance(title, str):
+            continue
+        title = title.strip()[:30]
+        if not title:
+            continue
+
+        title_key = title.casefold()
+        if title_key in seen_titles:
+            continue
+
+        seen_titles.add(title_key)
+        note_type_options.append(title)
+        note_type_colors[title] = TODO_SECTION_COLORS.get(section_key, '#00C2FF')
+
+    allowed_note_types = set(note_type_options)
+    section_title_to_key = {
+        str(section.get('title', '')).strip().casefold(): section.get('key')
+        for section in todo_sections
+        if isinstance(section.get('title'), str) and section.get('title', '').strip()
+    }
+
+    notes_canvas_by_week = request.session.get('notes_canvas_by_week', {})
+    if not isinstance(notes_canvas_by_week, dict):
+        notes_canvas_by_week = {}
+
+    def get_default_canvas_state():
+        return {
+            'boxes': [
+                {
+                    'id': str(uuid4()),
+                    'x': 70,
+                    'y': 70,
+                    'w': 250,
+                    'h': 150,
+                    'type': 'Note',
+                    'text': '',
+                }
+            ],
+            'links': [],
+        }
+
+    def sanitize_canvas_state(raw_value):
+        default_state = get_default_canvas_state()
+        if not isinstance(raw_value, dict):
+            return default_state
+
+        raw_boxes = raw_value.get('boxes', [])
+        raw_links = raw_value.get('links', [])
+        if not isinstance(raw_boxes, list):
+            raw_boxes = []
+        if not isinstance(raw_links, list):
+            raw_links = []
+
+        boxes = []
+        box_ids = set()
+        for item in raw_boxes[:60]:
+            if not isinstance(item, dict):
+                continue
+
+            box_id = str(item.get('id', '')).strip()
+            if not box_id:
+                box_id = str(uuid4())
+            if box_id in box_ids:
+                continue
+
+            try:
+                x = int(float(item.get('x', 0)))
+                y = int(float(item.get('y', 0)))
+                w = int(float(item.get('w', 250)))
+                h = int(float(item.get('h', 150)))
+            except (TypeError, ValueError):
+                continue
+
+            x = max(0, min(x, 2400))
+            y = max(0, min(y, 2400))
+            w = max(180, min(w, 700))
+            h = max(120, min(h, 520))
+
+            text = item.get('text', '')
+            if not isinstance(text, str):
+                text = ''
+            text = text[:1200]
+
+            box_type = item.get('type', 'Note')
+            if not isinstance(box_type, str):
+                box_type = 'Note'
+            box_type = box_type.strip()[:30]
+            if box_type not in allowed_note_types:
+                box_type = 'Note'
+
+            box_ids.add(box_id)
+            boxes.append(
+                {
+                    'id': box_id,
+                    'x': x,
+                    'y': y,
+                    'w': w,
+                    'h': h,
+                    'type': box_type,
+                    'text': text,
+                }
+            )
+
+        if not boxes:
+            boxes = default_state['boxes']
+            box_ids = {boxes[0]['id']}
+
+        links = []
+        seen_links = set()
+        for item in raw_links[:160]:
+            if not isinstance(item, dict):
+                continue
+
+            from_id = str(item.get('from', '')).strip()
+            to_id = str(item.get('to', '')).strip()
+            if from_id == to_id:
+                continue
+            if from_id not in box_ids or to_id not in box_ids:
+                continue
+
+            key = (from_id, to_id)
+            if key in seen_links:
+                continue
+            seen_links.add(key)
+            links.append({'from': from_id, 'to': to_id})
+
+        return {'boxes': boxes, 'links': links}
+
+    def build_weekly_note_tasks(canvas_state):
+        generated_items = []
+        for box in canvas_state.get('boxes', []):
+            if not isinstance(box, dict):
+                continue
+
+            box_type = str(box.get('type', 'Note')).strip()
+            if not box_type or box_type == 'Note':
+                continue
+
+            section_key = section_title_to_key.get(box_type.casefold())
+            if not section_key:
+                continue
+
+            raw_text = box.get('text', '')
+            if not isinstance(raw_text, str):
+                continue
+
+            clean_text = raw_text.strip()
+            if not clean_text:
+                continue
+
+            lines = [line.strip() for line in clean_text.splitlines() if line.strip()]
+            if not lines:
+                continue
+
+            title = lines[0][:120]
+            notes = ' '.join(lines[1:])[:180]
+            if not title:
+                continue
+
+            raw_item = {
+                'id': str(uuid4()),
+                'title': title,
+                'notes': notes,
+                'priority': 'medium',
+                'completed': False,
+                'section': section_key,
+                'start_day': week_start.strftime('%A'),
+                'end_day': week_end.strftime('%A'),
+                'start_date': week_start.isoformat(),
+                'end_date': week_end.isoformat(),
+                'source': 'notes_canvas',
+                'source_week': week_key,
+                'source_box_id': str(box.get('id', '')).strip()[:80],
+            }
+
+            normalized = normalize_todo_task_item(raw_item, default_day=week_start.strftime('%A'), default_section=section_key)
+            if normalized:
+                generated_items.append(normalized)
+
+        return generated_items
 
     if request.method == 'POST':
-        note_text = request.POST.get('note_text', '')
-        notes_by_week[week_key] = note_text[:20000]
-        request.session['notes_by_week'] = notes_by_week
+        canvas_raw = request.POST.get('canvas_data', '').strip()
+        try:
+            parsed = json.loads(canvas_raw) if canvas_raw else None
+        except json.JSONDecodeError:
+            parsed = None
+
+        current_canvas_state = sanitize_canvas_state(parsed)
+        notes_canvas_by_week[week_key] = current_canvas_state
+        request.session['notes_canvas_by_week'] = notes_canvas_by_week
+
+        task_items = get_todo_task_items(request)
+        retained_items = []
+        for item in task_items:
+            if not isinstance(item, dict):
+                continue
+
+            is_notes_week_item = (
+                item.get('source') == 'notes_canvas'
+                and item.get('source_week') == week_key
+            )
+            if not is_notes_week_item:
+                retained_items.append(item)
+
+        retained_items.extend(build_weekly_note_tasks(current_canvas_state))
+        request.session['todo_task_items'] = retained_items
+
         request.session.modified = True
         return HttpResponseRedirect(reverse('notes'))
 
-    note_text = notes_by_week.get(week_key, '')
+    current_state = sanitize_canvas_state(notes_canvas_by_week.get(week_key))
     context = {
-        'note_text': note_text,
+        'canvas_data_json': json.dumps(current_state),
+        'note_type_options_json': json.dumps(note_type_options),
+        'note_type_colors_json': json.dumps(note_type_colors),
         'week_range_label': f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
     }
     return render(request, 'dashboard/notes.html', context)
