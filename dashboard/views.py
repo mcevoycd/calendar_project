@@ -147,17 +147,45 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
     if section not in valid_sections:
         section = default_section if default_section in valid_sections else "planning"
 
+    parsed_start = None
+    parsed_end = None
+    start_date_raw = str(raw_item.get("start_date", "")).strip()
+    end_date_raw = str(raw_item.get("end_date", "")).strip()
+    if start_date_raw:
+        try:
+            parsed_start = datetime.strptime(start_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            parsed_start = None
+    if end_date_raw:
+        try:
+            parsed_end = datetime.strptime(end_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            parsed_end = None
+
     start_day = str(raw_item.get("start_day", default_day or "Monday")).strip()
     end_day = str(raw_item.get("end_day", start_day)).strip()
-    if start_day not in TODO_DAY_INDEX:
-        start_day = default_day if default_day in TODO_DAY_INDEX else "Monday"
-    if end_day not in TODO_DAY_INDEX:
-        end_day = start_day
 
-    start_index = TODO_DAY_INDEX[start_day]
-    end_index = TODO_DAY_INDEX[end_day]
-    if end_index < start_index:
-        start_day, end_day = end_day, start_day
+    if parsed_start and not parsed_end:
+        parsed_end = parsed_start
+    if parsed_end and not parsed_start:
+        parsed_start = parsed_end
+
+    if parsed_start and parsed_end and parsed_end < parsed_start:
+        parsed_start, parsed_end = parsed_end, parsed_start
+
+    if parsed_start and parsed_end:
+        start_day = parsed_start.strftime("%A")
+        end_day = parsed_end.strftime("%A")
+    else:
+        if start_day not in TODO_DAY_INDEX:
+            start_day = default_day if default_day in TODO_DAY_INDEX else "Monday"
+        if end_day not in TODO_DAY_INDEX:
+            end_day = start_day
+
+        start_index = TODO_DAY_INDEX[start_day]
+        end_index = TODO_DAY_INDEX[end_day]
+        if end_index < start_index:
+            start_day, end_day = end_day, start_day
 
     task_id = str(raw_item.get("id", "")).strip() or str(uuid4())
 
@@ -171,7 +199,63 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
         "section": section,
         "start_day": start_day,
         "end_day": end_day,
+        "start_date": parsed_start.isoformat() if parsed_start else "",
+        "end_date": parsed_end.isoformat() if parsed_end else "",
     }
+
+
+def get_todo_week_dates(request):
+    query_date = request.GET.get("date", "").strip()
+    try:
+        anchor = datetime.strptime(query_date, "%Y-%m-%d").date() if query_date else datetime.today().date()
+    except ValueError:
+        anchor = datetime.today().date()
+
+    week_start = anchor - timedelta(days=anchor.weekday())
+    week_dates = []
+    for offset, (day_name, _) in enumerate(TODO_DAYS):
+        current = week_start + timedelta(days=offset)
+        week_dates.append(
+            {
+                "name": day_name,
+                "date": current,
+                "date_iso": current.isoformat(),
+                "date_label": current.strftime("%d %b"),
+            }
+        )
+
+    return week_start, week_dates
+
+
+def get_todo_return_url(request):
+    return_date = request.POST.get("return_date", "").strip()
+    if return_date:
+        try:
+            datetime.strptime(return_date, "%Y-%m-%d")
+            return f"{reverse('todo')}?date={return_date}"
+        except ValueError:
+            pass
+
+    return reverse('todo')
+
+
+def task_applies_to_day(task, day_name, day_date):
+    start_raw = task.get("start_date", "")
+    end_raw = task.get("end_date", "")
+    if start_raw and end_raw:
+        try:
+            start_date = datetime.strptime(start_raw, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_raw, "%Y-%m-%d").date()
+            return start_date <= day_date <= end_date
+        except ValueError:
+            pass
+
+    start_index = TODO_DAY_INDEX.get(task.get("start_day", ""), 0)
+    end_index = TODO_DAY_INDEX.get(task.get("end_day", ""), start_index)
+    day_index = TODO_DAY_INDEX.get(day_name, 0)
+    if end_index < start_index:
+        start_index, end_index = end_index, start_index
+    return start_index <= day_index <= end_index
 
 
 def get_todo_task_items(request):
@@ -229,7 +313,10 @@ def get_todo_task_items(request):
     return task_items
 
 
-def get_todo_tasks_by_day(request):
+def get_todo_tasks_by_day(request, week_dates=None):
+    if week_dates is None:
+        _, week_dates = get_todo_week_dates(request)
+
     tasks_by_day = {}
     for day_name, _ in TODO_DAYS:
         tasks_by_day[day_name] = {}
@@ -237,11 +324,9 @@ def get_todo_tasks_by_day(request):
             tasks_by_day[day_name][section_key] = []
 
     for item in get_todo_task_items(request):
-        start_index = TODO_DAY_INDEX[item["start_day"]]
-        end_index = TODO_DAY_INDEX[item["end_day"]]
-        for day_index in range(start_index, end_index + 1):
-            day_name = TODO_DAY_ORDER[day_index]
-            tasks_by_day[day_name][item["section"]].append(item)
+        for day_info in week_dates:
+            if task_applies_to_day(item, day_info["name"], day_info["date"]):
+                tasks_by_day[day_info["name"]][item["section"]].append(item)
 
     return tasks_by_day
 
@@ -379,6 +464,10 @@ def diary_view(request):
 @login_required
 def todo_view(request):
     todo_sections = get_todo_sections(request)
+    week_start, week_dates = get_todo_week_dates(request)
+    week_end = week_start + timedelta(days=6)
+    prev_week = week_start - timedelta(days=7)
+    next_week = week_start + timedelta(days=7)
 
     if request.method == 'POST' and request.POST.get('form_type') == 'update_section_titles':
         updated_titles = {}
@@ -389,12 +478,12 @@ def todo_view(request):
 
         request.session['todo_section_titles'] = updated_titles
         request.session.modified = True
-        return HttpResponseRedirect(reverse('todo'))
+        return HttpResponseRedirect(get_todo_return_url(request))
 
     if request.method == 'POST' and request.POST.get('form_type') == 'add_todo_entry':
         task_title = request.POST.get('task_title', '').strip()
-        task_start_day = request.POST.get('task_start_day', '').strip() or request.POST.get('task_day', '').strip()
-        task_end_day = request.POST.get('task_end_day', '').strip() or task_start_day
+        task_start_date_raw = request.POST.get('task_start_date', '').strip()
+        task_end_date_raw = request.POST.get('task_end_date', '').strip()
         task_section = request.POST.get('task_section', '').strip()
         task_notes = request.POST.get('task_notes', '').strip()
         task_priority = request.POST.get('task_priority', '').strip().lower()
@@ -404,13 +493,25 @@ def todo_view(request):
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
         if not task_title:
-            return HttpResponseRedirect(reverse('todo'))
+            return HttpResponseRedirect(get_todo_return_url(request))
 
-        if task_start_day not in valid_days or task_end_day not in valid_days or task_section not in valid_sections:
-            return HttpResponseRedirect(reverse('todo'))
+        if task_section not in valid_sections:
+            return HttpResponseRedirect(get_todo_return_url(request))
 
-        if TODO_DAY_INDEX[task_end_day] < TODO_DAY_INDEX[task_start_day]:
-            task_start_day, task_end_day = task_end_day, task_start_day
+        try:
+            task_start_date = datetime.strptime(task_start_date_raw, "%Y-%m-%d").date()
+            task_end_date = datetime.strptime(task_end_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            return HttpResponseRedirect(get_todo_return_url(request))
+
+        if task_end_date < task_start_date:
+            task_start_date, task_end_date = task_end_date, task_start_date
+
+        task_start_day = task_start_date.strftime("%A")
+        task_end_day = task_end_date.strftime("%A")
+
+        if task_start_day not in valid_days or task_end_day not in valid_days:
+            return HttpResponseRedirect(get_todo_return_url(request))
 
         if task_priority not in TODO_PRIORITY_CHOICES:
             task_priority = 'medium'
@@ -426,6 +527,8 @@ def todo_view(request):
             "section": task_section,
             "start_day": task_start_day,
             "end_day": task_end_day,
+            "start_date": task_start_date.isoformat(),
+            "end_date": task_end_date.isoformat(),
         }
 
         task_items = get_todo_task_items(request)
@@ -433,7 +536,7 @@ def todo_view(request):
 
         request.session['todo_task_items'] = task_items
         request.session.modified = True
-        return HttpResponseRedirect(reverse('todo'))
+        return HttpResponseRedirect(get_todo_return_url(request))
 
     if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry', 'toggle_todo_completed'):
         form_type = request.POST.get('form_type')
@@ -442,12 +545,12 @@ def todo_view(request):
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
         if not task_id:
-            return HttpResponseRedirect(reverse('todo'))
+            return HttpResponseRedirect(get_todo_return_url(request))
 
         task_items = get_todo_task_items(request)
         task_pos = next((index for index, item in enumerate(task_items) if item.get('id') == task_id), -1)
         if task_pos == -1:
-            return HttpResponseRedirect(reverse('todo'))
+            return HttpResponseRedirect(get_todo_return_url(request))
 
         if form_type == 'delete_todo_entry':
             del task_items[task_pos]
@@ -465,8 +568,8 @@ def todo_view(request):
             updated_priority = request.POST.get('task_priority', '').strip().lower()
             updated_completed = request.POST.get('task_completed') == 'on'
             updated_section = request.POST.get('task_section', '').strip().lower()
-            updated_start_day = request.POST.get('task_start_day', '').strip() or request.POST.get('task_day', '').strip()
-            updated_end_day = request.POST.get('task_end_day', '').strip() or updated_start_day
+            updated_start_date_raw = request.POST.get('task_start_date', '').strip()
+            updated_end_date_raw = request.POST.get('task_end_date', '').strip()
 
             if updated_priority not in TODO_PRIORITY_CHOICES:
                 updated_priority = 'medium'
@@ -474,16 +577,20 @@ def todo_view(request):
             if updated_section not in valid_sections:
                 updated_section = 'planning'
 
-            if updated_start_day not in TODO_DAY_INDEX:
-                updated_start_day = 'Monday'
-            if updated_end_day not in TODO_DAY_INDEX:
-                updated_end_day = updated_start_day
+            try:
+                updated_start_date = datetime.strptime(updated_start_date_raw, "%Y-%m-%d").date()
+                updated_end_date = datetime.strptime(updated_end_date_raw, "%Y-%m-%d").date()
+            except ValueError:
+                return HttpResponseRedirect(get_todo_return_url(request))
 
-            if TODO_DAY_INDEX[updated_end_day] < TODO_DAY_INDEX[updated_start_day]:
-                updated_start_day, updated_end_day = updated_end_day, updated_start_day
+            if updated_end_date < updated_start_date:
+                updated_start_date, updated_end_date = updated_end_date, updated_start_date
+
+            updated_start_day = updated_start_date.strftime("%A")
+            updated_end_day = updated_end_date.strftime("%A")
 
             if not updated_title:
-                return HttpResponseRedirect(reverse('todo'))
+                return HttpResponseRedirect(get_todo_return_url(request))
 
             task_items[task_pos] = {
                 "id": task_id,
@@ -494,6 +601,8 @@ def todo_view(request):
                 "section": updated_section,
                 "start_day": updated_start_day,
                 "end_day": updated_end_day,
+                "start_date": updated_start_date.isoformat(),
+                "end_date": updated_end_date.isoformat(),
             }
 
         normalized_items = []
@@ -508,12 +617,13 @@ def todo_view(request):
 
         request.session['todo_task_items'] = normalized_items
         request.session.modified = True
-        return HttpResponseRedirect(reverse('todo'))
+        return HttpResponseRedirect(get_todo_return_url(request))
 
     todo_sections = get_todo_sections(request)
-    tasks_by_day = get_todo_tasks_by_day(request)
+    tasks_by_day = get_todo_tasks_by_day(request, week_dates=week_dates)
 
     day_lists = []
+    day_info_by_name = {item["name"]: item for item in week_dates}
     for day_name, class_name in TODO_DAYS:
         sections = []
         day_seed = tasks_by_day.get(day_name, {})
@@ -531,6 +641,8 @@ def todo_view(request):
             {
                 "name": day_name,
                 "class_name": class_name,
+                "date_iso": day_info_by_name[day_name]["date_iso"],
+                "date_label": day_info_by_name[day_name]["date_label"],
                 "sections": sections,
             }
         )
@@ -541,6 +653,11 @@ def todo_view(request):
         {
             "day_lists": day_lists,
             "todo_sections": todo_sections,
+            "week_start_iso": week_start.isoformat(),
+            "week_range_label": f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
+            "prev_week_iso": prev_week.isoformat(),
+            "next_week_iso": next_week.isoformat(),
+            "today_iso": datetime.today().date().isoformat(),
         },
     )
 

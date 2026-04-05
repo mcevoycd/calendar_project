@@ -139,6 +139,28 @@
       line-height: 1.7;
     }
 
+    .week-nav {
+      margin-top: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .week-nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .week-nav-label {
+      color: #AFC0CF;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
     .content-grid {
       margin-top: 1.25rem;
       display: grid;
@@ -181,6 +203,16 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #06111E;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.35rem;
+    }
+
+    .todo-day-header small {
+      font-size: 0.65rem;
+      letter-spacing: 0.03em;
+      opacity: 0.88;
     }
 
     .todo-day-monday .todo-day-header { background: #38BDF8; }
@@ -500,10 +532,19 @@
           <h2>Week View</h2>
           <p>Diary-style layout with day columns, each containing the five To Do board sections.</p>
 
+          <div class="week-nav" aria-label="Week navigation">
+            <div class="week-nav-controls">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'todo' %}?date={{ prev_week_iso }}">Previous Week</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'todo' %}?date={{ today_iso }}">Current Week</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'todo' %}?date={{ next_week_iso }}">Next Week</a>
+            </div>
+            <span class="week-nav-label">{{ week_range_label }}</span>
+          </div>
+
           <div class="todo-days-grid" aria-label="Weekly To Do Board">
             {% for day in day_lists %}
               <article class="todo-day {{ day.class_name }}" aria-label="{{ day.name }} to do list">
-                <header class="todo-day-header">{{ day.name }}</header>
+                <header class="todo-day-header">{{ day.name }} <small>{{ day.date_label }}</small></header>
                 <div class="todo-day-body">
                   {% for section in day.sections %}
                     <section class="todo-section {{ section.class_name }}" aria-label="{{ section.name }} section">
@@ -515,6 +556,7 @@
                               <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="toggle_todo_completed">
+                                <input type="hidden" name="return_date" value="{{ week_start_iso }}">
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
                                 <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
                               </form>
@@ -526,6 +568,8 @@
                                 data-notes="{{ task.notes|default:''|escape }}"
                                 data-priority="{{ task.priority|default:'medium' }}"
                                 data-completed="{% if task.completed %}true{% else %}false{% endif %}"
+                                data-start-date="{{ task.start_date }}"
+                                data-end-date="{{ task.end_date }}"
                                 data-start-day="{{ task.start_day }}"
                                 data-end-day="{{ task.end_day }}"
                                 data-section="{{ section.key }}"
@@ -542,6 +586,7 @@
                               <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="form_type" value="delete_todo_entry">
+                                <input type="hidden" name="return_date" value="{{ week_start_iso }}">
                                 <input type="hidden" name="task_id" value="{{ task.id }}">
                                 <button type="submit" class="todo-delete-btn" aria-label="Delete task" title="Delete task">
                                   <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false">
@@ -569,26 +614,19 @@
           <form class="todo-form" action="{% url 'todo' %}" method="post" id="todo-entry-form">
             {% csrf_token %}
             <input type="hidden" name="form_type" id="todo-form-type" value="add_todo_entry">
+            <input type="hidden" name="return_date" value="{{ week_start_iso }}">
             <input type="hidden" name="task_id" id="task-id-input" value="">
             <label>
               Task title
               <input type="text" name="task_title" id="task-title-input" placeholder="Write task title" required>
             </label>
             <label>
-              Start day
-              <select name="task_start_day" id="task-start-day-input" required>
-                {% for day in day_lists %}
-                  <option value="{{ day.name }}">{{ day.name }}</option>
-                {% endfor %}
-              </select>
+              Start date
+              <input type="date" name="task_start_date" id="task-start-date-input" value="{{ day_lists.0.date_iso }}" required>
             </label>
             <label>
-              End day
-              <select name="task_end_day" id="task-end-day-input" required>
-                {% for day in day_lists %}
-                  <option value="{{ day.name }}">{{ day.name }}</option>
-                {% endfor %}
-              </select>
+              End date
+              <input type="date" name="task_end_date" id="task-end-date-input" value="{{ day_lists.0.date_iso }}" required>
             </label>
             <label>
               Section
@@ -623,6 +661,7 @@
           <form class="todo-settings-form" method="post" action="{% url 'todo' %}">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="update_section_titles">
+            <input type="hidden" name="return_date" value="{{ week_start_iso }}">
             <h3>Customize Section Titles</h3>
             {% for section in todo_sections %}
               <label>
@@ -645,8 +684,8 @@
       const formTypeInput = document.getElementById('todo-form-type');
       const taskIdInput = document.getElementById('task-id-input');
       const titleInput = document.getElementById('task-title-input');
-      const startDayInput = document.getElementById('task-start-day-input');
-      const endDayInput = document.getElementById('task-end-day-input');
+      const startDateInput = document.getElementById('task-start-date-input');
+      const endDateInput = document.getElementById('task-end-date-input');
       const sectionInput = document.getElementById('task-section-input');
       const notesInput = document.getElementById('task-notes-input');
       const priorityInput = document.getElementById('task-priority-input');
@@ -673,8 +712,8 @@
           notesInput.value = btn.dataset.notes || '';
           priorityInput.value = btn.dataset.priority || 'medium';
           completedInput.checked = (btn.dataset.completed || 'false') === 'true';
-          startDayInput.value = btn.dataset.startDay || startDayInput.value;
-          endDayInput.value = btn.dataset.endDay || endDayInput.value;
+          startDateInput.value = btn.dataset.startDate || startDateInput.value;
+          endDateInput.value = btn.dataset.endDate || endDateInput.value;
           sectionInput.value = btn.dataset.section || sectionInput.value;
           formTypeInput.value = 'edit_todo_entry';
           submitBtn.textContent = 'Save Task';
