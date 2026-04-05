@@ -269,6 +269,30 @@
       color: #06111E;
     }
 
+    .diary-delete-btn {
+      border: 1px solid #35546D;
+      border-radius: 8px;
+      background: #102638;
+      color: #8EA0B1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .diary-delete-btn:hover,
+    .diary-delete-btn:focus {
+      background: rgba(251, 113, 133, 0.18);
+      color: #FB7185;
+      border-color: rgba(251, 113, 133, 0.45);
+      outline: none;
+    }
+
     /* Calendar styling */
     .fc {
       color: #E5E7EB;
@@ -501,10 +525,24 @@
                 <input type="time" name="end_time" step="900" placeholder="End time">
               </div>
               <textarea class="diary-textarea" name="content" placeholder="Diary entry content (optional)"></textarea>
+              <input type="hidden" name="redirect_date" id="diary-delete-redirect-date">
               <small id="diary-selection-hint">Tip: only title is required. Date defaults to today if left blank.</small>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                 <button type="submit" class="btn btn-primary diary-button" id="diary-submit-btn">Add Diary Entry</button>
                 <button type="button" class="btn btn-outline-secondary diary-button" id="diary-cancel-edit" style="display:none;">Cancel Edit</button>
+                <button
+                  type="submit"
+                  formmethod="post"
+                  formaction="{% url 'delete_diary_entry' %}"
+                  formnovalidate
+                  class="diary-delete-btn"
+                  id="diary-delete-btn"
+                  style="display:none;"
+                  aria-label="Delete diary entry"
+                  title="Delete diary entry"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </form>
@@ -526,6 +564,8 @@
       const entryIdInput = diaryForm ? diaryForm.querySelector('input[name="entry_id"]') : null;
       const submitButton = document.getElementById('diary-submit-btn');
       const cancelEditButton = document.getElementById('diary-cancel-edit');
+      const deleteButton = document.getElementById('diary-delete-btn');
+      const deleteRedirectDateInput = document.getElementById('diary-delete-redirect-date');
       const entryCards = document.querySelectorAll('.diary-entry[data-entry-id]');
       const selectionHint = document.getElementById('diary-selection-hint');
       const queryDate = new URLSearchParams(window.location.search).get('date');
@@ -540,6 +580,9 @@
         if (!submitButton || !cancelEditButton || !selectionHint || !entryIdInput) return;
         submitButton.textContent = editing ? 'Update Diary Entry' : 'Add Diary Entry';
         cancelEditButton.style.display = editing ? 'inline-flex' : 'none';
+        if (deleteButton) {
+          deleteButton.style.display = editing ? 'inline-flex' : 'none';
+        }
         selectionHint.textContent = editing
           ? 'Editing existing entry. Update fields and click Update Diary Entry.'
           : 'Tip: only title is required. Date defaults to today if left blank.';
@@ -560,6 +603,9 @@
         entryIdInput.value = entry.id || '';
         titleInput.value = entry.title || '';
         dateInput.value = entry.date || '';
+        if (deleteRedirectDateInput) {
+          deleteRedirectDateInput.value = entry.date || '';
+        }
         if (endDateInput) {
           endDateInput.value = entry.endDate || '';
         }
@@ -644,6 +690,14 @@
         locale: 'en-gb',
         initialView: 'timeGridWeek',
         initialDate: selectedDate || undefined,
+        slotDuration: '00:15:00',
+        snapDuration: '00:15:00',
+        slotLabelInterval: '00:15:00',
+        slotLabelFormat: {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        },
         firstDay: 1,
         selectable: true,
         selectMirror: true,
@@ -663,9 +717,9 @@
             id: String(info.event.id || ''),
             title: info.event.title || '',
             date: info.event.start ? formatDateForInput(info.event.start) : '',
-            endDate: info.event.extendedProps.endDate || '',
-            startTime: info.event.extendedProps.startTime || '',
-            endTime: info.event.extendedProps.endTime || '',
+            endDate: info.event.extendedProps.formEndDate || '',
+            startTime: info.event.extendedProps.formStartTime || '',
+            endTime: info.event.extendedProps.formEndTime || '',
             content: info.event.extendedProps.description || ''
           });
         },
@@ -693,6 +747,20 @@
       if (cancelEditButton) {
         cancelEditButton.addEventListener('click', function () {
           resetFormForCreateMode();
+        });
+      }
+
+      if (deleteButton) {
+        deleteButton.addEventListener('click', function (event) {
+          if (!entryIdInput || !entryIdInput.value) {
+            event.preventDefault();
+            return;
+          }
+
+          const confirmed = window.confirm('Delete this diary entry?');
+          if (!confirmed) {
+            event.preventDefault();
+          }
         });
       }
 

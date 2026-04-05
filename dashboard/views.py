@@ -2,7 +2,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from .models import Event, DiaryEntry
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -239,6 +239,25 @@ def get_todo_return_url(request):
     return reverse('todo')
 
 
+def diary_entry_to_calendar_values(entry):
+    # Treat any entry with at least one time value as a timed event.
+    if entry.start_time is not None or entry.end_time is not None:
+        start_clock = entry.start_time or time(0, 0)
+        start_dt = datetime.combine(entry.date, start_clock)
+
+        if entry.end_time:
+            end_dt = datetime.combine(entry.date, entry.end_time)
+            if end_dt <= start_dt:
+                end_dt = end_dt + timedelta(days=1)
+        else:
+            end_dt = start_dt + timedelta(hours=1)
+
+        return start_dt.isoformat(), end_dt.isoformat(), False
+
+    range_end = entry.end_date if entry.end_date else entry.date
+    return entry.date.isoformat(), (range_end + timedelta(days=1)).isoformat(), True
+
+
 def task_applies_to_day(task, day_name, day_date):
     start_raw = task.get("start_date", "")
     end_raw = task.get("end_date", "")
@@ -386,23 +405,7 @@ def events_api(request):
 
     diary_entries = DiaryEntry.objects.filter(user=request.user)
     for entry in diary_entries:
-        if entry.start_time:
-            start_dt = datetime.combine(entry.date, entry.start_time)
-            if entry.end_time:
-                end_dt = datetime.combine(entry.date, entry.end_time)
-                if end_dt <= start_dt:
-                    end_dt = end_dt + timedelta(days=1)
-            else:
-                end_dt = start_dt + timedelta(hours=1)
-
-            start_value = start_dt.isoformat()
-            end_value = end_dt.isoformat()
-            all_day = False
-        else:
-            range_end = entry.end_date if entry.end_date else entry.date
-            start_value = entry.date.isoformat()
-            end_value = (range_end + timedelta(days=1)).isoformat()
-            all_day = True
+        start_value, end_value, all_day = diary_entry_to_calendar_values(entry)
 
         data.append({
             "id": f"diary-{entry.id}",
@@ -421,23 +424,7 @@ def diary_api(request):
     diary_entries = DiaryEntry.objects.filter(user=request.user)
     data = []
     for entry in diary_entries:
-        if entry.start_time:
-            start_dt = datetime.combine(entry.date, entry.start_time)
-            if entry.end_time:
-                end_dt = datetime.combine(entry.date, entry.end_time)
-                if end_dt <= start_dt:
-                    end_dt = end_dt + timedelta(days=1)
-            else:
-                end_dt = start_dt + timedelta(hours=1)
-
-            start_value = start_dt.isoformat()
-            end_value = end_dt.isoformat()
-            all_day = False
-        else:
-            range_end = entry.end_date if entry.end_date else entry.date
-            start_value = entry.date.isoformat()
-            end_value = (range_end + timedelta(days=1)).isoformat()
-            all_day = True
+        start_value, end_value, all_day = diary_entry_to_calendar_values(entry)
 
         data.append({
             "id": entry.id,
@@ -446,9 +433,9 @@ def diary_api(request):
             "end": end_value,
             "allDay": all_day,
             "description": entry.content,
-            "endDate": (entry.end_date.isoformat() if entry.end_date else entry.date.isoformat()) if all_day else '',
-            "startTime": entry.start_time.strftime('%H:%M') if entry.start_time else '',
-            "endTime": entry.end_time.strftime('%H:%M') if entry.end_time else '',
+            "formEndDate": (entry.end_date.isoformat() if entry.end_date else entry.date.isoformat()) if all_day else '',
+            "formStartTime": entry.start_time.strftime('%H:%M') if entry.start_time else '',
+            "formEndTime": entry.end_time.strftime('%H:%M') if entry.end_time else '',
         })
     return JsonResponse(data, safe=False)
 
@@ -694,6 +681,8 @@ def add_diary_entry(request):
                     parsed_start = datetime.strptime(start_time, '%H:%M').time()
                 if end_time:
                     parsed_end = datetime.strptime(end_time, '%H:%M').time()
+                if parsed_end and not parsed_start:
+                    parsed_start = time(0, 0)
             except ValueError:
                 messages.error(request, 'Invalid date/time format. Please check your values.')
                 return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
@@ -703,7 +692,8 @@ def add_diary_entry(request):
                 return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
 
             # Multi-day range applies to all-day entries only.
-            effective_end_date = parsed_end_date if (not parsed_start and not parsed_end) else None
+            # If end date is blank, default to the same day (single-day all-day entry).
+            effective_end_date = (parsed_end_date or parsed_date) if (not parsed_start and not parsed_end) else None
 
             if entry_id:
                 diary_entry = DiaryEntry.objects.filter(id=entry_id, user=request.user).first()
@@ -720,18 +710,60 @@ def add_diary_entry(request):
                 diary_entry.save()
                 messages.success(request, 'Diary entry updated successfully!')
             else:
-                DiaryEntry.objects.create(
-                    user=request.user,
-                    title=title,
-                    date=parsed_date,
-                    end_date=effective_end_date,
-                    start_time=parsed_start,
-                    end_time=parsed_end,
-                    content=content or ''
-                )
-                messages.success(request, 'Diary entry added successfully!')
+                # For timed entries with a date range, create one entry per day in the range.
+                if (parsed_start or parsed_end) and parsed_end_date and parsed_end_date > parsed_date:
+                    current_date = parsed_date
+                    created_count = 0
+                    while current_date <= parsed_end_date:
+                        DiaryEntry.objects.create(
+                            user=request.user,
+                            title=title,
+                            date=current_date,
+                            end_date=None,
+                            start_time=parsed_start,
+                            end_time=parsed_end,
+                            content=content or ''
+                        )
+                        created_count += 1
+                        current_date = current_date + timedelta(days=1)
+
+                    messages.success(request, f'{created_count} diary entries added successfully!')
+                else:
+                    DiaryEntry.objects.create(
+                        user=request.user,
+                        title=title,
+                        date=parsed_date,
+                        end_date=effective_end_date,
+                        start_time=parsed_start,
+                        end_time=parsed_end,
+                        content=content or ''
+                    )
+                    messages.success(request, 'Diary entry added successfully!')
         else:
             messages.error(request, 'Please provide a diary entry title.')
         return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
 
     return HttpResponseRedirect(reverse('diary'))
+
+
+@login_required
+def delete_diary_entry(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('diary'))
+
+    entry_id = request.POST.get('entry_id', '').strip()
+    redirect_date = request.POST.get('redirect_date', '').strip()
+
+    if not redirect_date:
+        redirect_date = datetime.today().date().isoformat()
+
+    diary_entry = DiaryEntry.objects.filter(id=entry_id, user=request.user).first()
+    if diary_entry:
+        if diary_entry.date:
+            redirect_date = diary_entry.date.isoformat()
+        diary_entry.delete()
+        messages.success(request, 'Diary entry deleted successfully!')
+    else:
+        messages.error(request, 'Diary entry not found.')
+
+    return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
