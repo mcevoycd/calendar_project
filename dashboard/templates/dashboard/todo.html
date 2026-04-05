@@ -252,11 +252,54 @@
       background: #1A3145;
       color: #D9E4EE;
       border-radius: 10px;
-      padding: 0.6rem 2rem 0.6rem 0.7rem;
+      padding: 0.6rem 2rem 0.6rem 2rem;
       font-size: 0.82rem;
       line-height: 1.35;
       cursor: pointer;
       transition: border-color 0.15s ease, background 0.15s ease;
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .todo-task-title {
+      font-weight: 600;
+      color: #E5E7EB;
+    }
+
+    .todo-task-notes {
+      color: #9FB1C1;
+      font-size: 0.76rem;
+      font-style: italic;
+    }
+
+    .todo-task-hit.is-completed .todo-task-title,
+    .todo-task-hit.is-completed .todo-task-notes {
+      text-decoration: line-through;
+      opacity: 0.75;
+    }
+
+    .todo-priority {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      display: inline-block;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 0.15rem 0.45rem;
+      color: #06111E;
+    }
+
+    .todo-priority-high {
+      background: #FB7185;
+    }
+
+    .todo-priority-medium {
+      background: #FACC15;
+    }
+
+    .todo-priority-low {
+      background: #34D399;
     }
 
     .todo-task-hit:hover,
@@ -275,6 +318,20 @@
       position: absolute;
       top: 0.35rem;
       right: 0.35rem;
+    }
+
+    .todo-complete-form {
+      position: absolute;
+      top: 0.42rem;
+      left: 0.42rem;
+    }
+
+    .todo-complete-checkbox {
+      width: 0.9rem;
+      height: 0.9rem;
+      accent-color: #34D399;
+      cursor: pointer;
+      margin: 0;
     }
 
     .todo-delete-btn {
@@ -455,15 +512,30 @@
                         <ul class="todo-section-tasks">
                           {% for task in section.tasks %}
                             <li class="todo-task">
+                              <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_type" value="toggle_todo_completed">
+                                <input type="hidden" name="task_day" value="{{ day.name }}">
+                                <input type="hidden" name="task_section" value="{{ section.key }}">
+                                <input type="hidden" name="task_index" value="{{ forloop.counter0 }}">
+                                <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
+                              </form>
                               <button
                                 type="button"
-                                class="todo-task-hit"
-                                data-task="{{ task|escape }}"
+                                class="todo-task-hit{% if task.completed %} is-completed{% endif %}"
+                                data-title="{{ task.title|escape }}"
+                                data-notes="{{ task.notes|default:''|escape }}"
+                                data-priority="{{ task.priority|default:'medium' }}"
+                                data-completed="{% if task.completed %}true{% else %}false{% endif %}"
                                 data-day="{{ day.name }}"
                                 data-section="{{ section.key }}"
                                 data-index="{{ forloop.counter0 }}"
                               >
-                                {{ task }}
+                                <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
+                                <span class="todo-task-title">{{ task.title }}</span>
+                                {% if task.notes %}
+                                  <span class="todo-task-notes">{{ task.notes }}</span>
+                                {% endif %}
                               </button>
                               <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
                                 {% csrf_token %}
@@ -522,6 +594,18 @@
               Notes
               <textarea name="task_notes" id="task-notes-input" placeholder="Optional notes..."></textarea>
             </label>
+            <label>
+              Priority
+              <select name="task_priority" id="task-priority-input" required>
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" name="task_completed" id="task-completed-input" style="width:0.95rem; height:0.95rem; accent-color:#34D399;">
+              Mark as completed
+            </label>
             <div class="todo-form-actions">
               <button type="submit" class="btn btn-primary" id="todo-submit-btn">Add Task</button>
               <button type="button" class="btn btn-outline-secondary" id="todo-cancel-edit" style="display:none;">Cancel Edit</button>
@@ -534,7 +618,7 @@
             <h3>Customize Section Titles</h3>
             {% for section in todo_sections %}
               <label>
-                {{ section.default_title }}
+                {{ section.title }}
                 <input type="text" name="section_{{ section.key }}" value="{{ section.title }}" maxlength="30">
               </label>
             {% endfor %}
@@ -556,22 +640,12 @@
       const dayInput = document.getElementById('task-day-input');
       const sectionInput = document.getElementById('task-section-input');
       const notesInput = document.getElementById('task-notes-input');
+      const priorityInput = document.getElementById('task-priority-input');
+      const completedInput = document.getElementById('task-completed-input');
       const submitBtn = document.getElementById('todo-submit-btn');
       const cancelBtn = document.getElementById('todo-cancel-edit');
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
-
-      function splitTaskText(value) {
-        const divider = ' - ';
-        const idx = value.indexOf(divider);
-        if (idx === -1) {
-          return { title: value, notes: '' };
-        }
-
-        return {
-          title: value.slice(0, idx),
-          notes: value.slice(idx + divider.length),
-        };
-      }
+      const completeCheckboxes = Array.from(document.querySelectorAll('.todo-complete-checkbox'));
 
       function setAddMode() {
         formTypeInput.value = 'add_todo_entry';
@@ -585,9 +659,10 @@
 
       taskButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
-          const parsed = splitTaskText(btn.dataset.task || '');
-          titleInput.value = parsed.title;
-          notesInput.value = parsed.notes;
+          titleInput.value = btn.dataset.title || '';
+          notesInput.value = btn.dataset.notes || '';
+          priorityInput.value = btn.dataset.priority || 'medium';
+          completedInput.checked = (btn.dataset.completed || 'false') === 'true';
           dayInput.value = btn.dataset.day || dayInput.value;
           sectionInput.value = btn.dataset.section || sectionInput.value;
           taskIndexInput.value = btn.dataset.index || '';
@@ -606,6 +681,18 @@
       cancelBtn.addEventListener('click', function () {
         form.reset();
         setAddMode();
+      });
+
+      completeCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('click', function (event) {
+          event.stopPropagation();
+        });
+        checkbox.addEventListener('change', function () {
+          const formEl = checkbox.closest('form');
+          if (formEl) {
+            formEl.submit();
+          }
+        });
       });
 
       setAddMode();

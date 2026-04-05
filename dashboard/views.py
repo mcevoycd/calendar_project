@@ -26,6 +26,12 @@ TODO_DAYS = [
     ("Sunday", "todo-day-sunday"),
 ]
 
+TODO_PRIORITY_CHOICES = {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+}
+
 
 def get_todo_sections(request):
     custom_titles = request.session.get("todo_section_titles", {})
@@ -81,6 +87,44 @@ def get_default_todo_seed():
     }
 
 
+def normalize_todo_task(raw_task):
+    if isinstance(raw_task, dict):
+        title = str(raw_task.get("title", "")).strip()[:120]
+        notes = str(raw_task.get("notes", "")).strip()[:180]
+        priority = str(raw_task.get("priority", "medium")).strip().lower()
+        completed = bool(raw_task.get("completed", False))
+    elif isinstance(raw_task, str):
+        value = raw_task.strip()
+        if not value:
+            return None
+
+        if " - " in value:
+            title, notes = value.split(" - ", 1)
+            title = title.strip()[:120]
+            notes = notes.strip()[:180]
+        else:
+            title = value[:120]
+            notes = ""
+        priority = "medium"
+        completed = False
+    else:
+        return None
+
+    if not title:
+        return None
+
+    if priority not in TODO_PRIORITY_CHOICES:
+        priority = "medium"
+
+    return {
+        "title": title,
+        "notes": notes,
+        "priority": priority,
+        "priority_label": TODO_PRIORITY_CHOICES[priority],
+        "completed": completed,
+    }
+
+
 def get_todo_tasks_by_day(request):
     raw_tasks = request.session.get("todo_tasks")
     if not isinstance(raw_tasks, dict):
@@ -99,8 +143,9 @@ def get_todo_tasks_by_day(request):
 
             cleaned_tasks = []
             for task in section_tasks:
-                if isinstance(task, str) and task.strip():
-                    cleaned_tasks.append(task.strip()[:180])
+                normalized = normalize_todo_task(task)
+                if normalized:
+                    cleaned_tasks.append(normalized)
 
             if cleaned_tasks != section_tasks:
                 changed = True
@@ -126,14 +171,23 @@ def dashboard_view(request):
         for day_name, _ in TODO_DAYS:
             section_tasks.extend(tasks_by_day.get(day_name, {}).get(section["key"], []))
 
-        if not section_tasks:
-            section_tasks = ["No entries yet"]
+        display_tasks = []
+        for task in section_tasks[:6]:
+            task_line = f"[{task['priority_label']}] {task['title']}"
+            if task.get("notes"):
+                task_line = f"{task_line} - {task['notes']}"
+            if task.get("completed"):
+                task_line = f"[Done] {task_line}"
+            display_tasks.append(task_line)
+
+        if not display_tasks:
+            display_tasks = ["No entries yet"]
 
         todo_columns.append(
             {
                 "title": section["title"],
                 "list_class": f"todo-list-{section['key']}",
-                "tasks": section_tasks[:6],
+                "tasks": display_tasks,
             }
         )
 
@@ -255,6 +309,8 @@ def todo_view(request):
         task_day = request.POST.get('task_day', '').strip()
         task_section = request.POST.get('task_section', '').strip()
         task_notes = request.POST.get('task_notes', '').strip()
+        task_priority = request.POST.get('task_priority', '').strip().lower()
+        task_completed = request.POST.get('task_completed') == 'on'
 
         valid_days = {day_name for day_name, _ in TODO_DAYS}
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
@@ -265,9 +321,17 @@ def todo_view(request):
         if task_day not in valid_days or task_section not in valid_sections:
             return HttpResponseRedirect(reverse('todo'))
 
+        if task_priority not in TODO_PRIORITY_CHOICES:
+            task_priority = 'medium'
+
         task_title = task_title[:120]
         task_notes = task_notes[:180]
-        task_value = f"{task_title} - {task_notes}" if task_notes else task_title
+        task_value = {
+            "title": task_title,
+            "notes": task_notes,
+            "priority": task_priority,
+            "completed": task_completed,
+        }
 
         tasks_by_day = get_todo_tasks_by_day(request)
         tasks_by_day[task_day][task_section].append(task_value)
@@ -276,7 +340,7 @@ def todo_view(request):
         request.session.modified = True
         return HttpResponseRedirect(reverse('todo'))
 
-    if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry'):
+    if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry', 'toggle_todo_completed'):
         form_type = request.POST.get('form_type')
         task_day = request.POST.get('task_day', '').strip()
         task_section = request.POST.get('task_section', '').strip()
@@ -301,17 +365,29 @@ def todo_view(request):
 
         if form_type == 'delete_todo_entry':
             del section_tasks[task_index]
+        elif form_type == 'toggle_todo_completed':
+            current_task = section_tasks[task_index]
+            current_task['completed'] = not bool(current_task.get('completed', False))
+            section_tasks[task_index] = current_task
         else:
-            updated_value = request.POST.get('task_value', '').strip()[:180]
-            if not updated_value:
-                updated_title = request.POST.get('task_title', '').strip()[:120]
-                updated_notes = request.POST.get('task_notes', '').strip()[:180]
-                updated_value = f"{updated_title} - {updated_notes}" if updated_notes else updated_title
+            updated_title = request.POST.get('task_title', '').strip()[:120]
+            updated_notes = request.POST.get('task_notes', '').strip()[:180]
+            updated_priority = request.POST.get('task_priority', '').strip().lower()
+            updated_completed = request.POST.get('task_completed') == 'on'
 
-            if not updated_value:
+            if updated_priority not in TODO_PRIORITY_CHOICES:
+                updated_priority = 'medium'
+
+            if not updated_title:
                 return HttpResponseRedirect(reverse('todo'))
 
-            section_tasks[task_index] = updated_value
+            section_tasks[task_index] = {
+                "title": updated_title,
+                "notes": updated_notes,
+                "priority": updated_priority,
+                "priority_label": TODO_PRIORITY_CHOICES[updated_priority],
+                "completed": updated_completed,
+            }
 
         tasks_by_day[task_day][task_section] = section_tasks
         request.session['todo_tasks'] = tasks_by_day
