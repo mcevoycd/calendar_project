@@ -7,6 +7,7 @@ from .models import Event, DiaryEntry
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.db.models import Q
 from uuid import uuid4
 import json
 
@@ -406,8 +407,34 @@ def sync_notes_box_completed_state(request, task_item):
 
 @login_required
 def dashboard_view(request):
-    # Get upcoming diary entries for the current user
-    diary_entries = DiaryEntry.objects.filter(user=request.user).order_by('date', 'start_time', 'created_at')[:5]
+    # Keep "Up & Coming" focused on future and not-yet-finished entries.
+    now = datetime.now()
+    today = now.date()
+    current_time = now.time()
+
+    base_queryset = (
+        DiaryEntry.objects.filter(user=request.user)
+        .filter(Q(end_date__gte=today) | Q(end_date__isnull=True, date__gte=today))
+        .order_by('date', 'start_time', 'created_at')
+    )
+
+    upcoming_entries = []
+    for entry in base_queryset:
+        entry_end_date = entry.end_date if entry.end_date else entry.date
+        if entry_end_date > today:
+            upcoming_entries.append(entry)
+            continue
+
+        if entry.start_time is None and entry.end_time is None:
+            # Keep all-day items for today in the upcoming list.
+            upcoming_entries.append(entry)
+            continue
+
+        effective_end_time = entry.end_time if entry.end_time else entry.start_time
+        if effective_end_time and effective_end_time >= current_time:
+            upcoming_entries.append(entry)
+
+    diary_entries = upcoming_entries[:5]
 
     todo_sections = get_todo_sections(request)
     task_items = get_todo_task_items(request)
