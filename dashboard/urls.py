@@ -4,7 +4,9 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
+    path('todo/', views.todo_view, name='todo'),
     path('api/events/', views.events_api, name='events_api'),
-    path('diary/<str:date>/', views.diary_view, name='diary_by_date'),
-    path('diary/event/<int:event_id>/', views.diary_view, name='diary_by_event'),
+    path('api/diary/', views.diary_api, name='diary_api'),
+    path('diary/add/', views.add_diary_entry, name='add_diary_entry'),
+    path('diary/', views.diary_view, name='diary'),
 ]

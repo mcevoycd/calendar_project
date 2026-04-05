@@ -4,10 +4,712 @@
 <head>
   <meta charset="UTF-8">
   <title>Diary</title>
+  {% load static %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/bootstrap/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/bootstrap/index.global.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #06111E;
+      --surface: #0E1B2A;
+      --surface-strong: #091624;
+      --surface-muted: #1F3A53;
+      --text: #E5E7EB;
+      --muted: #9EB0C2;
+      --accent: #F6C35C;
+      --accent-strong: #00C2FF;
+      --border: rgba(24, 73, 108, 0.9);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 10%, #0B2338 0%, #06111E 42%, #050D18 100%);
+      color: var(--text);
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #0A1A2A 0%, #091624 100%);
+      color: var(--text);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      border-right: 1px solid rgba(0, 194, 255, 0.3);
+    }
+
+    .brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0;
+      color: var(--accent);
+    }
+
+    .brand-subtitle {
+      margin: 0.5rem 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .nav-link {
+      display: block;
+      color: #C9DAE7;
+      text-decoration: none;
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(0, 194, 255, 0.18);
+      color: var(--accent);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.95rem;
+      color: #94A3B8;
+      line-height: 1.75;
+    }
+
+    .main {
+      padding: 1.5rem 2rem;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 2.2vw, 2.5rem);
+      color: var(--accent);
+    }
+
+    .topbar-meta {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .topbar-meta span {
+      color: var(--muted);
+    }
+
+    .user-menu {
+      padding: 0.75rem 1rem;
+      background: rgba(0, 194, 255, 0.08);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      display: inline-flex;
+      gap: 0.75rem;
+      align-items: center;
+      border: 1px solid rgba(0, 194, 255, 0.3);
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .week-panel {
+      min-width: 0;
+      border-color: rgba(24, 73, 108, 0.4);
+    }
+
+    .entry-panel {
+      align-self: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .panel small {
+      color: var(--muted);
+    }
+
+    .calendar-wrapper {
+      background: radial-gradient(circle at top, rgba(0, 194, 255, 0.08), transparent 70%);
+      padding: 14px;
+      border-radius: 14px;
+      margin-top: 1rem;
+    }
+
+    #calendar {
+      min-height: 760px;
+      height: 82vh;
+      background: #1C2733;
+      border: 1px solid rgba(50, 66, 83, 0.5);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.18), 0 0 40px rgba(0, 194, 255, 0.08);
+    }
+
+    /* Add Diary Entry Form */
+    .diary-form {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #0A1A2A;
+      border-radius: 12px;
+      border: 1px solid #1B4A67;
+    }
+
+    .diary-form .form-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .diary-form input,
+    .diary-form textarea {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #1F4F70;
+      background: #08131F;
+      color: #E5E7EB;
+    }
+
+    .diary-form textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Requested diary color scheme */
+    .diary-container {
+      background: #0E1B2A;
+      color: #E5E7EB;
+      padding: 24px;
+      border-radius: 10px;
+      border: 1px solid #1B4A67;
+      max-width: none;
+      margin: 0;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.45);
+    }
+
+    .diary-container h1,
+    .diary-container h2 {
+      color: var(--accent);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .diary-textarea {
+      width: 100%;
+      min-height: 220px;
+      background: #08131F;
+      color: #E5E7EB;
+      border: 1px solid #1F4F70;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 1rem;
+      resize: vertical;
+    }
+
+    .diary-button {
+      background: var(--accent-strong);
+      color: #06111E;
+      padding: 10px 18px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    .diary-button:hover {
+      background: var(--accent);
+      color: #06111E;
+    }
+
+    /* Calendar styling */
+    .fc {
+      color: #E5E7EB;
+      font-family: inherit;
+    }
+
+    .fc .fc-toolbar.fc-header-toolbar {
+      background: linear-gradient(135deg, #304355, #243444);
+      color: #E5E7EB;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      border: 1px solid #3D556A;
+      box-shadow: none;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid-section,
+    .fc .fc-view-harness,
+    .fc .fc-scroller,
+    .fc .fc-timegrid-body,
+    .fc .fc-timegrid-cols table,
+    .fc .fc-timegrid-slots table {
+      background: #263748;
+    }
+
+    .fc-theme-standard td,
+    .fc-theme-standard th,
+    .fc .fc-scrollgrid {
+      border-color: #3F5468;
+    }
+
+    .fc .fc-col-header,
+    .fc .fc-col-header-cell,
+    .fc .fc-timegrid-axis,
+    .fc .fc-timegrid-slot-label,
+    .fc .fc-timegrid-slot {
+      background: #304355;
+      color: #9EB0C2;
+    }
+
+    .fc .fc-timegrid-col,
+    .fc .fc-daygrid-day {
+      background: #2A3B4B;
+      border-color: #3F5468;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .fc .fc-daygrid-day:hover {
+      background: #324658;
+      box-shadow: inset 0 0 10px rgba(0, 194, 255, 0.15);
+    }
+
+    .fc .fc-toolbar-title,
+    .fc .fc-col-header-cell-cushion,
+    .fc .fc-timegrid-axis-cushion,
+    .fc .fc-timegrid-slot-label-cushion {
+      color: #D3DEE8;
+    }
+
+    .fc .fc-toolbar-title,
+    .fc .fc-col-header-cell-cushion {
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .fc .fc-daygrid-day-number {
+      color: #D3DEE8;
+      font-weight: 600;
+    }
+
+    .fc .fc-day-other .fc-daygrid-day-number {
+      color: #8EA0B1;
+      opacity: 0.75;
+    }
+
+    .fc .fc-button {
+      background: #42586C;
+      border: none;
+      color: #E5E7EB;
+      transition: 0.2s ease;
+      border-radius: 6px;
+    }
+
+    .fc .fc-button:hover {
+      background: #00C2FF;
+      color: #06111E;
+    }
+
+    .fc .fc-button:active,
+    .fc .fc-button.fc-button-active {
+      background: #FACC15;
+      color: #06111E;
+    }
+
+    .fc .fc-day-today,
+    .fc .fc-timegrid-col.fc-day-today {
+      background: rgba(0, 194, 255, 0.18) !important;
+      border: 2px solid #00C2FF !important;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .fc-event {
+      background: #00B5EB;
+      border: 1px solid #FACC15;
+      color: #06111E;
+      border-radius: 6px;
+      padding: 3px 6px;
+      box-shadow: 0 2px 8px rgba(6, 12, 20, 0.45);
+      font-weight: 600;
+    }
+
+    .fc .fc-timegrid-now-indicator-line {
+      border-color: #F6C35C;
+    }
+
+    .fc .fc-timegrid-now-indicator-arrow {
+      border-color: #F6C35C;
+      color: #F6C35C;
+    }
+
+    .fc .fc-daygrid-day-frame {
+      min-height: 118px;
+    }
+
+    .btn-primary {
+      background-color: #00C2FF;
+      border-color: #00C2FF;
+      color: #06111E;
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+      background-color: #F6C35C;
+      border-color: #F6C35C;
+      color: #06111E;
+    }
+
+    @media (max-width: 1080px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        padding: 1.5rem;
+      }
+
+      #calendar {
+        min-height: 620px;
+        height: 72vh;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .sidebar {
+        padding: 1.25rem;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .topbar-meta {
+        justify-content: space-between;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Diary Entry</h1>
-  <p>Date: {{ date }}</p>
-  <p>Event ID: {{ event_id }}</p>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <p class="brand">ChronoDesk</p>
+        <p class="brand-subtitle">Modern calendar and diary workspace for global teams.</p>
+      </div>
+
+      <nav class="nav-group" aria-label="Main navigation">
+        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+        <a class="nav-link active" href="{% url 'diary' %}">Diary</a>
+        <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Build the future of scheduling with a clean, responsive dashboard experience.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Diary</h1>
+          <p style="margin:0; color:var(--muted);">Your personal diary with week view.</p>
+        </div>
+        <div class="user-menu">
+          {% if request.user.is_authenticated %}
+            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+            <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary" style="margin-left:0.75rem;">Sign out</a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-sm btn-primary">Sign in</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <div class="panel week-panel">
+          <h2>Week View</h2>
+          <p>View and manage your diary entries by week. Click any all-day cell or time slot to prefill a new entry.</p>
+          <div class="calendar-wrapper">
+            <div id="calendar"></div>
+          </div>
+        </div>
+
+        <div class="panel diary-container entry-panel">
+          <h2>Add Diary Entry</h2>
+          <form method="post" action="{% url 'add_diary_entry' %}" class="diary-form">
+            {% csrf_token %}
+            <div class="form-grid">
+              <input type="hidden" name="entry_id" id="entry-id-input">
+              <input type="text" name="title" placeholder="Diary entry title" required>
+              <input type="date" name="date">
+              <input type="date" name="end_date" id="end-date-input" placeholder="End date (optional for all-day multi-day)">
+              <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                <input type="time" name="start_time" step="900" placeholder="Start time">
+                <input type="time" name="end_time" step="900" placeholder="End time">
+              </div>
+              <textarea class="diary-textarea" name="content" placeholder="Diary entry content (optional)"></textarea>
+              <small id="diary-selection-hint">Tip: only title is required. Date defaults to today if left blank.</small>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button type="submit" class="btn btn-primary diary-button" id="diary-submit-btn">Add Diary Entry</button>
+                <button type="button" class="btn btn-outline-secondary diary-button" id="diary-cancel-edit" style="display:none;">Cancel Edit</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+      const diaryForm = document.querySelector('.diary-form');
+      const titleInput = diaryForm ? diaryForm.querySelector('input[name="title"]') : null;
+      const dateInput = diaryForm ? diaryForm.querySelector('input[name="date"]') : null;
+      const endDateInput = diaryForm ? diaryForm.querySelector('input[name="end_date"]') : null;
+      const startTimeInput = diaryForm ? diaryForm.querySelector('input[name="start_time"]') : null;
+      const endTimeInput = diaryForm ? diaryForm.querySelector('input[name="end_time"]') : null;
+      const contentInput = diaryForm ? diaryForm.querySelector('textarea[name="content"]') : null;
+      const entryIdInput = diaryForm ? diaryForm.querySelector('input[name="entry_id"]') : null;
+      const submitButton = document.getElementById('diary-submit-btn');
+      const cancelEditButton = document.getElementById('diary-cancel-edit');
+      const entryCards = document.querySelectorAll('.diary-entry[data-entry-id]');
+      const selectionHint = document.getElementById('diary-selection-hint');
+      const queryDate = new URLSearchParams(window.location.search).get('date');
+      const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
+
+      if (!calendarEl) {
+        console.error('calendar element not found');
+        return;
+      }
+
+      function setEditMode(editing) {
+        if (!submitButton || !cancelEditButton || !selectionHint || !entryIdInput) return;
+        submitButton.textContent = editing ? 'Update Diary Entry' : 'Add Diary Entry';
+        cancelEditButton.style.display = editing ? 'inline-flex' : 'none';
+        selectionHint.textContent = editing
+          ? 'Editing existing entry. Update fields and click Update Diary Entry.'
+          : 'Tip: only title is required. Date defaults to today if left blank.';
+
+        if (!editing) {
+          entryIdInput.value = '';
+        }
+      }
+
+      function resetFormForCreateMode() {
+        if (!diaryForm) return;
+        diaryForm.reset();
+        setEditMode(false);
+      }
+
+      function loadEntryIntoForm(entry) {
+        if (!entryIdInput || !titleInput || !dateInput || !contentInput) return;
+        entryIdInput.value = entry.id || '';
+        titleInput.value = entry.title || '';
+        dateInput.value = entry.date || '';
+        if (endDateInput) {
+          endDateInput.value = entry.endDate || '';
+        }
+        if (startTimeInput) {
+          startTimeInput.value = entry.startTime || '';
+        }
+        if (endTimeInput) {
+          endTimeInput.value = entry.endTime || '';
+        }
+        contentInput.value = entry.content || '';
+        setEditMode(true);
+        titleInput.focus();
+      }
+
+      function formatTimeForInput(dateObj) {
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+      }
+
+      function formatDateForInput(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function prefillFromDate(dateObj, isAllDay, endDateObj) {
+        if (!dateInput) return;
+
+        const wasEditing = Boolean(entryIdInput && entryIdInput.value);
+
+        dateInput.value = formatDateForInput(dateObj);
+
+        if (endDateInput) {
+          if (isAllDay) {
+            endDateInput.value = endDateObj ? formatDateForInput(endDateObj) : formatDateForInput(dateObj);
+          } else {
+            endDateInput.value = '';
+          }
+        }
+
+        if (startTimeInput && endTimeInput) {
+          if (isAllDay) {
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+          } else {
+            startTimeInput.value = formatTimeForInput(dateObj);
+            if (endDateObj) {
+              endTimeInput.value = formatTimeForInput(endDateObj);
+            } else {
+              const defaultEnd = new Date(dateObj.getTime() + 60 * 60 * 1000);
+              endTimeInput.value = formatTimeForInput(defaultEnd);
+            }
+          }
+        }
+
+        if (selectionHint) {
+          selectionHint.textContent = isAllDay
+            ? 'Selected all-day slot. Set an end date for multi-day events, or leave equal for single-day.'
+            : 'Selected time slot. Date and time were set; adjust duration as needed.';
+        }
+
+        if (titleInput) {
+          titleInput.focus();
+        }
+
+        if (wasEditing) {
+          if (titleInput) {
+            titleInput.value = '';
+          }
+          if (contentInput) {
+            contentInput.value = '';
+          }
+        }
+
+        setEditMode(false);
+      }
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        themeSystem: 'bootstrap',
+        locale: 'en-gb',
+        initialView: 'timeGridWeek',
+        initialDate: selectedDate || undefined,
+        firstDay: 1,
+        selectable: true,
+        selectMirror: true,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+          today: 'Today',
+          week: 'Week',
+          day: 'Day'
+        },
+        events: '/api/diary/',
+        eventClick: function (info) {
+          loadEntryIntoForm({
+            id: String(info.event.id || ''),
+            title: info.event.title || '',
+            date: info.event.start ? formatDateForInput(info.event.start) : '',
+            endDate: info.event.extendedProps.endDate || '',
+            startTime: info.event.extendedProps.startTime || '',
+            endTime: info.event.extendedProps.endTime || '',
+            content: info.event.extendedProps.description || ''
+          });
+        },
+        dateClick: function (info) {
+          prefillFromDate(info.date, info.allDay);
+        },
+        select: function (selectionInfo) {
+          prefillFromDate(selectionInfo.start, selectionInfo.allDay, selectionInfo.end);
+          calendar.unselect();
+        }
+      });
+
+      calendar.render();
+
+      if (selectedDate && dateInput && !(entryIdInput && entryIdInput.value)) {
+        dateInput.value = selectedDate;
+        if (endDateInput && !endDateInput.value) {
+          endDateInput.value = selectedDate;
+        }
+        if (selectionHint) {
+          selectionHint.textContent = 'Opened from dashboard selection. Date was prefilled from your clicked day.';
+        }
+      }
+
+      if (cancelEditButton) {
+        cancelEditButton.addEventListener('click', function () {
+          resetFormForCreateMode();
+        });
+      }
+
+      entryCards.forEach(function (card) {
+        card.addEventListener('click', function () {
+          loadEntryIntoForm({
+            id: card.dataset.entryId || '',
+            title: card.dataset.title || '',
+            date: card.dataset.date || '',
+            endDate: card.dataset.endDate || '',
+            startTime: card.dataset.startTime || '',
+            endTime: card.dataset.endTime || '',
+            content: card.dataset.content || ''
+          });
+        });
+      });
+    });
+  </script>
 </body>
 </html>

@@ -120,6 +120,18 @@ function formatOffset(timeZone) {
   }
 }
 
+function getSortValue(timeZone) {
+  const parts = parseDateParts(new Date(), timeZone);
+  return Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
+}
+
 function getFlag(timeZone) {
   return TZ_FLAGS[timeZone] || '🌍';
 }
@@ -196,7 +208,9 @@ function renderWorldClock() {
 
   function buildItems() {
     container.innerHTML = '';
-    timezones.forEach(tz => {
+    const sortedTimezones = [...timezones].sort((a, b) => getSortValue(a) - getSortValue(b));
+
+    sortedTimezones.forEach(tz => {
       const card = document.createElement('div');
       card.className = 'clock-item';
       if (tz === localTimezone) {

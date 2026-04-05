@@ -15,16 +15,16 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #121212;
-      --surface: #252833;
-      --surface-strong: #1A1C22;
-      --surface-muted: #3D4250;
-      --text: #FFFFFF;
-      --muted: #A0AEC0;
-      --accent: #C5A059;
-      --accent-strong: #6366F1;
-      --border: rgba(61, 66, 80, 0.65);
-      --shadow: 0 30px 80px rgba(0, 0, 0, 0.40);
+      --bg: #06111E;
+      --surface: #0E1B2A;
+      --surface-strong: #091624;
+      --surface-muted: #1F3A53;
+      --text: #E5E7EB;
+      --muted: #9EB0C2;
+      --accent: #F6C35C;
+      --accent-strong: #00C2FF;
+      --border: rgba(24, 73, 108, 0.9);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     }
 
     * {
@@ -35,7 +35,7 @@
       margin: 0;
       min-height: 100vh;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #121212 0%, #1A1C22 100%);
+      background: radial-gradient(circle at 20% 10%, #0B2338 0%, #06111E 42%, #050D18 100%);
       color: var(--text);
     }
 
@@ -46,13 +46,13 @@
     }
 
     .sidebar {
-      background: #16181f;
+      background: linear-gradient(180deg, #0A1A2A 0%, #091624 100%);
       color: var(--text);
       padding: 2rem 1.5rem;
       display: flex;
       flex-direction: column;
       gap: 2rem;
-      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(0, 194, 255, 0.3);
     }
 
     .brand {
@@ -60,12 +60,12 @@
       font-weight: 700;
       letter-spacing: -0.03em;
       margin: 0;
-      color: #FFFFFF;
+      color: var(--accent);
     }
 
     .brand-subtitle {
       margin: 0.5rem 0 0;
-      color: #94A3B8;
+      color: var(--muted);
       line-height: 1.6;
       font-size: 0.95rem;
     }
@@ -77,7 +77,7 @@
 
     .nav-link {
       display: block;
-      color: #CBD5E1;
+      color: #C9DAE7;
       text-decoration: none;
       padding: 0.85rem 1rem;
       border-radius: 14px;
@@ -86,14 +86,14 @@
 
     .nav-link:hover,
     .nav-link.active {
-      background: rgba(99, 102, 241, 0.18);
-      color: #FFFFFF;
+      background: rgba(0, 194, 255, 0.18);
+      color: var(--accent);
     }
 
     .sidebar-footer {
       margin-top: auto;
       font-size: 0.95rem;
-      color: #94A3B8;
+      color: var(--muted);
       line-height: 1.75;
     }
 
@@ -116,7 +116,7 @@
     .topbar h1 {
       margin: 0;
       font-size: clamp(1.75rem, 2.2vw, 2.5rem);
-      color: #FFFFFF;
+      color: var(--accent);
     }
 
     .topbar-meta {
@@ -132,13 +132,13 @@
 
     .user-menu {
       padding: 0.75rem 1rem;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(0, 194, 255, 0.08);
       border-radius: 14px;
       box-shadow: var(--shadow);
       display: inline-flex;
       gap: 0.75rem;
       align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(0, 194, 255, 0.3);
     }
 
     .content-grid {
@@ -156,7 +156,7 @@
 
     .panel {
       background: var(--surface);
-      border-radius: 28px;
+      border-radius: 20px;
       padding: 1.5rem;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
@@ -169,7 +169,7 @@
       margin-top: 0;
       margin-bottom: 0.75rem;
       font-size: 1.2rem;
-      color: #FFFFFF;
+      color: var(--accent);
     }
 
     .panel p {
@@ -188,12 +188,21 @@
       gap: 1rem;
     }
 
-    #calendar {
-      background: #111317;
-      padding: 20px;
-      border-radius: 8px;
-      height: 100%;
+    .calendar-wrapper {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
       margin-top: 1rem;
+    }
+
+    #calendar {
+      background: #1C2733;
+      border: 1px solid #324253;
+      padding: 20px;
+      border-radius: 12px;
+      min-height: 820px;
+      height: 78vh;
+      box-shadow: none;
     }
 
     .worldclock-header {
@@ -224,18 +233,18 @@
     }
 
     #worldclock-container::-webkit-scrollbar-thumb {
-      background: rgba(99, 102, 241, 0.35);
+      background: rgba(0, 194, 255, 0.4);
       border-radius: 999px;
     }
 
     .clock-item {
       font-family: "JetBrains Mono", "Orbitron", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: rgba(37, 40, 51, 0.96);
+      background: #0A1A2A;
       border-radius: 24px;
       padding: 1rem 1.15rem;
-      border: 1px solid #3D4250;
+      border: 1px solid #1F4F70;
       box-shadow: 0 22px 48px rgba(0, 0, 0, 0.30);
-      color: #FFFFFF;
+      color: #E5E7EB;
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 0.35rem;
@@ -243,9 +252,9 @@
     }
 
     .clock-item.highlight {
-      border-color: rgba(99, 102, 241, 0.7);
-      background: linear-gradient(180deg, rgba(99, 102, 241, 0.16), rgba(37, 40, 51, 0.96));
-      box-shadow: 0 24px 52px rgba(99, 102, 241, 0.22);
+      border-color: rgba(0, 194, 255, 0.8);
+      background: linear-gradient(180deg, rgba(0, 194, 255, 0.16), #0A1A2A);
+      box-shadow: 0 24px 52px rgba(0, 194, 255, 0.2);
     }
 
     .clock-item .clock-zone {
@@ -262,7 +271,7 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       line-height: 1.2;
-      color: #FFFFFF;
+      color: var(--accent);
     }
 
     .clock-item .clock-subtitle {
@@ -300,15 +309,15 @@
       top: 0;
       bottom: 0;
       width: 2px;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 194, 255, 0.32);
       border-radius: 999px;
     }
 
     .event-item {
       position: relative;
-      background: rgba(255, 255, 255, 0.04);
+      background: #0A1A2A;
       border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid #1F4F70;
       padding: 1rem 1.25rem;
       display: grid;
       gap: 0.45rem;
@@ -323,12 +332,12 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid var(--surface);
+      background: var(--accent-strong);
+      border: 2px solid #0E1B2A;
     }
 
     .event-item strong {
-      color: #FFFFFF;
+      color: #E5E7EB;
       display: block;
       font-size: 1rem;
     }
@@ -338,79 +347,217 @@
       font-size: 0.95rem;
     }
 
-    .fc .fc-scrollgrid, .fc .fc-scrollgrid-section {
-      background: transparent;
+    .todo-board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(170px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
     }
 
-    .fc .fc-col-header-cell, .fc .fc-daygrid-day {
-      border-color: rgba(255, 255, 255, 0.08);
+    .todo-list {
+      background: #0A1A2A;
+      border: 1px solid #1F4F70;
+      border-radius: 14px;
+      padding: 0.85rem;
+      min-height: 260px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 0.75rem;
+    }
+
+    .todo-list h3 {
+      margin: 0;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      border-radius: 999px;
+      display: inline-block;
+      padding: 0.35rem 0.7rem;
+      color: #06111E;
+    }
+
+    .todo-list ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.6rem;
+      align-content: start;
+    }
+
+    .todo-item {
+      border: 1px solid #35546d;
+      background: #13283A;
+      border-radius: 10px;
+      padding: 0.6rem 0.7rem;
+      color: #D3DEE8;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .todo-list-planning h3 {
+      background: #38BDF8;
+    }
+
+    .todo-list-next h3 {
+      background: #A3E635;
+    }
+
+    .todo-list-progress h3 {
+      background: #FACC15;
+    }
+
+    .todo-list-review h3 {
+      background: #FB7185;
+    }
+
+    .todo-list-done h3 {
+      background: #34D399;
+    }
+
+    .fc {
+      color: #E5E7EB;
+      font-family: inherit;
+    }
+
+    .fc .fc-toolbar.fc-header-toolbar {
+      background: linear-gradient(135deg, #304355, #243444);
+      color: #E5E7EB;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      border: 1px solid #3D556A;
+      box-shadow: none;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid-section,
+    .fc .fc-view-harness,
+    .fc .fc-scroller,
+    .fc .fc-timegrid-body,
+    .fc .fc-timegrid-cols table,
+    .fc .fc-timegrid-slots table {
+      background: #263748;
+    }
+
+    .fc-theme-standard td,
+    .fc-theme-standard th,
+    .fc .fc-scrollgrid,
+    .fc .fc-col-header-cell,
+    .fc .fc-daygrid-day {
+      border-color: #3F5468;
     }
 
     .fc .fc-daygrid-day {
-      background: rgba(255, 255, 255, 0.02);
+      background: #2A3B4B;
       border-width: 1px;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .fc .fc-daygrid-day:hover {
+      background: #324658;
+      box-shadow: inset 0 0 10px rgba(0, 194, 255, 0.15);
     }
 
     .fc .fc-daygrid-day.fc-day-today {
-      background: rgba(99, 102, 241, 0.14);
-      border-color: rgba(99, 102, 241, 0.35);
-      backdrop-filter: blur(10px);
+      background: rgba(0, 194, 255, 0.18) !important;
+      border: 2px solid #00C2FF !important;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .fc .fc-toolbar-title,
+    .fc .fc-col-header-cell-cushion {
+      color: var(--accent);
+    }
+
+    .fc .fc-col-header-cell-cushion {
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .fc .fc-daygrid-day-number {
+      color: #D3DEE8;
+      font-weight: 600;
+    }
+
+    .fc .fc-day-other .fc-daygrid-day-number {
+      color: #8EA0B1;
+      opacity: 0.75;
     }
 
     .fc .fc-daygrid-day-frame {
       min-height: 118px;
     }
 
-    .fc .fc-daygrid-event-harness,
-    .fc .fc-daygrid-event {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 0;
-      min-height: 0;
+    .fc .fc-daygrid-event-harness {
+      margin-top: 2px;
     }
 
     .fc .fc-event {
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      padding: 0;
+      background: #00B5EB;
+      border: 1px solid #FACC15;
+      color: #06111E;
+      border-radius: 6px;
+      padding: 3px 6px;
       margin: 0;
+      box-shadow: 0 2px 8px rgba(6, 12, 20, 0.45);
+      font-weight: 600;
     }
 
-    .fc .fc-event-dot-custom {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--accent);
-      transition: transform 0.2s ease;
+    .fc .fc-button {
+      background: #42586C;
+      border: none;
+      color: #E5E7EB;
+      transition: 0.2s ease;
+      border-radius: 6px;
     }
 
-    .fc .fc-event:hover .fc-event-dot-custom {
-      transform: scale(1.3);
+    .fc .fc-button:hover {
+      background: #00C2FF;
+      color: #06111E;
+    }
+
+    .fc .fc-button:active,
+    .fc .fc-button.fc-button-active {
+      background: #FACC15;
+      color: #06111E;
+    }
+
+    .fc .fc-event-title,
+    .fc .fc-event-time {
+      color: #06111E;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .btn-primary {
-      background-color: var(--accent-strong);
-      border-color: var(--accent-strong);
+      background-color: #00C2FF;
+      border-color: #00C2FF;
+      color: #06111E;
     }
 
     .btn-primary:hover,
     .btn-primary:focus {
-      background-color: #4f46e5;
-      border-color: #4f46e5;
+      background-color: #F6C35C;
+      border-color: #F6C35C;
+      color: #06111E;
     }
 
     .btn-outline-secondary {
-      color: #FFFFFF;
-      border-color: rgba(255, 255, 255, 0.16);
+      color: #E5E7EB;
+      border-color: #1F4F70;
+      background: #0A1A2A;
     }
 
     .btn-outline-secondary:hover,
     .btn-outline-secondary:focus {
-      color: #FFFFFF;
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.24);
+      color: #06111E;
+      background: #00C2FF;
+      border-color: #00C2FF;
     }
 
     @media (max-width: 1080px) {
@@ -424,6 +571,10 @@
 
       .sidebar {
         padding: 1.5rem;
+      }
+
+      .todo-board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -440,6 +591,10 @@
       .topbar-meta {
         justify-content: space-between;
       }
+
+      .todo-board {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -452,10 +607,9 @@
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">
-        <a class="nav-link active" href="#">Dashboard</a>
-        <a class="nav-link" href="#calendar">Calendar</a>
-        <a class="nav-link" href="#diary">Diary</a>
-        <a class="nav-link" href="#settings">Settings</a>
+        <a class="nav-link active" href="{% url 'dashboard' %}">Dashboard</a>
+        <a class="nav-link" href="{% url 'diary' %}">Diary</a>
+        <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -503,29 +657,60 @@
           </section>
 
           <section class="panel" id="diary">
-            <h2>Upcoming events</h2>
-            <p>Events are shown here below your world clocks.</p>
+            <h2>Up & Coming Diary entries</h2>
+            <p>Diary entries are shown here below your world clocks. <a href="{% url 'diary' %}" style="color: var(--accent);">View full diary</a></p>
             <ul class="event-list">
-              <li class="event-item">
-                <strong>Team planning session</strong>
-                <span>May 8 · 10:00 - 11:00 GMT</span>
-              </li>
-              <li class="event-item">
-                <strong>Client review meeting</strong>
-                <span>May 9 · 14:00 - 15:00 EDT</span>
-              </li>
-              <li class="event-item">
-                <strong>Product roadmap sync</strong>
-                <span>May 10 · 09:30 - 10:15 JST</span>
-              </li>
+              {% for entry in diary_entries %}
+                <li class="event-item">
+                  <strong>{{ entry.title }}</strong>
+                  <span>
+                    {{ entry.date|date:"j M" }}
+                    {% if entry.end_date and entry.end_date != entry.date %}
+                      to {{ entry.end_date|date:"j M" }}
+                    {% endif %}
+                    {% if entry.start_time %}
+                      · {{ entry.start_time|time:"g:i A" }}
+                      {% if entry.end_time %}
+                        - {{ entry.end_time|time:"g:i A" }}
+                      {% endif %}
+                    {% else %}
+                      · All day
+                    {% endif %}
+                    · {{ entry.content|truncatechars:50 }}
+                  </span>
+                </li>
+              {% empty %}
+                <li class="event-item">
+                  <em>No diary entries yet. <a href="{% url 'diary' %}" style="color: var(--accent);">Add your first entry</a></em>
+                </li>
+              {% endfor %}
             </ul>
+          </section>
+
+          <section class="panel" id="todo">
+            <h2>To Do Board</h2>
+            <p>Five colored lists for planning and tracking work without date or time slots.</p>
+            <div class="todo-board" aria-label="To Do board">
+              {% for column in todo_columns %}
+                <section class="todo-list {{ column.list_class }}" aria-label="{{ column.title }} list">
+                  <h3>{{ column.title }}</h3>
+                  <ul>
+                    {% for task in column.tasks %}
+                      <li class="todo-item">{{ task }}</li>
+                    {% endfor %}
+                  </ul>
+                </section>
+              {% endfor %}
+            </div>
           </section>
         </div>
 
           <section class="panel">
           <h2>Calendar</h2>
-          <p>Click a date or event to open the diary view. Events are loaded live from <code style="background:#f1f5f9; padding:0.15rem 0.4rem; border-radius:0.35rem; color:#2563eb;">/api/events</code>.</p>
-          <div id="calendar"></div>
+          <p>Click a date or event to open the diary view. Events are loaded live from <code style="background:#0A1A2A; padding:0.15rem 0.4rem; border-radius:0.35rem; color:#00C2FF; border:1px solid #1F4F70;">/api/events</code>.</p>
+          <div class="calendar-wrapper">
+            <div id="calendar"></div>
+          </div>
         </section>
       </div>
     </main>

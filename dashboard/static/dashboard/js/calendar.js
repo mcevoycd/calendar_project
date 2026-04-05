@@ -9,7 +9,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const calendar = new FullCalendar.Calendar(calendarEl, {
     themeSystem: 'bootstrap',
+    locale: 'en-gb',
     initialView: 'dayGridMonth',
+    height: 'auto',
+    contentHeight: 'auto',
+    expandRows: true,
     firstDay: 1,
     headerToolbar: {
       left: 'prev,next today',
@@ -23,15 +27,13 @@ document.addEventListener('DOMContentLoaded', function () {
       day: 'Day'
     },
     events: '/api/events/',
-    eventContent: function(arg) {
-      return { html: '<div class="fc-event-dot-custom" title="' + arg.event.title + '"></div>' };
-    },
+    eventDisplay: 'block',
     eventClick: function (info) {
-      const eventId = info.event.id;
-      window.location.href = `/diary/event/${eventId}/`;
+      const eventDate = info.event.startStr ? info.event.startStr.slice(0, 10) : '';
+      window.location.href = eventDate ? `/diary/?date=${eventDate}` : '/diary/';
     },
     dateClick: function (info) {
-      window.location.href = `/diary/${info.dateStr}/`;
+      window.location.href = `/diary/?date=${info.dateStr}`;
     }
   });
 
