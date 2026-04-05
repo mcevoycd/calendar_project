@@ -361,6 +361,49 @@ def get_todo_tasks_by_day(request, week_dates=None):
 
     return tasks_by_day
 
+
+def sync_notes_box_completed_state(request, task_item):
+    if not isinstance(task_item, dict):
+        return
+
+    if task_item.get('source') != 'notes_canvas':
+        return
+
+    source_week = str(task_item.get('source_week', '')).strip()
+    source_box_id = str(task_item.get('source_box_id', '')).strip()
+    if not source_week or not source_box_id:
+        return
+
+    notes_canvas_by_week = request.session.get('notes_canvas_by_week', {})
+    if not isinstance(notes_canvas_by_week, dict):
+        return
+
+    week_state = notes_canvas_by_week.get(source_week)
+    if not isinstance(week_state, dict):
+        return
+
+    boxes = week_state.get('boxes', [])
+    if not isinstance(boxes, list):
+        return
+
+    completed_value = bool(task_item.get('completed', False))
+    changed = False
+    for box in boxes:
+        if not isinstance(box, dict):
+            continue
+        if str(box.get('id', '')).strip() != source_box_id:
+            continue
+
+        if bool(box.get('completed', False)) != completed_value:
+            box['completed'] = completed_value
+            changed = True
+        break
+
+    if changed:
+        notes_canvas_by_week[source_week] = week_state
+        request.session['notes_canvas_by_week'] = notes_canvas_by_week
+        request.session.modified = True
+
 @login_required
 def dashboard_view(request):
     # Get upcoming diary entries for the current user
@@ -618,6 +661,11 @@ def todo_view(request):
             if normalized:
                 normalized_items.append(normalized)
 
+        if form_type in ('edit_todo_entry', 'toggle_todo_completed'):
+            updated_item = next((item for item in normalized_items if item.get('id') == task_id), None)
+            if updated_item:
+                sync_notes_box_completed_state(request, updated_item)
+
         request.session['todo_task_items'] = normalized_items
         request.session.modified = True
         return HttpResponseRedirect(get_todo_return_url(request))
@@ -711,9 +759,11 @@ def notes_view(request):
                     'id': str(uuid4()),
                     'x': 70,
                     'y': 70,
-                    'w': 250,
+                    'w': 360,
                     'h': 150,
                     'type': 'Note',
+                    'note_date': week_start.isoformat(),
+                    'completed': False,
                     'text': '',
                 }
             ],
@@ -747,14 +797,14 @@ def notes_view(request):
             try:
                 x = int(float(item.get('x', 0)))
                 y = int(float(item.get('y', 0)))
-                w = int(float(item.get('w', 250)))
+                w = int(float(item.get('w', 360)))
                 h = int(float(item.get('h', 150)))
             except (TypeError, ValueError):
                 continue
 
             x = max(0, min(x, 2400))
             y = max(0, min(y, 2400))
-            w = max(180, min(w, 700))
+            w = max(320, min(w, 700))
             h = max(120, min(h, 520))
 
             text = item.get('text', '')
@@ -769,6 +819,18 @@ def notes_view(request):
             if box_type not in allowed_note_types:
                 box_type = 'Note'
 
+            completed = bool(item.get('completed', False))
+
+            note_date_value = str(item.get('note_date', '')).strip()
+            parsed_note_date = None
+            if note_date_value:
+                try:
+                    parsed_note_date = datetime.strptime(note_date_value, '%Y-%m-%d').date()
+                except ValueError:
+                    parsed_note_date = None
+            if parsed_note_date is None or parsed_note_date < week_start or parsed_note_date > week_end:
+                parsed_note_date = week_start
+
             box_ids.add(box_id)
             boxes.append(
                 {
@@ -778,6 +840,8 @@ def notes_view(request):
                     'w': w,
                     'h': h,
                     'type': box_type,
+                    'note_date': parsed_note_date.isoformat(),
+                    'completed': completed,
                     'text': text,
                 }
             )
@@ -838,17 +902,25 @@ def notes_view(request):
             if not title:
                 continue
 
+            note_date_raw = str(box.get('note_date', '')).strip()
+            try:
+                note_date = datetime.strptime(note_date_raw, '%Y-%m-%d').date()
+            except ValueError:
+                note_date = week_start
+            if note_date < week_start or note_date > week_end:
+                note_date = week_start
+
             raw_item = {
                 'id': str(uuid4()),
                 'title': title,
                 'notes': notes,
                 'priority': 'medium',
-                'completed': False,
+                'completed': bool(box.get('completed', False)),
                 'section': section_key,
-                'start_day': week_start.strftime('%A'),
-                'end_day': week_end.strftime('%A'),
-                'start_date': week_start.isoformat(),
-                'end_date': week_end.isoformat(),
+                'start_day': note_date.strftime('%A'),
+                'end_day': note_date.strftime('%A'),
+                'start_date': note_date.isoformat(),
+                'end_date': note_date.isoformat(),
                 'source': 'notes_canvas',
                 'source_week': week_key,
                 'source_box_id': str(box.get('id', '')).strip()[:80],
@@ -895,6 +967,8 @@ def notes_view(request):
         'canvas_data_json': json.dumps(current_state),
         'note_type_options_json': json.dumps(note_type_options),
         'note_type_colors_json': json.dumps(note_type_colors),
+        'week_start_iso': week_start.isoformat(),
+        'week_end_iso': week_end.isoformat(),
         'week_range_label': f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
     }
     return render(request, 'dashboard/notes.html', context)
