@@ -23,6 +23,10 @@ const TZ_FLAGS = {
   'UTC': 'UTC'
 };
 
+const TZ_DISPLAY_NAMES = {
+  'America/Chicago': 'Texas'
+};
+
 const CITY_TO_TZ = {
   'london': 'Europe/London',
   'new york': 'America/New_York',
@@ -136,6 +140,13 @@ function getFlag(timeZone) {
   return TZ_FLAGS[timeZone] || '🌍';
 }
 
+function getTimezoneLabel(timeZone) {
+  if (TZ_DISPLAY_NAMES[timeZone]) {
+    return TZ_DISPLAY_NAMES[timeZone];
+  }
+  return timeZone.split('/').pop().replace(/_/g, ' ');
+}
+
 function isValidTimezone(value) {
   try {
     Intl.DateTimeFormat(undefined, { timeZone: value });
@@ -219,7 +230,7 @@ function renderWorldClock() {
 
       const zone = document.createElement('div');
       zone.className = 'clock-zone';
-      zone.textContent = tz.split('/').pop().replace(/_/g, ' ');
+      zone.textContent = getTimezoneLabel(tz);
       card.dataset.tz = tz;
 
       const time = document.createElement('div');

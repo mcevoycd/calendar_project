@@ -960,6 +960,7 @@ def notes_view(request):
         return generated_items
 
     if request.method == 'POST':
+        is_auto_save = request.POST.get('auto_save', '').strip() == '1'
         canvas_raw = request.POST.get('canvas_data', '').strip()
         try:
             parsed = json.loads(canvas_raw) if canvas_raw else None
@@ -987,6 +988,8 @@ def notes_view(request):
         request.session['todo_task_items'] = retained_items
 
         request.session.modified = True
+        if is_auto_save:
+            return JsonResponse({'status': 'ok', 'saved_at': datetime.now().isoformat()})
         return HttpResponseRedirect(reverse('notes'))
 
     current_state = sanitize_canvas_state(notes_canvas_by_week.get(week_key))

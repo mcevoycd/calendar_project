@@ -55,11 +55,22 @@
       color: var(--accent);
     }
 
+    .brand-logo {
+      width: 100%;
+      max-width: 210px;
+      display: block;
+      margin: 0 0 0.6rem;
+      border-radius: 12px;
+      mix-blend-mode: screen;
+      opacity: 0.96;
+    }
+
     .brand-subtitle {
       margin: 0.5rem 0 0;
-      color: var(--muted);
+      color: var(--accent);
       line-height: 1.6;
       font-size: 0.95rem;
+      font-weight: 600;
     }
 
     .nav-group {
@@ -163,6 +174,16 @@
       border: 1px solid rgba(0, 194, 255, 0.25);
       border-radius: 999px;
       padding: 0.32rem 0.65rem;
+    }
+
+    .autosave-status {
+      color: #AFC0CF;
+      font-size: 0.78rem;
+      border: 1px solid rgba(246, 195, 92, 0.35);
+      border-radius: 999px;
+      padding: 0.28rem 0.6rem;
+      background: rgba(246, 195, 92, 0.08);
+      white-space: nowrap;
     }
 
     .btn-canvas {
@@ -435,8 +456,8 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div>
-        <p class="brand">ChronoDesk</p>
-        <p class="brand-subtitle">Modern calendar and diary workspace for global teams.</p>
+        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
+        <p class="brand-subtitle js-sidebar-datetime">Loading date and time...</p>
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">
@@ -475,6 +496,7 @@
             </div>
             <div class="toolbar-right">
               <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span>
+              <span class="autosave-status" id="autosave-status">Auto-save on</span>
               <button type="submit" class="btn-save">Save Canvas</button>
             </div>
           </div>
@@ -504,6 +526,7 @@
       const deleteBoxBtn = document.getElementById('delete-box-btn');
       const clearLinksBtn = document.getElementById('clear-links-btn');
       const toolbarInfo = document.getElementById('toolbar-info');
+      const autoSaveStatus = document.getElementById('autosave-status');
       const weekStartIso = '{{ week_start_iso|escapejs }}';
       const weekEndIso = '{{ week_end_iso|escapejs }}';
 
@@ -547,12 +570,28 @@
       let selectedBoxId = null;
       let linkMode = false;
       let linkSourceId = null;
+      let isDirty = false;
+      let autoSaveInFlight = false;
+      let lastSavedPayload = '';
       let linkDrag = {
         active: false,
         sourceId: null,
         pointerX: 0,
         pointerY: 0
       };
+
+      function updateAutoSaveStatus(text, isError) {
+        if (!autoSaveStatus) {
+          return;
+        }
+        autoSaveStatus.textContent = text;
+        autoSaveStatus.style.color = isError ? '#FCA5A5' : '#AFC0CF';
+      }
+
+      function markDirty() {
+        isDirty = true;
+        updateAutoSaveStatus('Unsaved changes', false);
+      }
 
       function uid() {
         return 'box-' + Math.random().toString(16).slice(2) + Date.now().toString(16);
@@ -658,6 +697,7 @@
           return;
         }
         state.links.push({ from: fromId, to: toId });
+        markDirty();
       }
 
       function refreshLinkControls() {
@@ -785,6 +825,7 @@
           });
           typeSelect.addEventListener('change', function () {
             box.type = sanitizeType(typeSelect.value);
+            markDirty();
             render();
           });
 
@@ -805,6 +846,7 @@
           dateInput.addEventListener('change', function () {
             box.note_date = sanitizeNoteDate(dateInput.value);
             dateInput.value = box.note_date;
+            markDirty();
           });
 
           headLeft.appendChild(dot);
@@ -902,6 +944,7 @@
 
           text.addEventListener('input', function () {
             box.text = text.value;
+            markDirty();
           });
 
           boxEl.addEventListener('click', function (event) {
@@ -959,6 +1002,7 @@
           function onUp() {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
+            markDirty();
           }
 
           document.addEventListener('mousemove', onMove);
@@ -986,6 +1030,7 @@
           function onUp() {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
+            markDirty();
           }
 
           document.addEventListener('mousemove', onMove);
@@ -998,10 +1043,116 @@
         renderLinks();
       }
 
+      function buildCanvasPayload() {
+        return {
+          boxes: state.boxes.map(function (box) {
+            normalizeBox(box);
+            return {
+              id: box.id,
+              x: Math.round(box.x),
+              y: Math.round(box.y),
+              w: Math.round(box.w),
+              h: Math.round(box.h),
+              type: sanitizeType(box.type),
+              note_date: sanitizeNoteDate(box.note_date),
+              completed: !!box.completed,
+              text: box.text || ''
+            };
+          }),
+          links: state.links.filter(function (link) {
+            return !!getBox(link.from) && !!getBox(link.to) && link.from !== link.to;
+          })
+        };
+      }
+
+      function autoSaveCanvas() {
+        if (autoSaveInFlight || !isDirty) {
+          return;
+        }
+
+        const payloadJson = JSON.stringify(buildCanvasPayload());
+        if (payloadJson === lastSavedPayload) {
+          isDirty = false;
+          updateAutoSaveStatus('All changes saved', false);
+          return;
+        }
+
+        autoSaveInFlight = true;
+        updateAutoSaveStatus('Auto-saving...', false);
+
+        const formData = new FormData(notesForm);
+        formData.set('canvas_data', payloadJson);
+        formData.set('auto_save', '1');
+
+        fetch(notesForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('Auto-save failed');
+            }
+            return response.json();
+          })
+          .then(function () {
+            lastSavedPayload = payloadJson;
+            isDirty = false;
+            const now = new Date();
+            updateAutoSaveStatus('Saved ' + now.toLocaleTimeString('en-GB'), false);
+          })
+          .catch(function () {
+            updateAutoSaveStatus('Auto-save failed', true);
+          })
+          .finally(function () {
+            autoSaveInFlight = false;
+          });
+      }
+
+      function immediateSaveOnLeave() {
+        if (!isDirty || autoSaveInFlight) {
+          return;
+        }
+
+        const payloadJson = JSON.stringify(buildCanvasPayload());
+        if (payloadJson === lastSavedPayload) {
+          isDirty = false;
+          return;
+        }
+
+        const formData = new FormData(notesForm);
+        formData.set('canvas_data', payloadJson);
+        formData.set('auto_save', '1');
+
+        let queued = false;
+        if (navigator.sendBeacon) {
+          queued = navigator.sendBeacon(notesForm.action, formData);
+        }
+
+        if (!queued) {
+          fetch(notesForm.action, {
+            method: 'POST',
+            body: formData,
+            keepalive: true,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }).catch(function () {
+            // Best-effort save during page unload.
+          });
+        }
+
+        lastSavedPayload = payloadJson;
+        isDirty = false;
+      }
+
       function addBoxAt(x, y, shouldFocusText) {
         const box = newBox(x, y);
         normalizeBox(box);
         state.boxes.push(box);
+        markDirty();
         selectedBoxId = box.id;
         render();
 
@@ -1054,12 +1205,14 @@
           return;
         }
         removeBox(selectedBoxId);
+        markDirty();
         updateToolbarInfo('Selected box deleted.');
         render();
       });
 
       clearLinksBtn.addEventListener('click', function () {
         state.links = [];
+        markDirty();
         cancelPendingLink();
         updateToolbarInfo('All links removed.');
         render();
@@ -1098,26 +1251,11 @@
       });
 
       notesForm.addEventListener('submit', function () {
-        const payload = {
-          boxes: state.boxes.map(function (box) {
-            normalizeBox(box);
-            return {
-              id: box.id,
-              x: Math.round(box.x),
-              y: Math.round(box.y),
-              w: Math.round(box.w),
-              h: Math.round(box.h),
-              type: sanitizeType(box.type),
-              note_date: sanitizeNoteDate(box.note_date),
-              completed: !!box.completed,
-              text: box.text || ''
-            };
-          }),
-          links: state.links.filter(function (link) {
-            return !!getBox(link.from) && !!getBox(link.to) && link.from !== link.to;
-          })
-        };
-        canvasDataInput.value = JSON.stringify(payload);
+        const payloadJson = JSON.stringify(buildCanvasPayload());
+        canvasDataInput.value = payloadJson;
+        lastSavedPayload = payloadJson;
+        isDirty = false;
+        updateAutoSaveStatus('All changes saved', false);
       });
 
       window.addEventListener('resize', function () {
@@ -1144,8 +1282,39 @@
         render();
       });
 
+      setInterval(autoSaveCanvas, 8000);
+      window.addEventListener('pagehide', immediateSaveOnLeave);
+      window.addEventListener('beforeunload', immediateSaveOnLeave);
+
       refreshLinkControls();
+      lastSavedPayload = JSON.stringify(buildCanvasPayload());
+      updateAutoSaveStatus('All changes saved', false);
       render();
+    })();
+
+    (function () {
+      const el = document.querySelector('.js-sidebar-datetime');
+      if (!el) return;
+
+      function updateSidebarDateTime() {
+        const now = new Date();
+        const datePart = now.toLocaleDateString('en-GB', {
+          weekday: 'short',
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        const timePart = now.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        el.textContent = `${datePart} | ${timePart}`;
+      }
+
+      updateSidebarDateTime();
+      setInterval(updateSidebarDateTime, 1000);
     })();
   </script>
 </body>

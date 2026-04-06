@@ -61,11 +61,22 @@
       color: var(--accent);
     }
 
+    .brand-logo {
+      width: 100%;
+      max-width: 210px;
+      display: block;
+      margin: 0 0 0.6rem;
+      border-radius: 12px;
+      mix-blend-mode: screen;
+      opacity: 0.96;
+    }
+
     .brand-subtitle {
       margin: 0.5rem 0 0;
-      color: var(--muted);
+      color: var(--accent);
       line-height: 1.6;
       font-size: 0.95rem;
+      font-weight: 600;
     }
 
     .nav-group {
@@ -471,8 +482,8 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div>
-        <p class="brand">ChronoDesk</p>
-        <p class="brand-subtitle">Modern calendar and diary workspace for global teams.</p>
+        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
+        <p class="brand-subtitle js-sidebar-datetime">Loading date and time...</p>
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">
@@ -705,10 +716,11 @@
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
-          right: 'timeGridWeek,timeGridDay'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         buttonText: {
           today: 'Today',
+          month: 'Month',
           week: 'Week',
           day: 'Day'
         },
@@ -779,6 +791,31 @@
         });
       });
     });
+
+    (function () {
+      const el = document.querySelector('.js-sidebar-datetime');
+      if (!el) return;
+
+      function updateSidebarDateTime() {
+        const now = new Date();
+        const datePart = now.toLocaleDateString('en-GB', {
+          weekday: 'short',
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        const timePart = now.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        el.textContent = `${datePart} | ${timePart}`;
+      }
+
+      updateSidebarDateTime();
+      setInterval(updateSidebarDateTime, 1000);
+    })();
   </script>
 </body>
 </html>
