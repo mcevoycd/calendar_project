@@ -100,6 +100,72 @@
       line-height: 1.75;
     }
 
+    body.nav-layout-tabs .app-shell {
+      grid-template-columns: 112px 1fr;
+    }
+
+    body.nav-layout-tabs .sidebar {
+      padding: 1.2rem 0.6rem;
+      gap: 1rem;
+    }
+
+    body.nav-layout-tabs .brand-logo {
+      max-width: 72px;
+      margin: 0 auto 0.2rem;
+    }
+
+    body.nav-layout-tabs .brand-subtitle,
+    body.nav-layout-tabs .sidebar-footer {
+      display: none;
+    }
+
+    body.nav-layout-tabs .nav-link {
+      text-align: center;
+      padding: 0.62rem 0.3rem;
+      font-size: 0.76rem;
+      line-height: 1.2;
+    }
+
+    body.nav-layout-bottom {
+      padding-bottom: 88px;
+    }
+
+    body.nav-layout-bottom .app-shell {
+      grid-template-columns: 1fr;
+    }
+
+    body.nav-layout-bottom .sidebar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      padding: 0.55rem 0.6rem 0.65rem;
+      border-right: none;
+      border-top: 1px solid rgba(0, 194, 255, 0.3);
+      background: rgba(10, 26, 42, 0.96);
+      backdrop-filter: blur(8px);
+      gap: 0.45rem;
+    }
+
+    body.nav-layout-bottom .sidebar > div:first-child,
+    body.nav-layout-bottom .sidebar-footer {
+      display: none;
+    }
+
+    body.nav-layout-bottom .nav-group {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.38rem;
+    }
+
+    body.nav-layout-bottom .nav-link {
+      text-align: center;
+      padding: 0.5rem 0.2rem;
+      font-size: 0.72rem;
+      line-height: 1.2;
+      border-radius: 10px;
+    }
+
     .main {
       padding: 1.5rem 2rem;
       display: flex;
@@ -452,7 +518,7 @@
     }
   </style>
 </head>
-<body>
+<body class="nav-layout-{{ nav_layout|default:'sidebar' }}">
   <div class="app-shell">
     <aside class="sidebar">
       <div>

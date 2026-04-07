@@ -159,36 +159,7 @@ def set_todo_section_titles(request, titles_by_key):
 
 
 def get_default_todo_seed():
-    return {
-        "Monday": {
-            "planning": ["Draft sprint goals"],
-            "next": ["Break feature into tasks"],
-        },
-        "Tuesday": {
-            "planning": ["Review diary feedback"],
-            "progress": ["Implement style refinements"],
-        },
-        "Wednesday": {
-            "next": ["Run usability checks"],
-            "review": ["Check color contrast"],
-        },
-        "Thursday": {
-            "progress": ["Polish responsive layout"],
-            "review": ["Validate edge cases"],
-        },
-        "Friday": {
-            "review": ["Demo completed changes"],
-            "done": ["Ship approved updates"],
-        },
-        "Saturday": {
-            "planning": ["Personal planning"],
-            "done": ["Weekly tidy-up"],
-        },
-        "Sunday": {
-            "planning": ["Set priorities for Monday"],
-            "done": ["Rest and reset"],
-        },
-    }
+    return {}
 
 
 def normalize_todo_task(raw_task):
@@ -648,6 +619,7 @@ def sync_notes_box_completed_state(request, task_item):
 
 @login_required
 def dashboard_view(request):
+    preferences = get_user_preferences(request)
     # Keep "Up & Coming" focused on future and not-yet-finished entries.
     now = datetime.now()
     today = now.date()
@@ -709,6 +681,7 @@ def dashboard_view(request):
     context = {
         'diary_entries': diary_entries,
         'todo_columns': todo_columns,
+        'nav_layout': preferences.nav_layout,
     }
     return render(request, 'dashboard/dashboard.html', context)
 
@@ -786,6 +759,7 @@ def diary_view(request):
         "diary_entries": diary_entries,
         "diary_category_options": get_diary_category_options(),
         "default_diary_view": preferences.default_diary_view,
+        "nav_layout": preferences.nav_layout,
     }
     return render(request, 'dashboard/diary.html', context)
 
@@ -901,10 +875,18 @@ def settings_view(request):
             }
         )
 
-    return render(request, 'dashboard/settings.html', {'form': form})
+    return render(
+        request,
+        'dashboard/settings.html',
+        {
+            'form': form,
+            'nav_layout': preferences.nav_layout,
+        },
+    )
 
 @login_required
 def todo_view(request):
+    preferences = get_user_preferences(request)
     todo_sections = get_todo_sections(request)
     week_start, week_dates = get_todo_week_dates(request)
     week_end = week_start + timedelta(days=6)
@@ -1106,12 +1088,14 @@ def todo_view(request):
             "prev_week_iso": prev_week.isoformat(),
             "next_week_iso": next_week.isoformat(),
             "today_iso": datetime.today().date().isoformat(),
+            "nav_layout": preferences.nav_layout,
         },
     )
 
 
 @login_required
 def notes_view(request):
+    preferences = get_user_preferences(request)
     today = datetime.today().date()
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
@@ -1367,6 +1351,7 @@ def notes_view(request):
         'week_start_iso': week_start.isoformat(),
         'week_end_iso': week_end.isoformat(),
         'week_range_label': f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
+        'nav_layout': preferences.nav_layout,
     }
     return render(request, 'dashboard/notes.html', context)
 
