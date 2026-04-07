@@ -658,10 +658,14 @@ def dashboard_view(request):
     task_items = get_todo_task_items(request)
     todo_columns = []
     for section in todo_sections:
-        section_tasks = [item for item in task_items if item["section"] == section["key"]]
+        section_tasks = [
+            item
+            for item in task_items
+            if item["section"] == section["key"] and item.get("priority") == "high"
+        ]
 
         display_tasks = []
-        for task in section_tasks[:6]:
+        for task in section_tasks[:4]:
             task_line = task['title']
             if task.get('completed'):
                 task_line = f"[Done] {task_line}"

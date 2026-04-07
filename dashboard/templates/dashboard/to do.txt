@@ -1,0 +1,99 @@
+Recommended approach:
+
+User accounts and account creation
+
+Keep Django auth as the base, then add:
+
+Sign up page with username, email, password validation
+
+Optional email verification
+
+Password reset flow
+
+User profile settings model for preferences
+
+Important architecture upgrade:
+
+Move Notes and To Do data from session storage into database tables linked to each user
+
+This gives proper per-user persistence, cross-device continuity, and cleaner multi-account behavior
+
+Settings section
+
+Add a dedicated Settings page with sections:
+
+Account
+
+Appearance
+
+Layout
+
+Preferences to store per user:
+
+Theme: dark, light, system
+
+Navigation style: sidebar, vertical tabs, bottom nav
+
+Default diary view: month, week, day
+
+Save immediately with optimistic UI so users see changes right away
+
+Light color scheme
+
+Introduce theme tokens using CSS variables:
+
+Core tokens for background, surface, text, muted, border, accent
+
+Dark and light token sets
+
+Switch themes by body data attribute
+
+Keep category colors consistent between themes for recognizability
+
+Alternative navigation layouts
+
+Sidebar mode:
+
+Current experience, great for desktop
+
+Vertical tabs mode:
+
+Narrow icon-and-label rail, cleaner and more app-like
+
+Bottom nav mode:
+
+Mobile-first iPhone style, fixed bottom with 4 to 5 primary destinations
+
+Recommended behavior:
+
+Desktop defaults to sidebar or vertical tabs
+
+Mobile defaults to bottom nav automatically unless user overrides in settings
+
+Suggested rollout order to minimize risk:
+
+Data persistence hardening
+
+Move To Do and Notes into user-linked models
+
+Add migration and data transition path
+
+Settings foundation
+
+Create user preferences model and settings UI
+
+Add theme and nav mode storage
+
+Theme system
+
+Implement dark and light token sets
+
+Wire toggle into settings and apply globally
+
+Navigation variants
+
+Add sidebar and bottom nav templates first
+
+Add vertical tabs as final polish
+
+If you want, I can start implementation now with Phase 1 and Phase 2 first, since they unlock everything else cleanly.
