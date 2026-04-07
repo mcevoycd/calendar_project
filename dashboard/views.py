@@ -1,15 +1,22 @@
 # dashboard/views.py
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from datetime import datetime, timedelta, time
-from .models import Event, DiaryEntry
+from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Q
+from django.db.utils import OperationalError, ProgrammingError
+from django.contrib.auth import login
+from django.contrib.auth.forms import AuthenticationForm
+from django.utils.http import url_has_allowed_host_and_scheme
 from uuid import uuid4
 import json
+from types import SimpleNamespace
+
+from .forms import SignUpForm, SettingsForm
 
 TODO_SECTION_CONFIG = [
     ("planning", "Planning", "todo-section-planning"),
@@ -76,7 +83,37 @@ def get_diary_category_options():
 
 
 def get_todo_sections(request):
-    custom_titles = request.session.get("todo_section_titles", {})
+    try:
+        custom_titles = {
+            row.section_key: row.title
+            for row in TodoSectionTitle.objects.filter(user=request.user)
+        }
+    except (OperationalError, ProgrammingError):
+        custom_titles = {}
+
+    if not custom_titles:
+        session_titles = request.session.get("todo_section_titles", {})
+        if isinstance(session_titles, dict):
+            try:
+                for section_key, title in session_titles.items():
+                    if not isinstance(title, str):
+                        continue
+                    TodoSectionTitle.objects.update_or_create(
+                        user=request.user,
+                        section_key=section_key,
+                        defaults={"title": title.strip()[:30]},
+                    )
+                custom_titles = {
+                    row.section_key: row.title
+                    for row in TodoSectionTitle.objects.filter(user=request.user)
+                }
+            except (OperationalError, ProgrammingError):
+                custom_titles = {
+                    key: str(value).strip()[:30]
+                    for key, value in session_titles.items()
+                    if isinstance(value, str)
+                }
+
     sections = []
     for key, default_title, class_name in TODO_SECTION_CONFIG:
         raw_title = custom_titles.get(key, default_title)
@@ -94,6 +131,31 @@ def get_todo_sections(request):
         )
 
     return sections
+
+
+def set_todo_section_titles(request, titles_by_key):
+    valid_section_keys = {key for key, _, _ in TODO_SECTION_CONFIG}
+    session_titles = request.session.get('todo_section_titles', {})
+    if not isinstance(session_titles, dict):
+        session_titles = {}
+
+    for section_key, title in titles_by_key.items():
+        if section_key not in valid_section_keys:
+            continue
+
+        clean_title = str(title).strip()[:30]
+        session_titles[section_key] = clean_title
+        try:
+            TodoSectionTitle.objects.update_or_create(
+                user=request.user,
+                section_key=section_key,
+                defaults={"title": clean_title},
+            )
+        except (OperationalError, ProgrammingError):
+            continue
+
+    request.session['todo_section_titles'] = session_titles
+    request.session.modified = True
 
 
 def get_default_todo_seed():
@@ -319,6 +381,34 @@ def task_applies_to_day(task, day_name, day_date):
 
 
 def get_todo_task_items(request):
+    try:
+        db_items = TodoTask.objects.filter(user=request.user).order_by('created_at')
+        if db_items.exists():
+            task_items = []
+            for row in db_items:
+                task_items.append(
+                    normalize_todo_task_item(
+                        {
+                            "id": row.task_id,
+                            "title": row.title,
+                            "notes": row.notes,
+                            "priority": row.priority,
+                            "completed": row.completed,
+                            "section": row.section,
+                            "start_day": row.start_day,
+                            "end_day": row.end_day,
+                            "start_date": row.start_date.isoformat() if row.start_date else "",
+                            "end_date": row.end_date.isoformat() if row.end_date else "",
+                            "source": row.source,
+                            "source_week": row.source_week,
+                            "source_box_id": row.source_box_id,
+                        }
+                    )
+                )
+            return [item for item in task_items if item]
+    except (OperationalError, ProgrammingError):
+        pass
+
     raw_items = request.session.get("todo_task_items")
     changed = False
     task_items = []
@@ -367,10 +457,137 @@ def get_todo_task_items(request):
                         task_items.append(normalized_item)
 
     if changed:
-        request.session["todo_task_items"] = task_items
-        request.session.modified = True
+        set_todo_task_items(request, task_items)
 
     return task_items
+
+
+def set_todo_task_items(request, task_items):
+    normalized_items = []
+    for item in task_items:
+        normalized = normalize_todo_task_item(item)
+        if normalized:
+            normalized_items.append(normalized)
+
+    try:
+        TodoTask.objects.filter(user=request.user).delete()
+    except (OperationalError, ProgrammingError):
+        request.session['todo_task_items'] = normalized_items
+        request.session.modified = True
+        return
+    create_rows = []
+    for item in normalized_items:
+        start_date_value = None
+        end_date_value = None
+        if item.get('start_date'):
+            try:
+                start_date_value = datetime.strptime(item['start_date'], '%Y-%m-%d').date()
+            except ValueError:
+                start_date_value = None
+        if item.get('end_date'):
+            try:
+                end_date_value = datetime.strptime(item['end_date'], '%Y-%m-%d').date()
+            except ValueError:
+                end_date_value = None
+
+        create_rows.append(
+            TodoTask(
+                user=request.user,
+                task_id=item['id'],
+                title=item['title'],
+                notes=item['notes'],
+                priority=item['priority'],
+                completed=item['completed'],
+                section=item['section'],
+                start_day=item['start_day'],
+                end_day=item['end_day'],
+                start_date=start_date_value,
+                end_date=end_date_value,
+                source=item.get('source', ''),
+                source_week=item.get('source_week', ''),
+                source_box_id=item.get('source_box_id', ''),
+            )
+        )
+
+    if create_rows:
+        try:
+            TodoTask.objects.bulk_create(create_rows)
+        except (OperationalError, ProgrammingError):
+            request.session['todo_task_items'] = normalized_items
+            request.session.modified = True
+            return
+
+    request.session['todo_task_items'] = normalized_items
+    request.session.modified = True
+
+
+def get_notes_canvas_by_week(request):
+    try:
+        rows = NotesCanvasWeek.objects.filter(user=request.user)
+        if rows.exists():
+            return {
+                row.week_start.isoformat(): row.canvas_data
+                for row in rows
+                if isinstance(row.canvas_data, dict)
+            }
+    except (OperationalError, ProgrammingError):
+        pass
+
+    session_map = request.session.get('notes_canvas_by_week', {})
+    notes_canvas_by_week = session_map if isinstance(session_map, dict) else {}
+    for week_key, canvas in notes_canvas_by_week.items():
+        if not isinstance(canvas, dict):
+            continue
+        try:
+            parsed_week = datetime.strptime(str(week_key), '%Y-%m-%d').date()
+        except ValueError:
+            continue
+        try:
+            NotesCanvasWeek.objects.update_or_create(
+                user=request.user,
+                week_start=parsed_week,
+                defaults={'canvas_data': canvas},
+            )
+        except (OperationalError, ProgrammingError):
+            break
+
+    return notes_canvas_by_week
+
+
+def set_notes_canvas_week(request, week_key, canvas_state):
+    try:
+        parsed_week = datetime.strptime(str(week_key), '%Y-%m-%d').date()
+    except ValueError:
+        return
+
+    try:
+        NotesCanvasWeek.objects.update_or_create(
+            user=request.user,
+            week_start=parsed_week,
+            defaults={'canvas_data': canvas_state},
+        )
+    except (OperationalError, ProgrammingError):
+        session_map = request.session.get('notes_canvas_by_week', {})
+        if not isinstance(session_map, dict):
+            session_map = {}
+        session_map[str(week_key)] = canvas_state
+        request.session['notes_canvas_by_week'] = session_map
+        request.session.modified = True
+
+
+def get_user_preferences(request):
+    try:
+        preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        return preferences
+    except (OperationalError, ProgrammingError):
+        session_prefs = request.session.get('user_preferences', {})
+        if not isinstance(session_prefs, dict):
+            session_prefs = {}
+        return SimpleNamespace(
+            theme=session_prefs.get('theme', 'dark'),
+            nav_layout=session_prefs.get('nav_layout', 'sidebar'),
+            default_diary_view=session_prefs.get('default_diary_view', 'week'),
+        )
 
 
 def get_todo_tasks_by_day(request, week_dates=None):
@@ -403,9 +620,7 @@ def sync_notes_box_completed_state(request, task_item):
     if not source_week or not source_box_id:
         return
 
-    notes_canvas_by_week = request.session.get('notes_canvas_by_week', {})
-    if not isinstance(notes_canvas_by_week, dict):
-        return
+    notes_canvas_by_week = get_notes_canvas_by_week(request)
 
     week_state = notes_canvas_by_week.get(source_week)
     if not isinstance(week_state, dict):
@@ -429,9 +644,7 @@ def sync_notes_box_completed_state(request, task_item):
         break
 
     if changed:
-        notes_canvas_by_week[source_week] = week_state
-        request.session['notes_canvas_by_week'] = notes_canvas_by_week
-        request.session.modified = True
+        set_notes_canvas_week(request, source_week, week_state)
 
 @login_required
 def dashboard_view(request):
@@ -568,11 +781,127 @@ def diary_api(request):
 def diary_view(request):
     # Diary page with week view
     diary_entries = DiaryEntry.objects.filter(user=request.user).order_by('-date', '-start_time', '-created_at')
+    preferences = get_user_preferences(request)
     context = {
         "diary_entries": diary_entries,
         "diary_category_options": get_diary_category_options(),
+        "default_diary_view": preferences.default_diary_view,
     }
     return render(request, 'dashboard/diary.html', context)
+
+
+def auth_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    next_url = request.GET.get('next', '').strip()
+    active_tab = 'login'
+
+    login_form = AuthenticationForm(request=request)
+    signup_form = SignUpForm()
+
+    for field_name in ('username', 'password'):
+        login_form.fields[field_name].widget.attrs.update({'class': 'form-control'})
+
+    if request.method == 'POST':
+        action = request.POST.get('auth_action', '').strip().lower()
+        next_url = request.POST.get('next', '').strip()
+
+        if action == 'signup':
+            active_tab = 'signup'
+            signup_form = SignUpForm(request.POST)
+            if signup_form.is_valid():
+                user = signup_form.save()
+                try:
+                    UserPreference.objects.get_or_create(user=user)
+                except (OperationalError, ProgrammingError):
+                    pass
+                login(request, user)
+
+                if next_url and url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    return redirect(next_url)
+                return redirect('dashboard')
+        else:
+            active_tab = 'login'
+            login_form = AuthenticationForm(request=request, data=request.POST)
+            for field_name in ('username', 'password'):
+                login_form.fields[field_name].widget.attrs.update({'class': 'form-control'})
+            if login_form.is_valid():
+                user = login_form.get_user()
+                login(request, user)
+
+                if next_url and url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    return redirect(next_url)
+                return redirect('dashboard')
+
+    context = {
+        'login_form': login_form,
+        'signup_form': signup_form,
+        'active_tab': active_tab,
+        'next_url': next_url,
+    }
+    return render(request, 'registration/login.html', context)
+
+
+def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            try:
+                UserPreference.objects.get_or_create(user=user)
+            except (OperationalError, ProgrammingError):
+                pass
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = SignUpForm()
+
+    return render(request, 'registration/signup.html', {'form': form})
+
+
+@login_required
+def settings_view(request):
+    preferences = get_user_preferences(request)
+
+    if request.method == 'POST':
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            try:
+                preferences.theme = form.cleaned_data['theme']
+                preferences.nav_layout = form.cleaned_data['nav_layout']
+                preferences.default_diary_view = form.cleaned_data['default_diary_view']
+                preferences.save(update_fields=['theme', 'nav_layout', 'default_diary_view', 'updated_at'])
+            except (OperationalError, ProgrammingError, AttributeError):
+                request.session['user_preferences'] = {
+                    'theme': form.cleaned_data['theme'],
+                    'nav_layout': form.cleaned_data['nav_layout'],
+                    'default_diary_view': form.cleaned_data['default_diary_view'],
+                }
+                request.session.modified = True
+            messages.success(request, 'Settings saved.', extra_tags='settings')
+            return redirect('settings')
+    else:
+        form = SettingsForm(
+            initial={
+                'theme': preferences.theme,
+                'nav_layout': preferences.nav_layout,
+                'default_diary_view': preferences.default_diary_view,
+            }
+        )
+
+    return render(request, 'dashboard/settings.html', {'form': form})
 
 @login_required
 def todo_view(request):
@@ -589,8 +918,7 @@ def todo_view(request):
             value = raw_value.strip()[:30]
             updated_titles[section['key']] = value if value else section['default_title']
 
-        request.session['todo_section_titles'] = updated_titles
-        request.session.modified = True
+        set_todo_section_titles(request, updated_titles)
         return HttpResponseRedirect(get_todo_return_url(request))
 
     if request.method == 'POST' and request.POST.get('form_type') == 'add_todo_entry':
@@ -647,8 +975,7 @@ def todo_view(request):
         task_items = get_todo_task_items(request)
         task_items.append(normalize_todo_task_item(task_value, default_day=task_start_day, default_section=task_section))
 
-        request.session['todo_task_items'] = task_items
-        request.session.modified = True
+        set_todo_task_items(request, task_items)
         return HttpResponseRedirect(get_todo_return_url(request))
 
     if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry', 'toggle_todo_completed'):
@@ -737,8 +1064,7 @@ def todo_view(request):
             if updated_item:
                 sync_notes_box_completed_state(request, updated_item)
 
-        request.session['todo_task_items'] = normalized_items
-        request.session.modified = True
+        set_todo_task_items(request, normalized_items)
         return HttpResponseRedirect(get_todo_return_url(request))
 
     todo_sections = get_todo_sections(request)
@@ -819,9 +1145,7 @@ def notes_view(request):
         if isinstance(section.get('title'), str) and section.get('title', '').strip()
     }
 
-    notes_canvas_by_week = request.session.get('notes_canvas_by_week', {})
-    if not isinstance(notes_canvas_by_week, dict):
-        notes_canvas_by_week = {}
+    notes_canvas_by_week = get_notes_canvas_by_week(request)
 
     def get_default_canvas_state():
         return {
@@ -1014,8 +1338,7 @@ def notes_view(request):
             parsed = None
 
         current_canvas_state = sanitize_canvas_state(parsed)
-        notes_canvas_by_week[week_key] = current_canvas_state
-        request.session['notes_canvas_by_week'] = notes_canvas_by_week
+        set_notes_canvas_week(request, week_key, current_canvas_state)
 
         task_items = get_todo_task_items(request)
         retained_items = []
@@ -1031,9 +1354,7 @@ def notes_view(request):
                 retained_items.append(item)
 
         retained_items.extend(build_weekly_note_tasks(current_canvas_state))
-        request.session['todo_task_items'] = retained_items
-
-        request.session.modified = True
+        set_todo_task_items(request, retained_items)
         if is_auto_save:
             return JsonResponse({'status': 'ok', 'saved_at': datetime.now().isoformat()})
         return HttpResponseRedirect(reverse('notes'))

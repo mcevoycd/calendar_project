@@ -620,6 +620,7 @@
         <a class="nav-link active" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
         <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+        <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -636,7 +637,10 @@
         <div class="user-menu">
           {% if request.user.is_authenticated %}
             <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary" style="margin-left:0.75rem;">Sign out</a>
+            <form method="post" action="{% url 'logout' %}" style="display:inline; margin-left:0.75rem;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
+            </form>
           {% else %}
             <a href="{% url 'login' %}" class="btn btn-sm btn-primary">Sign in</a>
           {% endif %}
@@ -726,6 +730,12 @@
       const selectionHint = document.getElementById('diary-selection-hint');
       const queryDate = new URLSearchParams(window.location.search).get('date');
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
+      const defaultViewMap = {
+        month: 'dayGridMonth',
+        week: 'timeGridWeek',
+        day: 'timeGridDay'
+      };
+      const initialDiaryView = defaultViewMap['{{ default_diary_view|default:"week" }}'] || 'timeGridWeek';
 
       if (!calendarEl) {
         console.error('calendar element not found');
@@ -862,7 +872,7 @@
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
         locale: 'en-gb',
-        initialView: 'timeGridWeek',
+        initialView: initialDiaryView,
         initialDate: selectedDate || undefined,
         slotDuration: '00:15:00',
         snapDuration: '00:15:00',

@@ -878,6 +878,7 @@
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
         <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+        <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -894,7 +895,10 @@
         <div class="user-menu">
           {% if request.user.is_authenticated %}
             <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary" style="margin-left:0.75rem;">Sign out</a>
+            <form method="post" action="{% url 'logout' %}" style="display:inline; margin-left:0.75rem;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
+            </form>
           {% else %}
             <a href="{% url 'login' %}" class="btn btn-sm btn-primary">Sign in</a>
           {% endif %}

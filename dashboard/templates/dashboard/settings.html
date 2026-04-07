@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings</title>
+  {% load static %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06111E;
+      --surface: #0E1B2A;
+      --text: #E5E7EB;
+      --muted: #9EB0C2;
+      --accent: #F6C35C;
+      --accent-strong: #00C2FF;
+      --border: rgba(24, 73, 108, 0.9);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 10%, #0B2338 0%, #06111E 42%, #050D18 100%);
+      color: var(--text);
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #0A1A2A 0%, #091624 100%);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      border-right: 1px solid rgba(0, 194, 255, 0.3);
+    }
+
+    .brand-logo {
+      width: 100%;
+      max-width: 210px;
+      display: block;
+      margin: 0 0 0.6rem;
+      border-radius: 12px;
+      mix-blend-mode: screen;
+      opacity: 0.96;
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .nav-link {
+      display: block;
+      color: #C9DAE7;
+      text-decoration: none;
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(0, 194, 255, 0.18);
+      color: var(--accent);
+    }
+
+    .main {
+      padding: 1.5rem 2rem;
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      max-width: 820px;
+    }
+
+    .panel h1 {
+      margin-top: 0;
+      margin-bottom: 0.6rem;
+      color: var(--accent);
+    }
+
+    .panel p {
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    .form-label {
+      color: #D3DEE8;
+      font-weight: 600;
+    }
+
+    .form-select {
+      background: #0A1A2A;
+      border: 1px solid #1F4F70;
+      color: #E5E7EB;
+      border-radius: 10px;
+    }
+
+    .btn-save {
+      background: var(--accent-strong);
+      color: #06111E;
+      border: none;
+      border-radius: 10px;
+      padding: 0.65rem 1.2rem;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
+      </div>
+
+      <nav class="nav-group" aria-label="Main navigation">
+        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+        <a class="nav-link" href="{% url 'diary' %}">Diary</a>
+        <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
+        <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+        <a class="nav-link active" href="{% url 'settings' %}">Settings</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="panel">
+        <h1>Settings</h1>
+        <p>Set appearance and layout preferences for your account.</p>
+
+        {% if messages %}
+          {% for message in messages %}
+            {% if 'settings' in message.tags %}
+              <div class="alert alert-success" role="alert">{{ message }}</div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="id_theme">Theme</label>
+            {{ form.theme }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="id_nav_layout">Navigation layout</label>
+            {{ form.nav_layout }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="id_default_diary_view">Default diary view</label>
+            {{ form.default_diary_view }}
+          </div>
+          <button type="submit" class="btn-save">Save settings</button>
+        </form>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
