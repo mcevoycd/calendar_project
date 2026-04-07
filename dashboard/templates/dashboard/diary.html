@@ -195,6 +195,39 @@
       margin-top: 1rem;
     }
 
+    .diary-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 0.85rem;
+    }
+
+    .diary-legend-chip {
+      --chip-color: #38BDF8;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.72rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: color-mix(in srgb, var(--chip-color) 24%, #08131F);
+      border: 1px solid color-mix(in srgb, var(--chip-color) 52%, #1F4F70);
+      color: #DCE7F0;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .diary-legend-chip::before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 999px;
+      background: var(--chip-color);
+      box-shadow: 0 0 6px color-mix(in srgb, var(--chip-color) 45%, transparent);
+    }
+
     #calendar {
       min-height: 760px;
       height: 82vh;
@@ -385,6 +418,10 @@
       box-shadow: inset 0 0 10px rgba(0, 194, 255, 0.15);
     }
 
+    .fc .fc-daygrid-day {
+      position: relative;
+    }
+
     .fc .fc-toolbar-title,
     .fc .fc-col-header-cell-cushion,
     .fc .fc-timegrid-axis-cushion,
@@ -430,9 +467,23 @@
 
     .fc .fc-day-today,
     .fc .fc-timegrid-col.fc-day-today {
-      background: rgba(0, 194, 255, 0.18) !important;
-      border: 2px solid #00C2FF !important;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+      background: linear-gradient(180deg, rgba(0, 194, 255, 0.2), rgba(0, 194, 255, 0.08)) !important;
+      border: 1px solid rgba(0, 194, 255, 0.6) !important;
+      box-shadow: inset 0 2px 0 rgba(246, 195, 92, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .fc .fc-daygrid-day.fc-day-today::before,
+    .fc .fc-timegrid-col.fc-day-today::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #F6C35C;
+      box-shadow: 0 0 8px rgba(246, 195, 92, 0.45);
+      pointer-events: none;
+      z-index: 1;
     }
 
     .fc-event {
@@ -443,6 +494,13 @@
       padding: 3px 6px;
       box-shadow: 0 2px 8px rgba(6, 12, 20, 0.45);
       font-weight: 600;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+    }
+
+    .fc-event:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(6, 12, 20, 0.55);
+      filter: saturate(1.06);
     }
 
     .fc .fc-event .fc-event-main {
@@ -461,6 +519,31 @@
     .fc .fc-daygrid-event-dot,
     .fc .fc-event-dot {
       display: none !important;
+    }
+
+    .fc .fc-event.diary-event-general {
+      background: linear-gradient(135deg, #7DD3FC, #38BDF8) !important;
+      border-color: #7DD3FC !important;
+    }
+
+    .fc .fc-event.diary-event-work {
+      background: linear-gradient(135deg, #BEF264, #A3E635) !important;
+      border-color: #BEF264 !important;
+    }
+
+    .fc .fc-event.diary-event-personal {
+      background: linear-gradient(135deg, #FDE047, #FACC15) !important;
+      border-color: #FDE047 !important;
+    }
+
+    .fc .fc-event.diary-event-health {
+      background: linear-gradient(135deg, #FDA4AF, #FB7185) !important;
+      border-color: #FDA4AF !important;
+    }
+
+    .fc .fc-event.diary-event-travel {
+      background: linear-gradient(135deg, #6EE7B7, #34D399) !important;
+      border-color: #6EE7B7 !important;
     }
 
     .fc .fc-timegrid-now-indicator-line {
@@ -564,6 +647,11 @@
         <div class="panel week-panel">
           <h2>Week View</h2>
           <p>View and manage your diary entries by week. Click any all-day cell or time slot to prefill a new entry.</p>
+          <div class="diary-legend" aria-label="Diary category legend">
+            {% for category in diary_category_options %}
+              <span class="diary-legend-chip" style="--chip-color: {{ category.color }};">{{ category.label }}</span>
+            {% endfor %}
+          </div>
           <div class="calendar-wrapper">
             <div id="calendar"></div>
           </div>
@@ -805,6 +893,17 @@
           }
         },
         events: '/api/diary/',
+        eventDidMount: function (info) {
+          const categoryKey = info.event.extendedProps.category || info.event.extendedProps.formCategory || 'general';
+          info.el.classList.add(`diary-event-${categoryKey}`);
+
+          if (info.view.type === 'dayGridMonth') {
+            const dot = info.el.querySelector('.fc-daygrid-event-dot, .fc-event-dot');
+            if (dot) {
+              dot.style.display = 'none';
+            }
+          }
+        },
         eventClick: function (info) {
           loadEntryIntoForm({
             id: String(info.event.id || ''),

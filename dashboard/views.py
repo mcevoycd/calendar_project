@@ -968,8 +968,10 @@ def notes_view(request):
             if not lines:
                 continue
 
-            title = lines[0][:120]
-            notes = ' '.join(lines[1:])[:180]
+            title = lines[0].lstrip('-* ').strip()[:120]
+            note_lines = [line.lstrip('-* ').strip() for line in lines[1:] if line.lstrip('-* ').strip()]
+            notes = '\n'.join(note_lines)[:180]
+
             if not title:
                 continue
 
