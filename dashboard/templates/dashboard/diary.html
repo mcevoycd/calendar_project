@@ -31,16 +31,18 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      height: 100vh;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(circle at 20% 10%, #0B2338 0%, #06111E 42%, #050D18 100%);
       color: var(--text);
+      overflow: hidden;
     }
 
     .app-shell {
       display: grid;
       grid-template-columns: 280px 1fr;
-      min-height: 100vh;
+      height: 100vh;
+      min-height: 0;
     }
 
     .sidebar {
@@ -180,21 +182,19 @@
     body.nav-layout-bottom .main {
       padding: 1rem 0.9rem;
       max-width: 100vw;
-      overflow-x: hidden;
-    }
-
-    body.nav-layout-bottom .content-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    body.nav-layout-bottom .entry-panel,
-    body.nav-layout-bottom .week-panel {
-      min-width: 0;
+      height: calc(100vh - 88px);
+      min-height: 0;
+      padding-bottom: 0.75rem;
+      overflow: hidden;
     }
 
     .main {
       padding: 1.5rem 2rem;
+      height: 100vh;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .topbar {
@@ -237,16 +237,23 @@
       display: grid;
       grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
       gap: 1.5rem;
-      align-items: start;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
     }
 
     .week-panel {
       min-width: 0;
       border-color: rgba(24, 73, 108, 0.4);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .entry-panel {
       align-self: start;
+      max-height: 100%;
+      overflow: auto;
     }
 
     .panel {
@@ -280,6 +287,9 @@
       padding: 14px;
       border-radius: 14px;
       margin-top: 1rem;
+      flex: 1;
+      min-height: 0;
+      display: flex;
     }
 
     .diary-legend {
@@ -316,8 +326,9 @@
     }
 
     #calendar {
-      min-height: 760px;
-      height: 82vh;
+      min-height: 0;
+      height: 100%;
+      width: 100%;
       background: #1C2733;
       border: 1px solid rgba(50, 66, 83, 0.5);
       padding: 20px;
