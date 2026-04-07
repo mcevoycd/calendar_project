@@ -864,7 +864,6 @@ def settings_view(request):
                     'default_diary_view': form.cleaned_data['default_diary_view'],
                 }
                 request.session.modified = True
-            messages.success(request, 'Settings saved.', extra_tags='settings')
             return redirect('settings')
     else:
         form = SettingsForm(

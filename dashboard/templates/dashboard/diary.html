@@ -167,9 +167,30 @@
     body.nav-layout-bottom .nav-link {
       text-align: center;
       padding: 0.5rem 0.2rem;
-      font-size: 0.72rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
       line-height: 1.2;
       border-radius: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    body.nav-layout-bottom .main {
+      padding: 1rem 0.9rem;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    body.nav-layout-bottom .content-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    body.nav-layout-bottom .entry-panel,
+    body.nav-layout-bottom .week-panel {
+      min-width: 0;
     }
 
     .main {
