@@ -477,12 +477,8 @@ def dashboard_view(request):
 
         display_tasks = []
         for task in section_tasks[:6]:
-            task_line = f"[{task['priority_label']}] {task['title']}"
-            if task.get("notes"):
-                task_line = f"{task_line} - {task['notes']}"
-            if task["start_day"] != task["end_day"]:
-                task_line = f"{task_line} ({task['start_day']} to {task['end_day']})"
-            if task.get("completed"):
+            task_line = task['title']
+            if task.get('completed'):
                 task_line = f"[Done] {task_line}"
             display_tasks.append(task_line)
 
