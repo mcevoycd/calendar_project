@@ -220,6 +220,7 @@
     }
 
     .diary-form input,
+    .diary-form select,
     .diary-form textarea {
       padding: 0.5rem;
       border-radius: 6px;
@@ -231,6 +232,33 @@
     .diary-form textarea {
       resize: vertical;
       min-height: 100px;
+    }
+
+    .diary-category-row {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .diary-category-row select {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .diary-category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.2);
+      color: #E5E7EB;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
 
     /* Requested diary color scheme */
@@ -530,6 +558,14 @@
             <div class="form-grid">
               <input type="hidden" name="entry_id" id="entry-id-input">
               <input type="text" name="title" placeholder="Diary entry title" required>
+              <div class="diary-category-row">
+                <select name="category" id="diary-category-input">
+                  {% for category in diary_category_options %}
+                    <option value="{{ category.key }}" data-color="{{ category.color }}" {% if category.key == 'general' %}selected{% endif %}>{{ category.label }}</option>
+                  {% endfor %}
+                </select>
+                <span id="diary-category-badge" class="diary-category-badge" aria-live="polite">General</span>
+              </div>
               <input type="date" name="date">
               <input type="date" name="end_date" id="end-date-input" placeholder="End date (optional for all-day multi-day)">
               <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
@@ -568,6 +604,8 @@
       const calendarEl = document.getElementById('calendar');
       const diaryForm = document.querySelector('.diary-form');
       const titleInput = diaryForm ? diaryForm.querySelector('input[name="title"]') : null;
+      const categoryInput = diaryForm ? diaryForm.querySelector('select[name="category"]') : null;
+      const categoryBadge = document.getElementById('diary-category-badge');
       const dateInput = diaryForm ? diaryForm.querySelector('input[name="date"]') : null;
       const endDateInput = diaryForm ? diaryForm.querySelector('input[name="end_date"]') : null;
       const startTimeInput = diaryForm ? diaryForm.querySelector('input[name="start_time"]') : null;
@@ -604,9 +642,23 @@
         }
       }
 
+      function updateCategoryBadge() {
+        if (!categoryInput || !categoryBadge) return;
+
+        const selectedOption = categoryInput.options[categoryInput.selectedIndex];
+        const color = selectedOption ? selectedOption.dataset.color || '#38BDF8' : '#38BDF8';
+        const label = selectedOption ? selectedOption.textContent.trim() : 'General';
+
+        categoryBadge.textContent = label;
+        categoryBadge.style.backgroundColor = `${color}33`;
+        categoryBadge.style.borderColor = `${color}80`;
+        categoryBadge.style.color = '#E5E7EB';
+      }
+
       function resetFormForCreateMode() {
         if (!diaryForm) return;
         diaryForm.reset();
+        updateCategoryBadge();
         setEditMode(false);
       }
 
@@ -614,6 +666,10 @@
         if (!entryIdInput || !titleInput || !dateInput || !contentInput) return;
         entryIdInput.value = entry.id || '';
         titleInput.value = entry.title || '';
+        if (categoryInput) {
+          categoryInput.value = entry.category || 'general';
+          updateCategoryBadge();
+        }
         dateInput.value = entry.date || '';
         if (deleteRedirectDateInput) {
           deleteRedirectDateInput.value = entry.date || '';
@@ -729,6 +785,7 @@
           loadEntryIntoForm({
             id: String(info.event.id || ''),
             title: info.event.title || '',
+            category: info.event.extendedProps.formCategory || 'general',
             date: info.event.start ? formatDateForInput(info.event.start) : '',
             endDate: info.event.extendedProps.formEndDate || '',
             startTime: info.event.extendedProps.formStartTime || '',
@@ -749,13 +806,15 @@
 
       if (selectedDate && dateInput && !(entryIdInput && entryIdInput.value)) {
         dateInput.value = selectedDate;
-        if (endDateInput && !endDateInput.value) {
-          endDateInput.value = selectedDate;
-        }
         if (selectionHint) {
           selectionHint.textContent = 'Opened from dashboard selection. Date was prefilled from your clicked day.';
         }
       }
+
+      if (categoryInput) {
+        categoryInput.addEventListener('change', updateCategoryBadge);
+      }
+      updateCategoryBadge();
 
       if (cancelEditButton) {
         cancelEditButton.addEventListener('click', function () {

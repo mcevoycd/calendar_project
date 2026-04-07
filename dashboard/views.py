@@ -46,6 +46,34 @@ TODO_SECTION_COLORS = {
     "done": "#34D399",
 }
 
+DIARY_CATEGORY_CONFIG = [
+    ("general", "General", "#38BDF8"),
+    ("work", "Work", "#A3E635"),
+    ("personal", "Personal", "#FACC15"),
+    ("health", "Health", "#FB7185"),
+    ("travel", "Travel", "#34D399"),
+]
+
+DIARY_CATEGORY_LABELS = {key: label for key, label, _ in DIARY_CATEGORY_CONFIG}
+DIARY_CATEGORY_COLORS = {key: color for key, _, color in DIARY_CATEGORY_CONFIG}
+DIARY_DEFAULT_CATEGORY = "general"
+
+
+def normalize_diary_category(value):
+    candidate = str(value or "").strip().lower()
+    return candidate if candidate in DIARY_CATEGORY_LABELS else DIARY_DEFAULT_CATEGORY
+
+
+def get_diary_category_options():
+    return [
+        {
+            "key": key,
+            "label": label,
+            "color": color,
+        }
+        for key, label, color in DIARY_CATEGORY_CONFIG
+    ]
+
 
 def get_todo_sections(request):
     custom_titles = request.session.get("todo_section_titles", {})
@@ -435,6 +463,11 @@ def dashboard_view(request):
             upcoming_entries.append(entry)
 
     diary_entries = upcoming_entries[:5]
+    for entry in diary_entries:
+        category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
+        entry.category_key = category_key
+        entry.category_label = DIARY_CATEGORY_LABELS.get(category_key, DIARY_CATEGORY_LABELS[DIARY_DEFAULT_CATEGORY])
+        entry.category_color = DIARY_CATEGORY_COLORS.get(category_key, DIARY_CATEGORY_COLORS[DIARY_DEFAULT_CATEGORY])
 
     todo_sections = get_todo_sections(request)
     task_items = get_todo_task_items(request)
@@ -488,6 +521,8 @@ def events_api(request):
     diary_entries = DiaryEntry.objects.filter(user=request.user)
     for entry in diary_entries:
         start_value, end_value, all_day = diary_entry_to_calendar_values(entry)
+        category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
+        category_color = DIARY_CATEGORY_COLORS.get(category_key, DIARY_CATEGORY_COLORS[DIARY_DEFAULT_CATEGORY])
 
         data.append({
             "id": f"diary-{entry.id}",
@@ -496,6 +531,9 @@ def events_api(request):
             "end": end_value,
             "allDay": all_day,
             "source": "diary",
+            "backgroundColor": category_color,
+            "borderColor": category_color,
+            "textColor": "#06111E",
         })
 
     return JsonResponse(data, safe=False)
@@ -507,6 +545,8 @@ def diary_api(request):
     data = []
     for entry in diary_entries:
         start_value, end_value, all_day = diary_entry_to_calendar_values(entry)
+        category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
+        category_color = DIARY_CATEGORY_COLORS.get(category_key, DIARY_CATEGORY_COLORS[DIARY_DEFAULT_CATEGORY])
 
         data.append({
             "id": entry.id,
@@ -515,9 +555,16 @@ def diary_api(request):
             "end": end_value,
             "allDay": all_day,
             "description": entry.content,
+            "category": category_key,
+            "formCategory": category_key,
+            "categoryLabel": DIARY_CATEGORY_LABELS.get(category_key, DIARY_CATEGORY_LABELS[DIARY_DEFAULT_CATEGORY]),
+            "categoryColor": category_color,
             "formEndDate": (entry.end_date.isoformat() if entry.end_date else entry.date.isoformat()) if all_day else '',
             "formStartTime": entry.start_time.strftime('%H:%M') if entry.start_time else '',
             "formEndTime": entry.end_time.strftime('%H:%M') if entry.end_time else '',
+            "backgroundColor": category_color,
+            "borderColor": category_color,
+            "textColor": "#06111E",
         })
     return JsonResponse(data, safe=False)
 
@@ -527,6 +574,7 @@ def diary_view(request):
     diary_entries = DiaryEntry.objects.filter(user=request.user).order_by('-date', '-start_time', '-created_at')
     context = {
         "diary_entries": diary_entries,
+        "diary_category_options": get_diary_category_options(),
     }
     return render(request, 'dashboard/diary.html', context)
 
@@ -1008,6 +1056,7 @@ def add_diary_entry(request):
     if request.method == 'POST':
         entry_id = request.POST.get('entry_id')
         title = request.POST.get('title')
+        category = normalize_diary_category(request.POST.get('category', DIARY_DEFAULT_CATEGORY))
         date = request.POST.get('date')
         end_date = request.POST.get('end_date')
         start_time = request.POST.get('start_time')
@@ -1057,6 +1106,7 @@ def add_diary_entry(request):
                     return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
 
                 diary_entry.title = title
+                diary_entry.category = category
                 diary_entry.date = parsed_date
                 diary_entry.end_date = effective_end_date
                 diary_entry.start_time = parsed_start
@@ -1064,6 +1114,7 @@ def add_diary_entry(request):
                 diary_entry.content = content or ''
                 diary_entry.save()
                 messages.success(request, 'Diary entry updated successfully!')
+                return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
             else:
                 # For timed entries with a date range, create one entry per day in the range.
                 if (parsed_start or parsed_end) and parsed_end_date and parsed_end_date > parsed_date:
@@ -1073,6 +1124,7 @@ def add_diary_entry(request):
                         DiaryEntry.objects.create(
                             user=request.user,
                             title=title,
+                            category=category,
                             date=current_date,
                             end_date=None,
                             start_time=parsed_start,
@@ -1083,10 +1135,12 @@ def add_diary_entry(request):
                         current_date = current_date + timedelta(days=1)
 
                     messages.success(request, f'{created_count} diary entries added successfully!')
+                    return HttpResponseRedirect(reverse('diary'))
                 else:
                     DiaryEntry.objects.create(
                         user=request.user,
                         title=title,
+                        category=category,
                         date=parsed_date,
                         end_date=effective_end_date,
                         start_time=parsed_start,
@@ -1094,6 +1148,7 @@ def add_diary_entry(request):
                         content=content or ''
                     )
                     messages.success(request, 'Diary entry added successfully!')
+                    return HttpResponseRedirect(reverse('diary'))
         else:
             messages.error(request, 'Please provide a diary entry title.')
         return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")

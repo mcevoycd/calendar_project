@@ -14,6 +14,7 @@ class Event(models.Model):
 class DiaryEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
+    category = models.CharField(max_length=20, default='general')
     date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     start_time = models.TimeField(null=True, blank=True)

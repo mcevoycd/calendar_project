@@ -493,6 +493,54 @@
       font-size: 1rem;
     }
 
+    .event-item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: rgba(56, 189, 248, 0.24);
+      color: #E5E7EB;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      white-space: nowrap;
+    }
+
+    .category-badge-general {
+      background: rgba(56, 189, 248, 0.24);
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+
+    .category-badge-work {
+      background: rgba(163, 230, 53, 0.22);
+      border-color: rgba(163, 230, 53, 0.48);
+    }
+
+    .category-badge-personal {
+      background: rgba(250, 204, 21, 0.22);
+      border-color: rgba(250, 204, 21, 0.48);
+    }
+
+    .category-badge-health {
+      background: rgba(251, 113, 133, 0.22);
+      border-color: rgba(251, 113, 133, 0.48);
+    }
+
+    .category-badge-travel {
+      background: rgba(52, 211, 153, 0.22);
+      border-color: rgba(52, 211, 153, 0.48);
+    }
+
     .event-item span {
       color: var(--muted);
       font-size: 0.95rem;
@@ -814,7 +862,10 @@
             <ul class="event-list">
               {% for entry in diary_entries %}
                 <li class="event-item">
-                  <strong>{{ entry.title }}</strong>
+                  <div class="event-item-head">
+                    <strong>{{ entry.title }}</strong>
+                    <span class="category-badge category-badge-{{ entry.category_key }}">{{ entry.category_label }}</span>
+                  </div>
                   <span>
                     {{ entry.date|date:"j M" }}
                     {% if entry.end_date and entry.end_date != entry.date %}
