@@ -13,7 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/multimonth/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/bootstrap/index.global.min.js"></script>
   <script src="{% static 'dashboard/js/worldclock.js' %}"></script>
-  <script src="{% static 'dashboard/js/calendar.js' %}?v=20260406c"></script>
+  <script src="{% static 'dashboard/js/calendar.js' %}?v=20260407b"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -376,6 +376,23 @@
       display: none !important;
     }
 
+    #calendar:not(.is-year-view) .fc-daygrid-dot-event {
+      border: none !important;
+      border-radius: 8px;
+      padding: 0.1rem 0.35rem;
+      background: var(--fc-event-bg-color, #38BDF8) !important;
+      color: var(--fc-event-text-color, #06111E) !important;
+      line-height: 1.2;
+    }
+
+    #calendar:not(.is-year-view) .fc-daygrid-dot-event .fc-event-dot {
+      display: none !important;
+    }
+
+    #calendar:not(.is-year-view) .fc-daygrid-dot-event:hover {
+      filter: brightness(1.02);
+    }
+
     .worldclock-header {
       gap: 0.75rem;
     }
@@ -486,6 +503,7 @@
 
     .event-item {
       position: relative;
+      --entry-accent: var(--accent-strong);
       background: #0A1A2A;
       border-radius: 22px;
       border: 1px solid #1F4F70;
@@ -503,8 +521,38 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: var(--accent-strong);
+      background: var(--entry-accent);
       border: 2px solid #0E1B2A;
+    }
+
+    .event-item-category-general {
+      --entry-accent: #38BDF8;
+      background: rgba(56, 189, 248, 0.2);
+      border-color: rgba(56, 189, 248, 0.62);
+    }
+
+    .event-item-category-work {
+      --entry-accent: #A3E635;
+      background: rgba(163, 230, 53, 0.2);
+      border-color: rgba(163, 230, 53, 0.58);
+    }
+
+    .event-item-category-personal {
+      --entry-accent: #FACC15;
+      background: rgba(250, 204, 21, 0.2);
+      border-color: rgba(250, 204, 21, 0.58);
+    }
+
+    .event-item-category-health {
+      --entry-accent: #FB7185;
+      background: rgba(251, 113, 133, 0.2);
+      border-color: rgba(251, 113, 133, 0.58);
+    }
+
+    .event-item-category-travel {
+      --entry-accent: #34D399;
+      background: rgba(52, 211, 153, 0.2);
+      border-color: rgba(52, 211, 153, 0.58);
     }
 
     .event-item strong {
@@ -881,7 +929,7 @@
             <p>Diary entries are shown here below your world clocks. <a href="{% url 'diary' %}" style="color: var(--accent);">View full diary</a></p>
             <ul class="event-list">
               {% for entry in diary_entries %}
-                <li class="event-item">
+                <li class="event-item event-item-category-{{ entry.category_key }}">
                   <div class="event-item-head">
                     <strong>{{ entry.title }}</strong>
                     <span class="category-badge category-badge-{{ entry.category_key }}">{{ entry.category_label }}</span>

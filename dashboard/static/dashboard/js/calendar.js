@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', function () {
         duration: { years: 1 },
         buttonText: 'Year',
         eventDisplay: 'none'
+      },
+      dayGridMonth: {
+        eventDisplay: 'block'
       }
     },
     buttonText: {
@@ -40,6 +43,31 @@ document.addEventListener('DOMContentLoaded', function () {
     eventDidMount: function (info) {
       if (info.view.type === 'multiMonthYear') {
         info.el.style.display = 'none';
+        return;
+      }
+
+      // In month view, force diary/category colors onto the full event chip
+      // even when FullCalendar renders a dot-style event element.
+      if (info.view.type === 'dayGridMonth') {
+        const bg = info.event.backgroundColor || '#38BDF8';
+        const border = info.event.borderColor || bg;
+        const text = info.event.textColor || '#06111E';
+
+        info.el.style.backgroundColor = bg;
+        info.el.style.borderColor = border;
+        info.el.style.color = text;
+        info.el.style.borderRadius = '8px';
+        info.el.style.padding = '0.1rem 0.35rem';
+
+        const main = info.el.querySelector('.fc-event-main');
+        if (main) {
+          main.style.color = text;
+        }
+
+        const dot = info.el.querySelector('.fc-daygrid-event-dot, .fc-event-dot');
+        if (dot) {
+          dot.style.display = 'none';
+        }
       }
     },
     datesSet: function (info) {

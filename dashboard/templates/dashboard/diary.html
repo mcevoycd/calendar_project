@@ -436,13 +436,31 @@
     }
 
     .fc-event {
-      background: #00B5EB;
-      border: 1px solid #FACC15;
-      color: #06111E;
+      background: var(--fc-event-bg-color, #00B5EB);
+      border: 1px solid var(--fc-event-border-color, #FACC15);
+      color: var(--fc-event-text-color, #06111E);
       border-radius: 6px;
       padding: 3px 6px;
       box-shadow: 0 2px 8px rgba(6, 12, 20, 0.45);
       font-weight: 600;
+    }
+
+    .fc .fc-event .fc-event-main {
+      color: var(--fc-event-text-color, #06111E);
+    }
+
+    .fc .fc-daygrid-dot-event {
+      border: 1px solid var(--fc-event-border-color, #FACC15) !important;
+      background: var(--fc-event-bg-color, #00B5EB) !important;
+      color: var(--fc-event-text-color, #06111E) !important;
+      border-radius: 8px;
+      padding: 0.1rem 0.35rem;
+    }
+
+    .fc .fc-daygrid-dot-event .fc-event-dot,
+    .fc .fc-daygrid-event-dot,
+    .fc .fc-event-dot {
+      display: none !important;
     }
 
     .fc .fc-timegrid-now-indicator-line {
@@ -779,6 +797,12 @@
           month: 'Month',
           week: 'Week',
           day: 'Day'
+        },
+        eventDisplay: 'block',
+        views: {
+          dayGridMonth: {
+            eventDisplay: 'block'
+          }
         },
         events: '/api/diary/',
         eventClick: function (info) {
