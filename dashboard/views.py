@@ -1515,6 +1515,41 @@ def notes_view(request):
 
     if request.method == 'POST':
         is_auto_save = request.POST.get('auto_save', '').strip() == '1'
+        notes_action = request.POST.get('notes_action', '').strip().lower()
+
+        if notes_action == 'clear_canvas':
+            set_notes_canvas_week(request, week_key, {'boxes': [], 'links': []})
+
+            task_items = get_todo_task_items(request)
+            preserved_items = []
+            for item in task_items:
+                if not isinstance(item, dict):
+                    continue
+
+                is_notes_week_item = (
+                    item.get('source') == 'notes_canvas'
+                    and item.get('source_week') == week_key
+                )
+                if not is_notes_week_item:
+                    preserved_items.append(item)
+                    continue
+
+                converted = dict(item)
+                converted['source'] = ''
+                converted['source_week'] = ''
+                converted['source_box_id'] = ''
+
+                normalized = normalize_todo_task_item(
+                    converted,
+                    default_day=converted.get('start_day', week_start.strftime('%A')),
+                    default_section=converted.get('section', 'planning'),
+                )
+                if normalized:
+                    preserved_items.append(normalized)
+
+            set_todo_task_items(request, preserved_items)
+            return HttpResponseRedirect(reverse('notes'))
+
         canvas_raw = request.POST.get('canvas_data', '').strip()
         try:
             parsed = json.loads(canvas_raw) if canvas_raw else None

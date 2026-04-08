@@ -737,6 +737,80 @@
       min-height: 0;
     }
 
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(3, 12, 20, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .app-modal[hidden] {
+      display: none;
+    }
+
+    .app-modal-dialog {
+      width: min(500px, 100%);
+      background: linear-gradient(155deg, #0E2335 0%, #081725 100%);
+      border: 1px solid rgba(0, 194, 255, 0.35);
+      border-radius: 14px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42);
+      padding: 1rem 1rem 0.9rem;
+      color: #D7E6F2;
+    }
+
+    .app-modal-title {
+      margin: 0;
+      font-size: 1rem;
+      color: #EAF4FF;
+    }
+
+    .app-modal-message {
+      margin: 0.55rem 0 0;
+      color: #AFC0CF;
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
+    .app-modal-actions {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .btn-modal {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D7E6F2;
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .btn-modal:hover,
+    .btn-modal:focus {
+      border-color: #53B7E8;
+      outline: none;
+    }
+
+    .btn-modal-primary {
+      border-color: #0EA5C6;
+      background: linear-gradient(135deg, #149FC9, #1577B0);
+      color: #EAF7FF;
+    }
+
+    .btn-modal-primary:hover,
+    .btn-modal-primary:focus {
+      border-color: #6AD4F1;
+      filter: brightness(1.05);
+    }
+
     @media (max-width: 1100px) {
       .app-shell {
         grid-template-columns: 1fr;
@@ -787,6 +861,7 @@
         <form method="post" action="{% url 'notes' %}" class="notes-form" id="notes-form">
           {% csrf_token %}
           <input type="hidden" name="canvas_data" id="canvas-data-input">
+          <input type="hidden" name="notes_action" id="notes-action-input" value="">
 
           <div class="notes-toolbar">
             <div class="toolbar-left">
@@ -795,6 +870,7 @@
               <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
               <button type="button" class="btn-canvas" id="delete-box-btn">Delete Selected</button>
               <button type="button" class="btn-canvas" id="clear-links-btn">Clear Links</button>
+              <button type="button" class="btn-canvas" id="clear-canvas-btn">Clear Canvas</button>
               <div class="zoom-controls" aria-label="Canvas zoom controls">
                 <button type="button" class="btn-canvas" id="zoom-out-btn" title="Zoom out">-</button>
                 <span class="zoom-level" id="zoom-level">100%</span>
@@ -820,6 +896,17 @@
     </main>
   </div>
 
+  <div class="app-modal" id="confirm-modal" hidden>
+    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
+      <h2 class="app-modal-title" id="confirm-modal-title">Confirm action</h2>
+      <p class="app-modal-message" id="confirm-modal-message"></p>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="confirm-modal-cancel-btn">Cancel</button>
+        <button type="button" class="btn-modal btn-modal-primary" id="confirm-modal-confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const canvasDataInput = document.getElementById('canvas-data-input');
@@ -833,12 +920,19 @@
       const cancelLinkBtn = document.getElementById('cancel-link-btn');
       const deleteBoxBtn = document.getElementById('delete-box-btn');
       const clearLinksBtn = document.getElementById('clear-links-btn');
+      const clearCanvasBtn = document.getElementById('clear-canvas-btn');
       const zoomOutBtn = document.getElementById('zoom-out-btn');
       const zoomInBtn = document.getElementById('zoom-in-btn');
       const zoomResetBtn = document.getElementById('zoom-reset-btn');
       const zoomLevelEl = document.getElementById('zoom-level');
       const toolbarInfo = document.getElementById('toolbar-info');
       const autoSaveStatus = document.getElementById('autosave-status');
+      const notesActionInput = document.getElementById('notes-action-input');
+      const confirmModal = document.getElementById('confirm-modal');
+      const confirmModalTitle = document.getElementById('confirm-modal-title');
+      const confirmModalMessage = document.getElementById('confirm-modal-message');
+      const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel-btn');
+      const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm-btn');
       const weekStartIso = '{{ week_start_iso|escapejs }}';
       const weekEndIso = '{{ week_end_iso|escapejs }}';
 
@@ -1821,6 +1915,59 @@
         return box;
       }
 
+      function showConfirmModal(message, title) {
+        if (!confirmModal || !confirmModalMessage || !confirmModalConfirmBtn || !confirmModalCancelBtn) {
+          return Promise.resolve(false);
+        }
+
+        confirmModalTitle.textContent = title || 'Confirm action';
+        confirmModalMessage.textContent = message;
+        confirmModal.hidden = false;
+        confirmModalConfirmBtn.focus();
+
+        return new Promise(function (resolve) {
+          let settled = false;
+
+          function close(result) {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            confirmModal.hidden = true;
+            confirmModal.removeEventListener('click', onBackdropClick);
+            document.removeEventListener('keydown', onKeyDown);
+            confirmModalCancelBtn.removeEventListener('click', onCancel);
+            confirmModalConfirmBtn.removeEventListener('click', onConfirm);
+            resolve(result);
+          }
+
+          function onCancel() {
+            close(false);
+          }
+
+          function onConfirm() {
+            close(true);
+          }
+
+          function onBackdropClick(event) {
+            if (event.target === confirmModal) {
+              close(false);
+            }
+          }
+
+          function onKeyDown(event) {
+            if (event.key === 'Escape') {
+              close(false);
+            }
+          }
+
+          confirmModal.addEventListener('click', onBackdropClick);
+          document.addEventListener('keydown', onKeyDown);
+          confirmModalCancelBtn.addEventListener('click', onCancel);
+          confirmModalConfirmBtn.addEventListener('click', onConfirm);
+        });
+      }
+
       addBoxBtn.addEventListener('click', function () {
         const bounds = getSurfaceBounds();
         const x = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.width - 390);
@@ -1873,6 +2020,23 @@
         render();
       });
 
+      if (clearCanvasBtn) {
+        clearCanvasBtn.addEventListener('click', async function () {
+          const confirmed = await showConfirmModal(
+            'Clear the notes canvas for this week? Existing To Do items created from this canvas will be kept.',
+            'Clear Canvas'
+          );
+          if (!confirmed) {
+            return;
+          }
+
+          if (notesActionInput) {
+            notesActionInput.value = 'clear_canvas';
+          }
+          notesForm.submit();
+        });
+      }
+
       canvasSurface.addEventListener('click', function (event) {
         if (event.target.closest('.note-box')) {
           return;
@@ -1906,6 +2070,14 @@
       });
 
       notesForm.addEventListener('submit', function () {
+        const activeAction = notesActionInput ? notesActionInput.value : '';
+        if (activeAction === 'clear_canvas') {
+          return;
+        }
+
+        if (notesActionInput) {
+          notesActionInput.value = '';
+        }
         const payloadJson = JSON.stringify(buildCanvasPayload());
         canvasDataInput.value = payloadJson;
         lastSavedPayload = payloadJson;
