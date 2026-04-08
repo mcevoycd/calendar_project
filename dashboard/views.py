@@ -743,7 +743,7 @@ def dashboard_view(request):
         if effective_end_time and effective_end_time >= current_time:
             upcoming_entries.append(entry)
 
-    diary_entries = upcoming_entries[:5]
+    diary_entries = upcoming_entries[:4]
     for entry in diary_entries:
         category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
         entry.category_key = category_key
@@ -761,7 +761,7 @@ def dashboard_view(request):
         ]
 
         display_tasks = []
-        for task in section_tasks[:4]:
+        for task in section_tasks[:6]:
             task_line = task['title']
             if task.get('completed'):
                 task_line = f"[Done] {task_line}"

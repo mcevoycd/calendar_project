@@ -273,12 +273,24 @@
       display: grid;
       grid-template-columns: 70% 30%;
       gap: 1.5rem;
-      align-items: start;
+      align-items: stretch;
+      min-height: 0;
     }
 
     .side-column {
       display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
       gap: 1.5rem;
+      min-height: 0;
+    }
+
+    #todo {
+      min-height: 0;
+    }
+
+    #todo .todo-board {
+      flex: 1;
+      align-content: start;
     }
 
     .panel {
@@ -944,6 +956,10 @@
 
       .content-grid {
         grid-template-columns: 1fr;
+      }
+
+      .side-column {
+        grid-template-rows: auto;
       }
 
       .sidebar {
