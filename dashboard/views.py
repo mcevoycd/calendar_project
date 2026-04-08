@@ -448,8 +448,10 @@ def task_applies_to_day(task, day_name, day_date):
 
 
 def get_todo_task_items(request):
+    db_available = False
     try:
         db_items = TodoTask.objects.filter(user=request.user).order_by('created_at')
+        db_available = True
         if db_items.exists():
             task_items = []
             for row in db_items:
@@ -523,7 +525,9 @@ def get_todo_task_items(request):
                     if normalized_item:
                         task_items.append(normalized_item)
 
-    if changed:
+    # If DB is reachable but empty, backfill from session so logout does not erase To Do data.
+    should_persist = changed or (db_available and bool(task_items))
+    if should_persist:
         set_todo_task_items(request, task_items)
 
     return task_items
