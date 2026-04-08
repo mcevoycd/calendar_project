@@ -1313,6 +1313,7 @@ def notes_view(request):
                     'type': 'Note',
                     'note_date': week_start.isoformat(),
                     'completed': False,
+                    'body_html': '',
                     'text': '',
                 }
             ],
@@ -1361,6 +1362,11 @@ def notes_view(request):
                 text = ''
             text = text[:1200]
 
+            body_html = item.get('body_html', '')
+            if not isinstance(body_html, str):
+                body_html = ''
+            body_html = body_html[:5000]
+
             title = item.get('title', '')
             if not isinstance(title, str):
                 title = ''
@@ -1397,6 +1403,7 @@ def notes_view(request):
                     'type': box_type,
                     'note_date': parsed_note_date.isoformat(),
                     'completed': completed,
+                    'body_html': body_html,
                     'text': text,
                 }
             )

@@ -420,7 +420,7 @@
     }
 
     .box-head {
-      height: 28px;
+      min-height: 32px;
       background: rgba(0, 194, 255, 0.13);
       border-bottom: 1px solid #1A4968;
       cursor: move;
@@ -428,7 +428,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.4rem;
-      padding: 0 0.55rem;
+      padding: 0.2rem 0.55rem;
       font-size: 0.76rem;
       color: #A7C3D7;
       user-select: none;
@@ -445,8 +445,14 @@
     .box-head-right {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.28rem;
       flex-shrink: 0;
+    }
+
+    .box-drag-label {
+      font-size: 0.72rem;
+      opacity: 0.9;
+      letter-spacing: 0.01em;
     }
 
     .box-text-tool {
@@ -485,7 +491,7 @@
       border-radius: 8px;
       font-size: 0.72rem;
       padding: 0.12rem 1.55rem 0.12rem 0.45rem;
-      max-width: 160px;
+      max-width: 146px;
       cursor: pointer;
       outline: none;
       line-height: 1.25;
@@ -503,7 +509,7 @@
       border-radius: 8px;
       font-size: 0.72rem;
       padding: 0.12rem 0.35rem;
-      width: 126px;
+      width: 112px;
       outline: none;
       line-height: 1.25;
       cursor: pointer;
@@ -545,13 +551,20 @@
       flex: 1;
       min-height: 72px;
       border: none;
-      resize: none;
       padding: 0.6rem;
       line-height: 1.45;
       background: transparent;
       color: #E5E7EB;
       font-size: 0.92rem;
       outline: none;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .box-text:empty::before {
+      content: attr(data-placeholder);
+      color: #7B8D9B;
     }
 
     .box-title-row {
@@ -560,6 +573,17 @@
       background: rgba(9, 24, 38, 0.52);
       display: grid;
       gap: 0;
+      flex: 0 0 auto;
+    }
+
+    .box-format-row {
+      border-bottom: 1px solid #1F4F70;
+      padding: 0.34rem 0.55rem;
+      display: flex;
+      align-items: center;
+      gap: 0.34rem;
+      flex-wrap: wrap;
+      background: rgba(9, 24, 38, 0.44);
       flex: 0 0 auto;
     }
 
@@ -916,6 +940,7 @@
           type: boxTypeOptions[0],
           note_date: weekStartIso,
           completed: false,
+          body_html: '',
           text: ''
         };
       }
@@ -973,6 +998,10 @@
           box.text = '';
         }
         box.text = box.text.slice(0, 1200);
+        if (typeof box.body_html !== 'string') {
+          box.body_html = '';
+        }
+        box.body_html = box.body_html.slice(0, 5000);
         if (typeof box.title !== 'string') {
           box.title = '';
         }
@@ -1035,6 +1064,13 @@
 
       function insertLinePrefix(textarea, prefix) {
         if (!textarea) {
+          return;
+        }
+
+        if (typeof textarea.selectionStart !== 'number' || typeof textarea.value !== 'string') {
+          textarea.focus();
+          document.execCommand('insertText', false, '\n' + prefix);
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
           return;
         }
 
@@ -1197,8 +1233,28 @@
           bulletBtn.title = 'Insert bullet point';
           bulletBtn.textContent = '•';
 
+          const boldBtn = document.createElement('button');
+          boldBtn.type = 'button';
+          boldBtn.className = 'box-text-tool';
+          boldBtn.title = 'Bold';
+          boldBtn.textContent = 'B';
+
+          const italicBtn = document.createElement('button');
+          italicBtn.type = 'button';
+          italicBtn.className = 'box-text-tool';
+          italicBtn.title = 'Italic';
+          italicBtn.textContent = 'I';
+
+          const underlineBtn = document.createElement('button');
+          underlineBtn.type = 'button';
+          underlineBtn.className = 'box-text-tool';
+          underlineBtn.title = 'Underline';
+          underlineBtn.textContent = 'U';
+
           const dragLabel = document.createElement('span');
-          dragLabel.textContent = 'Drag';
+          dragLabel.className = 'box-drag-label';
+          dragLabel.textContent = '↕';
+          dragLabel.title = 'Drag note';
 
           const linkHandle = document.createElement('button');
           linkHandle.type = 'button';
@@ -1271,7 +1327,6 @@
           });
 
           head.appendChild(headLeft);
-          headRight.appendChild(bulletBtn);
           headRight.appendChild(dragLabel);
           headRight.appendChild(linkHandle);
           head.appendChild(headRight);
@@ -1286,9 +1341,19 @@
           titleInput.maxLength = 120;
           titleRow.appendChild(titleInput);
 
-          const text = document.createElement('textarea');
+          const formatRow = document.createElement('div');
+          formatRow.className = 'box-format-row';
+          formatRow.appendChild(bulletBtn);
+          formatRow.appendChild(boldBtn);
+          formatRow.appendChild(italicBtn);
+          formatRow.appendChild(underlineBtn);
+
+          const text = document.createElement('div');
           text.className = 'box-text';
-          text.placeholder = 'Write your note...';
+          text.contentEditable = 'true';
+          text.setAttribute('data-placeholder', 'Write your note...');
+          text.setAttribute('role', 'textbox');
+          text.setAttribute('aria-multiline', 'true');
 
           const checklist = document.createElement('div');
           checklist.className = 'box-checklist';
@@ -1309,6 +1374,24 @@
           }
 
           bindTextTool(bulletBtn, '- ');
+
+          function bindFormatTool(btn, command) {
+            btn.addEventListener('mousedown', function (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            });
+            btn.addEventListener('click', function (event) {
+              event.preventDefault();
+              event.stopPropagation();
+              text.focus();
+              document.execCommand(command, false, null);
+              text.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+          }
+
+          bindFormatTool(boldBtn, 'bold');
+          bindFormatTool(italicBtn, 'italic');
+          bindFormatTool(underlineBtn, 'underline');
 
           function parseBoxText(rawText) {
             const lines = String(rawText || '').split(/\r?\n/);
@@ -1360,8 +1443,23 @@
             return parts.join('\n').slice(0, 1200);
           }
 
+          function htmlToPlainText(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = String(html || '');
+            return (temp.textContent || temp.innerText || '').replace(/\r/g, '');
+          }
+
+          function plainTextToHtml(plainText) {
+            const escaped = String(plainText || '')
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;');
+            return escaped.replace(/\n/g, '<br>');
+          }
+
           function syncBoxText() {
             box.title = String(titleInput.value || '').trim().slice(0, 120);
+            box.body_html = String(text.innerHTML || '').slice(0, 5000);
             box.text = composeBoxText();
             markDirty();
           }
@@ -1464,14 +1562,19 @@
           const parsed = parseBoxText(box.text);
           titleInput.value = (String(box.title || '').trim() || parsed.title || '').slice(0, 120);
           checklistItems = parsed.checklist;
-          bodyText = parsed.body;
-          text.value = bodyText;
+          if (String(box.body_html || '').trim()) {
+            text.innerHTML = box.body_html;
+            bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
+          } else {
+            bodyText = parsed.body;
+            text.innerHTML = plainTextToHtml(bodyText);
+          }
 
           const resizeHandle = document.createElement('div');
           resizeHandle.className = 'box-resize';
 
           text.addEventListener('input', function () {
-            bodyText = text.value;
+            bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
             syncBoxText();
           });
 
@@ -1522,6 +1625,7 @@
 
           boxEl.appendChild(head);
           boxEl.appendChild(titleRow);
+          boxEl.appendChild(formatRow);
           boxEl.appendChild(checklist);
           boxEl.appendChild(text);
           boxEl.appendChild(resizeHandle);
@@ -1606,6 +1710,7 @@
               type: sanitizeType(box.type),
               note_date: sanitizeNoteDate(box.note_date),
               completed: !!box.completed,
+              body_html: box.body_html || '',
               text: box.text || ''
             };
           }),
