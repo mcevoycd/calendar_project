@@ -483,6 +483,7 @@
                             data-start-date="{{ task.start_date }}"
                             data-end-date="{{ task.end_date }}"
                             data-section="{{ section.key }}"
+                            data-add-to-diary="{% if task.source == 'todo_diary' %}true{% else %}false{% endif %}"
                           >
                             <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
                             <span class="todo-task-title">{{ task.title }}</span>
@@ -556,6 +557,10 @@
               <input type="checkbox" name="task_completed" id="task-completed-input" style="width:0.95rem; height:0.95rem; accent-color:#34D399;">
               Mark as completed
             </label>
+            <label style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" name="task_add_to_diary" id="task-add-to-diary-input" style="width:0.95rem; height:0.95rem; accent-color:#00C2FF;">
+              Add entry to diary
+            </label>
             <div class="todo-form-actions">
               <button type="submit" class="btn btn-primary" id="todo-submit-btn">Add Task</button>
               <button type="button" class="btn btn-outline-secondary" id="todo-cancel-edit" style="display:none;">Cancel Edit</button>
@@ -593,6 +598,7 @@
       const notesInput = document.getElementById('task-notes-input');
       const priorityInput = document.getElementById('task-priority-input');
       const completedInput = document.getElementById('task-completed-input');
+      const addToDiaryInput = document.getElementById('task-add-to-diary-input');
       const submitBtn = document.getElementById('todo-submit-btn');
       const cancelBtn = document.getElementById('todo-cancel-edit');
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
@@ -603,6 +609,7 @@
         taskIdInput.value = '';
         submitBtn.textContent = 'Add Task';
         cancelBtn.style.display = 'none';
+        addToDiaryInput.checked = false;
         taskButtons.forEach(function (btn) { btn.classList.remove('is-editing'); });
       }
 
@@ -613,6 +620,7 @@
           notesInput.value = btn.dataset.notes || '';
           priorityInput.value = btn.dataset.priority || 'medium';
           completedInput.checked = (btn.dataset.completed || 'false') === 'true';
+          addToDiaryInput.checked = (btn.dataset.addToDiary || 'false') === 'true';
           startDateInput.value = btn.dataset.startDate || startDateInput.value;
           endDateInput.value = btn.dataset.endDate || endDateInput.value;
           sectionInput.value = btn.dataset.section || sectionInput.value;

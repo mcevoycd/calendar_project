@@ -1011,6 +1011,7 @@ def todo_view(request):
         task_notes = request.POST.get('task_notes', '').strip()
         task_priority = request.POST.get('task_priority', '').strip().lower()
         task_completed = request.POST.get('task_completed') == 'on'
+        task_add_to_diary = request.POST.get('task_add_to_diary') == 'on'
 
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
@@ -1053,7 +1054,8 @@ def todo_view(request):
         task_items = get_todo_task_items(request)
         new_item = normalize_todo_task_item(task_value, default_day=task_start_day, default_section=task_section)
         if new_item:
-            new_item = sync_todo_task_diary_entry(request, new_item)
+            if task_add_to_diary:
+                new_item = sync_todo_task_diary_entry(request, new_item)
             if new_item:
                 task_items.append(new_item)
 
@@ -1063,6 +1065,7 @@ def todo_view(request):
     if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry', 'toggle_todo_completed'):
         form_type = request.POST.get('form_type')
         task_id = request.POST.get('task_id', '').strip()
+        task_add_to_diary = request.POST.get('task_add_to_diary') == 'on'
 
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
@@ -1150,12 +1153,32 @@ def todo_view(request):
         if form_type == 'edit_todo_entry':
             updated_item = next((item for item in normalized_items if item.get('id') == task_id), None)
             if updated_item:
-                synced_item = sync_todo_task_diary_entry(request, updated_item)
-                if synced_item:
-                    normalized_items = [
-                        synced_item if item.get('id') == task_id else item
-                        for item in normalized_items
-                    ]
+                if task_add_to_diary:
+                    synced_item = sync_todo_task_diary_entry(request, updated_item)
+                    if synced_item:
+                        normalized_items = [
+                            synced_item if item.get('id') == task_id else item
+                            for item in normalized_items
+                        ]
+                else:
+                    if updated_item.get('source') == 'todo_diary':
+                        remove_todo_task_diary_entry(request, updated_item)
+
+                    unlinked_item = dict(updated_item)
+                    unlinked_item['source'] = ''
+                    unlinked_item['source_week'] = ''
+                    unlinked_item['source_box_id'] = ''
+
+                    normalized_unlinked = normalize_todo_task_item(
+                        unlinked_item,
+                        default_day=unlinked_item.get('start_day', 'Monday'),
+                        default_section=unlinked_item.get('section', 'planning'),
+                    )
+                    if normalized_unlinked:
+                        normalized_items = [
+                            normalized_unlinked if item.get('id') == task_id else item
+                            for item in normalized_items
+                        ]
 
         set_todo_task_items(request, normalized_items)
         return HttpResponseRedirect(get_todo_return_url(request))
