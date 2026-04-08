@@ -300,7 +300,7 @@ def format_task_date_range(start_date, end_date):
     return "No date"
 
 
-def sync_todo_task_diary_entry(request, task_item):
+def sync_todo_task_diary_entry(request, task_item, diary_category=None):
     if not isinstance(task_item, dict):
         return task_item
 
@@ -325,6 +325,7 @@ def sync_todo_task_diary_entry(request, task_item):
         return task_item
 
     content = str(task_item.get('notes', '')).strip()
+    category_key = normalize_diary_category(diary_category)
     diary_id_raw = str(task_item.get('source_box_id', '')).strip()
     diary_entry = None
 
@@ -333,7 +334,7 @@ def sync_todo_task_diary_entry(request, task_item):
 
     if diary_entry:
         diary_entry.title = title
-        diary_entry.category = DIARY_DEFAULT_CATEGORY
+        diary_entry.category = category_key
         diary_entry.date = start_date
         diary_entry.end_date = end_date
         diary_entry.start_time = None
@@ -345,7 +346,7 @@ def sync_todo_task_diary_entry(request, task_item):
         diary_entry = DiaryEntry.objects.create(
             user=request.user,
             title=title,
-            category=DIARY_DEFAULT_CATEGORY,
+            category=category_key,
             date=start_date,
             end_date=end_date,
             start_time=None,
@@ -1012,6 +1013,7 @@ def todo_view(request):
         task_priority = request.POST.get('task_priority', '').strip().lower()
         task_completed = request.POST.get('task_completed') == 'on'
         task_add_to_diary = request.POST.get('task_add_to_diary') == 'on'
+        task_diary_category = normalize_diary_category(request.POST.get('task_diary_category', DIARY_DEFAULT_CATEGORY))
 
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
@@ -1055,7 +1057,7 @@ def todo_view(request):
         new_item = normalize_todo_task_item(task_value, default_day=task_start_day, default_section=task_section)
         if new_item:
             if task_add_to_diary:
-                new_item = sync_todo_task_diary_entry(request, new_item)
+                new_item = sync_todo_task_diary_entry(request, new_item, diary_category=task_diary_category)
             if new_item:
                 task_items.append(new_item)
 
@@ -1066,6 +1068,7 @@ def todo_view(request):
         form_type = request.POST.get('form_type')
         task_id = request.POST.get('task_id', '').strip()
         task_add_to_diary = request.POST.get('task_add_to_diary') == 'on'
+        task_diary_category = normalize_diary_category(request.POST.get('task_diary_category', DIARY_DEFAULT_CATEGORY))
 
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
@@ -1154,7 +1157,7 @@ def todo_view(request):
             updated_item = next((item for item in normalized_items if item.get('id') == task_id), None)
             if updated_item:
                 if task_add_to_diary:
-                    synced_item = sync_todo_task_diary_entry(request, updated_item)
+                    synced_item = sync_todo_task_diary_entry(request, updated_item, diary_category=task_diary_category)
                     if synced_item:
                         normalized_items = [
                             synced_item if item.get('id') == task_id else item
@@ -1184,6 +1187,19 @@ def todo_view(request):
         return HttpResponseRedirect(get_todo_return_url(request))
 
     task_items = get_todo_task_items(request)
+    linked_diary_ids = []
+    for task in task_items:
+        if task.get('source') != 'todo_diary':
+            continue
+        diary_id_raw = str(task.get('source_box_id', '')).strip()
+        if diary_id_raw.isdigit():
+            linked_diary_ids.append(int(diary_id_raw))
+
+    diary_category_by_id = {}
+    if linked_diary_ids:
+        for row in DiaryEntry.objects.filter(user=request.user, id__in=linked_diary_ids).only('id', 'category'):
+            diary_category_by_id[row.id] = normalize_diary_category(row.category)
+
     section_lists = []
     for section in todo_sections:
         section_tasks = [item for item in task_items if item.get('section') == section['key']]
@@ -1202,6 +1218,14 @@ def todo_view(request):
             end_date = parse_task_date(task.get('end_date'))
             display_task = dict(task)
             display_task['date_range_label'] = format_task_date_range(start_date, end_date)
+
+            linked_diary_category = DIARY_DEFAULT_CATEGORY
+            if task.get('source') == 'todo_diary':
+                diary_id_raw = str(task.get('source_box_id', '')).strip()
+                if diary_id_raw.isdigit():
+                    linked_diary_category = diary_category_by_id.get(int(diary_id_raw), DIARY_DEFAULT_CATEGORY)
+            display_task['diary_category'] = linked_diary_category
+
             display_tasks.append(display_task)
 
         section_lists.append(
@@ -1221,6 +1245,7 @@ def todo_view(request):
             "todo_sections": todo_sections,
             "today_iso": default_date,
             "nav_layout": preferences.nav_layout,
+            "diary_category_options": get_diary_category_options(),
         },
     )
 

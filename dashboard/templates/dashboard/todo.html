@@ -484,6 +484,7 @@
                             data-end-date="{{ task.end_date }}"
                             data-section="{{ section.key }}"
                             data-add-to-diary="{% if task.source == 'todo_diary' %}true{% else %}false{% endif %}"
+                            data-diary-category="{{ task.diary_category|default:'general' }}"
                           >
                             <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
                             <span class="todo-task-title">{{ task.title }}</span>
@@ -557,10 +558,17 @@
               <input type="checkbox" name="task_completed" id="task-completed-input" style="width:0.95rem; height:0.95rem; accent-color:#34D399;">
               Mark as completed
             </label>
-            <label style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="checkbox" name="task_add_to_diary" id="task-add-to-diary-input" style="width:0.95rem; height:0.95rem; accent-color:#00C2FF;">
-              Add entry to diary
-            </label>
+            <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+              <label style="display:flex; align-items:center; gap:0.5rem; margin:0; font-size:0.82rem; color:#AFC0CF;">
+                <input type="checkbox" name="task_add_to_diary" id="task-add-to-diary-input" style="width:0.95rem; height:0.95rem; accent-color:#00C2FF;">
+                Add entry to diary
+              </label>
+              <select name="task_diary_category" id="task-diary-category-input" style="max-width:180px; font-size:0.82rem;">
+                {% for category in diary_category_options %}
+                  <option value="{{ category.key }}">{{ category.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
             <div class="todo-form-actions">
               <button type="submit" class="btn btn-primary" id="todo-submit-btn">Add Task</button>
               <button type="button" class="btn btn-outline-secondary" id="todo-cancel-edit" style="display:none;">Cancel Edit</button>
@@ -599,6 +607,7 @@
       const priorityInput = document.getElementById('task-priority-input');
       const completedInput = document.getElementById('task-completed-input');
       const addToDiaryInput = document.getElementById('task-add-to-diary-input');
+      const diaryCategoryInput = document.getElementById('task-diary-category-input');
       const submitBtn = document.getElementById('todo-submit-btn');
       const cancelBtn = document.getElementById('todo-cancel-edit');
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
@@ -610,6 +619,7 @@
         submitBtn.textContent = 'Add Task';
         cancelBtn.style.display = 'none';
         addToDiaryInput.checked = false;
+        diaryCategoryInput.value = 'general';
         taskButtons.forEach(function (btn) { btn.classList.remove('is-editing'); });
       }
 
@@ -621,6 +631,7 @@
           priorityInput.value = btn.dataset.priority || 'medium';
           completedInput.checked = (btn.dataset.completed || 'false') === 'true';
           addToDiaryInput.checked = (btn.dataset.addToDiary || 'false') === 'true';
+          diaryCategoryInput.value = btn.dataset.diaryCategory || 'general';
           startDateInput.value = btn.dataset.startDate || startDateInput.value;
           endDateInput.value = btn.dataset.endDate || endDateInput.value;
           sectionInput.value = btn.dataset.section || sectionInput.value;
