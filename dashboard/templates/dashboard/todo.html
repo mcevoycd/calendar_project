@@ -9,20 +9,15 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #06111E;
       --surface: #0E1B2A;
-      --surface-strong: #091624;
       --text: #E5E7EB;
       --muted: #9EB0C2;
       --accent: #F6C35C;
-      --accent-strong: #00C2FF;
       --border: rgba(24, 73, 108, 0.9);
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -50,14 +45,6 @@
       border-right: 1px solid rgba(0, 194, 255, 0.3);
     }
 
-    .brand {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin: 0;
-      color: var(--accent);
-    }
-
     .brand-logo {
       width: 100%;
       max-width: 210px;
@@ -76,10 +63,7 @@
       font-weight: 600;
     }
 
-    .nav-group {
-      display: grid;
-      gap: 0.5rem;
-    }
+    .nav-group { display: grid; gap: 0.5rem; }
 
     .nav-link {
       display: block;
@@ -103,43 +87,19 @@
       line-height: 1.75;
     }
 
-    body.nav-layout-tabs .app-shell {
-      grid-template-columns: 112px 1fr;
-    }
-
-    body.nav-layout-tabs .sidebar {
-      padding: 1.2rem 0.6rem;
-      gap: 1rem;
-    }
-
-    body.nav-layout-tabs .brand-logo {
-      max-width: 72px;
-      margin: 0 auto 0.2rem;
-    }
-
+    body.nav-layout-tabs .app-shell { grid-template-columns: 112px 1fr; }
+    body.nav-layout-tabs .sidebar { padding: 1.2rem 0.6rem; gap: 1rem; }
+    body.nav-layout-tabs .brand-logo { max-width: 72px; margin: 0 auto 0.2rem; }
     body.nav-layout-tabs .brand-subtitle,
-    body.nav-layout-tabs .sidebar-footer {
-      display: none;
-    }
-
-    body.nav-layout-tabs .nav-link {
-      text-align: center;
-      padding: 0.62rem 0.3rem;
-      font-size: 0.76rem;
-      line-height: 1.2;
-    }
+    body.nav-layout-tabs .sidebar-footer { display: none; }
+    body.nav-layout-tabs .nav-link { text-align: center; padding: 0.62rem 0.3rem; font-size: 0.76rem; line-height: 1.2; }
 
     body.nav-layout-bottom {
       padding-bottom: 88px;
       overflow: hidden;
     }
 
-    body.nav-layout-bottom .app-shell {
-      grid-template-columns: 1fr;
-      height: 100vh;
-      min-height: 0;
-    }
-
+    body.nav-layout-bottom .app-shell { grid-template-columns: 1fr; }
     body.nav-layout-bottom .sidebar {
       position: fixed;
       left: 0;
@@ -155,15 +115,8 @@
     }
 
     body.nav-layout-bottom .sidebar > div:first-child,
-    body.nav-layout-bottom .sidebar-footer {
-      display: none;
-    }
-
-    body.nav-layout-bottom .nav-group {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 0.38rem;
-    }
-
+    body.nav-layout-bottom .sidebar-footer { display: none; }
+    body.nav-layout-bottom .nav-group { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.38rem; }
     body.nav-layout-bottom .nav-link {
       text-align: center;
       padding: 0.5rem 0.2rem;
@@ -173,7 +126,6 @@
       line-height: 1.2;
       border-radius: 10px;
     }
-
     body.nav-layout-bottom .main {
       height: calc(100vh - 88px);
       min-height: 0;
@@ -213,184 +165,94 @@
       border: 1px solid rgba(0, 194, 255, 0.3);
     }
 
-    .panel {
-      background: var(--surface);
-      border-radius: 20px;
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-    }
-
-    .panel h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      color: var(--accent);
-    }
-
-    .panel p {
-      margin: 0.6rem 0 0;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.7;
-    }
-
-    .week-nav {
-      margin-top: 0.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .week-nav-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      flex-wrap: wrap;
-    }
-
-    .week-nav-label {
-      color: #AFC0CF;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
     .content-grid {
       margin-top: 1.25rem;
       display: grid;
-      grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
+      grid-template-columns: minmax(0, 4fr) minmax(300px, 1fr);
       gap: 1.5rem;
       align-items: stretch;
       flex: 1;
       min-height: 0;
     }
 
-    .todo-week-panel {
-      min-width: 0;
+    .panel {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
       min-height: 0;
+    }
+
+    .panel h2 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+    .panel p { margin: 0.6rem 0 0; color: var(--muted); font-size: 0.95rem; line-height: 1.7; }
+
+    .todo-board-panel {
+      min-width: 0;
       height: 100%;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    .todo-entry-panel {
-      align-self: start;
-      max-height: 100%;
-      overflow: auto;
-    }
-
-    .todo-days-grid {
-      margin-top: 1.15rem;
+    .todo-sections-grid {
+      margin-top: 1rem;
       display: grid;
-      grid-template-columns: repeat(7, minmax(170px, 1fr));
-      grid-template-rows: minmax(0, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.9rem;
-      overflow-x: auto;
+      overflow-x: hidden;
       overflow-y: hidden;
-      padding-bottom: 0.35rem;
+      padding-bottom: 0.3rem;
       flex: 1;
-      height: 100%;
       min-height: 0;
-      align-items: stretch;
-      align-content: stretch;
     }
 
-    .todo-day {
+    .todo-section-column {
       background: #13283A;
       border: 1px solid #35546D;
       border-radius: 14px;
       min-height: 0;
-      height: 100%;
       display: grid;
       grid-template-rows: auto 1fr;
       overflow: hidden;
     }
 
-    .todo-day-header {
+    .todo-section-head {
       padding: 0.65rem 0.75rem;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #06111E;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 0.35rem;
     }
 
-    .todo-day-header small {
-      font-size: 0.65rem;
-      letter-spacing: 0.03em;
-      opacity: 0.88;
-    }
+    .todo-section-planning .todo-section-head { background: #38BDF8; }
+    .todo-section-next .todo-section-head { background: #A3E635; }
+    .todo-section-progress .todo-section-head { background: #FACC15; }
+    .todo-section-done .todo-section-head { background: #34D399; }
 
-    .todo-day-monday .todo-day-header { background: #38BDF8; }
-    .todo-day-tuesday .todo-day-header { background: #A3E635; }
-    .todo-day-wednesday .todo-day-header { background: #FACC15; }
-    .todo-day-thursday .todo-day-header { background: #FB7185; }
-    .todo-day-friday .todo-day-header { background: #C084FC; }
-    .todo-day-saturday .todo-day-header { background: #34D399; }
-    .todo-day-sunday .todo-day-header { background: #FDBA74; }
-
-    .todo-day-body {
+    .todo-section-body {
       padding: 0.75rem;
-      display: grid;
-      gap: 0.65rem;
-      align-content: start;
       overflow-y: auto;
       min-height: 0;
-      scrollbar-gutter: stable;
     }
-
-    .todo-section {
-      border: 1px solid #35546D;
-      background: #173046;
-      border-radius: 10px;
-      padding: 0.55rem;
-      display: grid;
-      gap: 0.45rem;
-    }
-
-    .todo-section-title {
-      margin: 0;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-weight: 700;
-      border-radius: 999px;
-      padding: 0.25rem 0.55rem;
-      display: inline-block;
-      color: #06111E;
-      width: fit-content;
-    }
-
-    .todo-section-planning .todo-section-title { background: #38BDF8; }
-    .todo-section-next .todo-section-title { background: #A3E635; }
-    .todo-section-progress .todo-section-title { background: #FACC15; }
-    .todo-section-review .todo-section-title { background: #FB7185; }
-    .todo-section-done .todo-section-title { background: #34D399; }
 
     .todo-section-tasks {
       list-style: none;
       margin: 0;
       padding: 0;
       display: grid;
-      gap: 0.4rem;
+      gap: 0.5rem;
     }
 
     .todo-empty {
       color: #8EA0B1;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-style: italic;
       padding: 0.2rem 0.1rem;
     }
 
-    .todo-task {
-      position: relative;
-    }
+    .todo-task { position: relative; }
 
     .todo-task-hit {
       width: 100%;
@@ -399,29 +261,22 @@
       background: #1A3145;
       color: #D9E4EE;
       border-radius: 10px;
-      padding: 0.6rem 2rem 0.6rem 2rem;
+      padding: 0.65rem 2rem 0.65rem 2rem;
       font-size: 0.82rem;
       line-height: 1.35;
       cursor: pointer;
       transition: border-color 0.15s ease, background 0.15s ease;
       display: grid;
-      gap: 0.25rem;
+      gap: 0.22rem;
     }
 
-    .todo-task-title {
-      font-weight: 600;
-      color: #E5E7EB;
-    }
-
-    .todo-task-notes {
-      color: #9FB1C1;
-      font-size: 0.76rem;
-      font-style: italic;
-      white-space: pre-line;
-    }
+    .todo-task-title { font-weight: 600; color: #E5E7EB; }
+    .todo-task-notes { color: #9FB1C1; font-size: 0.76rem; white-space: pre-line; font-style: italic; }
+    .todo-task-date { color: #9FB1C1; font-size: 0.72rem; letter-spacing: 0.03em; text-transform: uppercase; }
 
     .todo-task-hit.is-completed .todo-task-title,
-    .todo-task-hit.is-completed .todo-task-notes {
+    .todo-task-hit.is-completed .todo-task-notes,
+    .todo-task-hit.is-completed .todo-task-date {
       text-decoration: line-through;
       opacity: 0.75;
     }
@@ -438,17 +293,9 @@
       color: #06111E;
     }
 
-    .todo-priority-high {
-      background: #FB7185;
-    }
-
-    .todo-priority-medium {
-      background: #FACC15;
-    }
-
-    .todo-priority-low {
-      background: #34D399;
-    }
+    .todo-priority-high { background: #FB7185; }
+    .todo-priority-medium { background: #FACC15; }
+    .todo-priority-low { background: #34D399; }
 
     .todo-task-hit:hover,
     .todo-task-hit:focus {
@@ -504,17 +351,14 @@
       outline: none;
     }
 
-    .todo-form-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .todo-entry-panel {
+      align-self: start;
+      max-height: 100%;
+      overflow: auto;
     }
 
-    .todo-form {
-      margin-top: 0.9rem;
-      display: grid;
-      gap: 0.7rem;
-    }
+    .todo-form-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .todo-form { margin-top: 0.9rem; display: grid; gap: 0.7rem; }
 
     .todo-form label {
       font-size: 0.8rem;
@@ -526,7 +370,8 @@
 
     .todo-form input,
     .todo-form select,
-    .todo-form textarea {
+    .todo-form textarea,
+    .todo-settings-form input {
       border: 1px solid #35546D;
       background: #0A1A2A;
       color: #E5E7EB;
@@ -534,10 +379,7 @@
       padding: 0.5rem 0.6rem;
     }
 
-    .todo-form textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
+    .todo-form textarea { min-height: 100px; resize: vertical; }
 
     .todo-settings-form {
       margin-top: 1rem;
@@ -547,11 +389,7 @@
       padding-top: 1rem;
     }
 
-    .todo-settings-form h3 {
-      margin: 0;
-      font-size: 0.95rem;
-      color: var(--accent);
-    }
+    .todo-settings-form h3 { margin: 0; font-size: 0.95rem; color: var(--accent); }
 
     .todo-settings-form label {
       font-size: 0.78rem;
@@ -560,51 +398,17 @@
       gap: 0.3rem;
     }
 
-    .todo-settings-form input {
-      border: 1px solid #35546D;
-      background: #0A1A2A;
-      color: #E5E7EB;
-      border-radius: 8px;
-      padding: 0.45rem 0.55rem;
-    }
-
     @media (max-width: 1080px) {
-      .app-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        padding: 1.5rem;
-      }
-
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .todo-day {
-        min-height: 480px;
-      }
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { padding: 1.5rem; }
+      .content-grid { grid-template-columns: 1fr; }
+      .todo-sections-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 720px) {
-      .sidebar {
-        padding: 1.25rem;
-      }
-
-      .topbar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .todo-days-grid {
-        grid-template-columns: repeat(2, minmax(170px, 1fr));
-      }
-    }
-
-    @media (max-width: 560px) {
-      .todo-days-grid {
-        grid-template-columns: 1fr;
-      }
+      .sidebar { padding: 1.25rem; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .todo-sections-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -633,7 +437,7 @@
       <div class="topbar">
         <div>
           <h1>To Do</h1>
-          <p style="margin:0; color:var(--muted);">Day-based planning board using your existing dashboard palette.</p>
+          <p style="margin:0; color:var(--muted);">Four focused sections with date-ranged tasks that sync into your diary timeline.</p>
         </div>
         <div class="user-menu">
           {% if request.user.is_authenticated %}
@@ -649,80 +453,60 @@
       </div>
 
       <div class="content-grid">
-        <section class="panel todo-week-panel">
-          <h2>Week View</h2>
-          <p>Diary-style layout with day columns, each containing the five To Do board sections.</p>
+        <section class="panel todo-board-panel">
+          <h2>Section Board</h2>
+          <p>Each section is fully customizable and mirrored across Dashboard and Notes.</p>
 
-          <div class="week-nav" aria-label="Week navigation">
-            <div class="week-nav-controls">
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'todo' %}?date={{ prev_week_iso }}">Previous Week</a>
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'todo' %}?date={{ today_iso }}">Current Week</a>
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'todo' %}?date={{ next_week_iso }}">Next Week</a>
-            </div>
-            <span class="week-nav-label">{{ week_range_label }}</span>
-          </div>
-
-          <div class="todo-days-grid" aria-label="Weekly To Do Board">
-            {% for day in day_lists %}
-              <article class="todo-day {{ day.class_name }}" aria-label="{{ day.name }} to do list">
-                <header class="todo-day-header">{{ day.name }} <small>{{ day.date_label }}</small></header>
-                <div class="todo-day-body">
-                  {% for section in day.sections %}
-                    <section class="todo-section {{ section.class_name }}" aria-label="{{ section.name }} section">
-                      <h3 class="todo-section-title">{{ section.name }}</h3>
-                      {% if section.tasks %}
-                        <ul class="todo-section-tasks">
-                          {% for task in section.tasks %}
-                            <li class="todo-task">
-                              <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="form_type" value="toggle_todo_completed">
-                                <input type="hidden" name="return_date" value="{{ week_start_iso }}">
-                                <input type="hidden" name="task_id" value="{{ task.id }}">
-                                <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
-                              </form>
-                              <button
-                                type="button"
-                                class="todo-task-hit{% if task.completed %} is-completed{% endif %}"
-                                data-id="{{ task.id }}"
-                                data-title="{{ task.title|escape }}"
-                                data-notes="{{ task.notes|default:''|escape }}"
-                                data-priority="{{ task.priority|default:'medium' }}"
-                                data-completed="{% if task.completed %}true{% else %}false{% endif %}"
-                                data-start-date="{{ task.start_date }}"
-                                data-end-date="{{ task.end_date }}"
-                                data-start-day="{{ task.start_day }}"
-                                data-end-day="{{ task.end_day }}"
-                                data-section="{{ section.key }}"
-                              >
-                                <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
-                                <span class="todo-task-title">{{ task.title }}</span>
-                                {% if task.notes %}
-                                  <span class="todo-task-notes">{{ task.notes }}</span>
-                                {% endif %}
-                                {% if task.start_day != task.end_day %}
-                                  <span class="todo-task-notes">{{ task.start_day }} to {{ task.end_day }}</span>
-                                {% endif %}
-                              </button>
-                              <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="form_type" value="delete_todo_entry">
-                                <input type="hidden" name="return_date" value="{{ week_start_iso }}">
-                                <input type="hidden" name="task_id" value="{{ task.id }}">
-                                <button type="submit" class="todo-delete-btn" aria-label="Delete task" title="Delete task">
-                                  <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false">
-                                    <path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v8h-2V9zm4 0h2v8h-2V9zM7 9h2v8H7V9z"/>
-                                  </svg>
-                                </button>
-                              </form>
-                            </li>
-                          {% endfor %}
-                        </ul>
-                      {% else %}
-                        <div class="todo-empty">No tasks</div>
-                      {% endif %}
-                    </section>
-                  {% endfor %}
+          <div class="todo-sections-grid" aria-label="Section-based To Do Board">
+            {% for section in section_lists %}
+              <article class="todo-section-column {{ section.class_name }}" aria-label="{{ section.name }} tasks">
+                <header class="todo-section-head">{{ section.name }}</header>
+                <div class="todo-section-body">
+                  {% if section.tasks %}
+                    <ul class="todo-section-tasks">
+                      {% for task in section.tasks %}
+                        <li class="todo-task">
+                          <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="toggle_todo_completed">
+                            <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
+                          </form>
+                          <button
+                            type="button"
+                            class="todo-task-hit{% if task.completed %} is-completed{% endif %}"
+                            data-id="{{ task.id }}"
+                            data-title="{{ task.title|escape }}"
+                            data-notes="{{ task.notes|default:''|escape }}"
+                            data-priority="{{ task.priority|default:'medium' }}"
+                            data-completed="{% if task.completed %}true{% else %}false{% endif %}"
+                            data-start-date="{{ task.start_date }}"
+                            data-end-date="{{ task.end_date }}"
+                            data-section="{{ section.key }}"
+                          >
+                            <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
+                            <span class="todo-task-title">{{ task.title }}</span>
+                            <span class="todo-task-date">{{ task.date_range_label }}</span>
+                            {% if task.notes %}
+                              <span class="todo-task-notes">{{ task.notes }}</span>
+                            {% endif %}
+                          </button>
+                          <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="delete_todo_entry">
+                            <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <button type="submit" class="todo-delete-btn" aria-label="Delete task" title="Delete task">
+                              <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v8h-2V9zm4 0h2v8h-2V9zM7 9h2v8H7V9z"/>
+                              </svg>
+                            </button>
+                          </form>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <div class="todo-empty">No tasks</div>
+                  {% endif %}
                 </div>
               </article>
             {% endfor %}
@@ -731,11 +515,10 @@
 
         <aside class="panel todo-entry-panel">
           <h2>Add To Do Entry</h2>
-          <p>Choose a day and section, then capture a task for the board.</p>
+          <p>Tasks include title, section, dates, priority, and notes.</p>
           <form class="todo-form" action="{% url 'todo' %}" method="post" id="todo-entry-form">
             {% csrf_token %}
             <input type="hidden" name="form_type" id="todo-form-type" value="add_todo_entry">
-            <input type="hidden" name="return_date" value="{{ week_start_iso }}">
             <input type="hidden" name="task_id" id="task-id-input" value="">
             <label>
               Task title
@@ -743,11 +526,11 @@
             </label>
             <label>
               Start date
-              <input type="date" name="task_start_date" id="task-start-date-input" value="{{ day_lists.0.date_iso }}" required>
+              <input type="date" name="task_start_date" id="task-start-date-input" value="{{ today_iso }}" required>
             </label>
             <label>
               End date
-              <input type="date" name="task_end_date" id="task-end-date-input" value="{{ day_lists.0.date_iso }}" required>
+              <input type="date" name="task_end_date" id="task-end-date-input" value="{{ today_iso }}" required>
             </label>
             <label>
               Section
@@ -782,7 +565,6 @@
           <form class="todo-settings-form" method="post" action="{% url 'todo' %}">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="update_section_titles">
-            <input type="hidden" name="return_date" value="{{ week_start_iso }}">
             <h3>Customize Section Titles</h3>
             {% for section in todo_sections %}
               <label>
@@ -821,9 +603,7 @@
         taskIdInput.value = '';
         submitBtn.textContent = 'Add Task';
         cancelBtn.style.display = 'none';
-        taskButtons.forEach(function (btn) {
-          btn.classList.remove('is-editing');
-        });
+        taskButtons.forEach(function (btn) { btn.classList.remove('is-editing'); });
       }
 
       taskButtons.forEach(function (btn) {
@@ -840,9 +620,7 @@
           submitBtn.textContent = 'Save Task';
           cancelBtn.style.display = 'inline-flex';
 
-          taskButtons.forEach(function (other) {
-            other.classList.remove('is-editing');
-          });
+          taskButtons.forEach(function (other) { other.classList.remove('is-editing'); });
           btn.classList.add('is-editing');
           titleInput.focus();
         });
@@ -854,14 +632,10 @@
       });
 
       completeCheckboxes.forEach(function (checkbox) {
-        checkbox.addEventListener('click', function (event) {
-          event.stopPropagation();
-        });
+        checkbox.addEventListener('click', function (event) { event.stopPropagation(); });
         checkbox.addEventListener('change', function () {
           const formEl = checkbox.closest('form');
-          if (formEl) {
-            formEl.submit();
-          }
+          if (formEl) formEl.submit();
         });
       });
 
@@ -875,16 +649,10 @@
       function updateSidebarDateTime() {
         const now = new Date();
         const datePart = now.toLocaleDateString('en-GB', {
-          weekday: 'short',
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
+          weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
         });
         const timePart = now.toLocaleTimeString('en-GB', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
         });
         el.textContent = `${datePart} | ${timePart}`;
       }

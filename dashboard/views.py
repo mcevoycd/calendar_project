@@ -22,7 +22,6 @@ TODO_SECTION_CONFIG = [
     ("planning", "Planning", "todo-section-planning"),
     ("next", "Next Up", "todo-section-next"),
     ("progress", "In Progress", "todo-section-progress"),
-    ("review", "Review", "todo-section-review"),
     ("done", "Done", "todo-section-done"),
 ]
 
@@ -49,7 +48,6 @@ TODO_SECTION_COLORS = {
     "planning": "#38BDF8",
     "next": "#A3E635",
     "progress": "#FACC15",
-    "review": "#FB7185",
     "done": "#34D399",
 }
 
@@ -215,6 +213,8 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
 
     section = str(raw_item.get("section", default_section)).strip().lower()
     valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
+    if section == "review":
+        section = "progress"
     if section not in valid_sections:
         section = default_section if default_section in valid_sections else "planning"
 
@@ -276,6 +276,102 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
         "source_week": str(raw_item.get("source_week", "")).strip()[:10],
         "source_box_id": str(raw_item.get("source_box_id", "")).strip()[:80],
     }
+
+
+def parse_task_date(raw_value):
+    value = str(raw_value or "").strip()
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def format_task_date_range(start_date, end_date):
+    if start_date and end_date:
+        if start_date == end_date:
+            return start_date.strftime("%d %b %Y")
+        return f"{start_date.strftime('%d %b')} to {end_date.strftime('%d %b %Y')}"
+    if start_date:
+        return start_date.strftime("%d %b %Y")
+    if end_date:
+        return end_date.strftime("%d %b %Y")
+    return "No date"
+
+
+def sync_todo_task_diary_entry(request, task_item):
+    if not isinstance(task_item, dict):
+        return task_item
+
+    if task_item.get('source') == 'notes_canvas':
+        return task_item
+
+    start_date = parse_task_date(task_item.get('start_date'))
+    end_date = parse_task_date(task_item.get('end_date'))
+    if start_date and not end_date:
+        end_date = start_date
+    if end_date and not start_date:
+        start_date = end_date
+
+    if not start_date:
+        return task_item
+
+    if end_date and end_date < start_date:
+        start_date, end_date = end_date, start_date
+
+    title = str(task_item.get('title', '')).strip()[:200]
+    if not title:
+        return task_item
+
+    content = str(task_item.get('notes', '')).strip()
+    diary_id_raw = str(task_item.get('source_box_id', '')).strip()
+    diary_entry = None
+
+    if task_item.get('source') == 'todo_diary' and diary_id_raw.isdigit():
+        diary_entry = DiaryEntry.objects.filter(user=request.user, id=int(diary_id_raw)).first()
+
+    if diary_entry:
+        diary_entry.title = title
+        diary_entry.category = DIARY_DEFAULT_CATEGORY
+        diary_entry.date = start_date
+        diary_entry.end_date = end_date
+        diary_entry.start_time = None
+        diary_entry.end_time = None
+        diary_entry.content = content
+        diary_entry.save()
+        diary_id = diary_entry.id
+    else:
+        diary_entry = DiaryEntry.objects.create(
+            user=request.user,
+            title=title,
+            category=DIARY_DEFAULT_CATEGORY,
+            date=start_date,
+            end_date=end_date,
+            start_time=None,
+            end_time=None,
+            content=content,
+        )
+        diary_id = diary_entry.id
+
+    task_item['source'] = 'todo_diary'
+    task_item['source_week'] = ''
+    task_item['source_box_id'] = str(diary_id)
+    return normalize_todo_task_item(task_item)
+
+
+def remove_todo_task_diary_entry(request, task_item):
+    if not isinstance(task_item, dict):
+        return
+
+    if task_item.get('source') != 'todo_diary':
+        return
+
+    diary_id_raw = str(task_item.get('source_box_id', '')).strip()
+    if not diary_id_raw.isdigit():
+        return
+
+    DiaryEntry.objects.filter(user=request.user, id=int(diary_id_raw)).delete()
 
 
 def get_todo_week_dates(request):
@@ -891,10 +987,7 @@ def settings_view(request):
 def todo_view(request):
     preferences = get_user_preferences(request)
     todo_sections = get_todo_sections(request)
-    week_start, week_dates = get_todo_week_dates(request)
-    week_end = week_start + timedelta(days=6)
-    prev_week = week_start - timedelta(days=7)
-    next_week = week_start + timedelta(days=7)
+    default_date = datetime.today().date().isoformat()
 
     if request.method == 'POST' and request.POST.get('form_type') == 'update_section_titles':
         updated_titles = {}
@@ -915,7 +1008,6 @@ def todo_view(request):
         task_priority = request.POST.get('task_priority', '').strip().lower()
         task_completed = request.POST.get('task_completed') == 'on'
 
-        valid_days = {day_name for day_name, _ in TODO_DAYS}
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
         if not task_title:
@@ -936,9 +1028,6 @@ def todo_view(request):
         task_start_day = task_start_date.strftime("%A")
         task_end_day = task_end_date.strftime("%A")
 
-        if task_start_day not in valid_days or task_end_day not in valid_days:
-            return HttpResponseRedirect(get_todo_return_url(request))
-
         if task_priority not in TODO_PRIORITY_CHOICES:
             task_priority = 'medium'
 
@@ -958,7 +1047,11 @@ def todo_view(request):
         }
 
         task_items = get_todo_task_items(request)
-        task_items.append(normalize_todo_task_item(task_value, default_day=task_start_day, default_section=task_section))
+        new_item = normalize_todo_task_item(task_value, default_day=task_start_day, default_section=task_section)
+        if new_item:
+            new_item = sync_todo_task_diary_entry(request, new_item)
+            if new_item:
+                task_items.append(new_item)
 
         set_todo_task_items(request, task_items)
         return HttpResponseRedirect(get_todo_return_url(request))
@@ -978,6 +1071,7 @@ def todo_view(request):
             return HttpResponseRedirect(get_todo_return_url(request))
 
         if form_type == 'delete_todo_entry':
+            remove_todo_task_diary_entry(request, task_items[task_pos])
             del task_items[task_pos]
         elif form_type == 'toggle_todo_completed':
             current_task = task_items[task_pos]
@@ -1049,34 +1143,46 @@ def todo_view(request):
             if updated_item:
                 sync_notes_box_completed_state(request, updated_item)
 
+        if form_type == 'edit_todo_entry':
+            updated_item = next((item for item in normalized_items if item.get('id') == task_id), None)
+            if updated_item:
+                synced_item = sync_todo_task_diary_entry(request, updated_item)
+                if synced_item:
+                    normalized_items = [
+                        synced_item if item.get('id') == task_id else item
+                        for item in normalized_items
+                    ]
+
         set_todo_task_items(request, normalized_items)
         return HttpResponseRedirect(get_todo_return_url(request))
 
-    todo_sections = get_todo_sections(request)
-    tasks_by_day = get_todo_tasks_by_day(request, week_dates=week_dates)
+    task_items = get_todo_task_items(request)
+    section_lists = []
+    for section in todo_sections:
+        section_tasks = [item for item in task_items if item.get('section') == section['key']]
 
-    day_lists = []
-    day_info_by_name = {item["name"]: item for item in week_dates}
-    for day_name, class_name in TODO_DAYS:
-        sections = []
-        day_seed = tasks_by_day.get(day_name, {})
-        for section in todo_sections:
-            sections.append(
-                {
-                    "name": section["title"],
-                    "key": section["key"],
-                    "class_name": section["class_name"],
-                    "tasks": day_seed.get(section["key"], []),
-                }
-            )
+        def task_sort_key(item):
+            start_date = parse_task_date(item.get('start_date'))
+            end_date = parse_task_date(item.get('end_date'))
+            anchor = start_date or end_date
+            return (anchor is None, anchor or datetime.max.date(), str(item.get('title', '')).lower())
 
-        day_lists.append(
+        section_tasks.sort(key=task_sort_key)
+
+        display_tasks = []
+        for task in section_tasks:
+            start_date = parse_task_date(task.get('start_date'))
+            end_date = parse_task_date(task.get('end_date'))
+            display_task = dict(task)
+            display_task['date_range_label'] = format_task_date_range(start_date, end_date)
+            display_tasks.append(display_task)
+
+        section_lists.append(
             {
-                "name": day_name,
-                "class_name": class_name,
-                "date_iso": day_info_by_name[day_name]["date_iso"],
-                "date_label": day_info_by_name[day_name]["date_label"],
-                "sections": sections,
+                'name': section['title'],
+                'key': section['key'],
+                'class_name': section['class_name'],
+                'tasks': display_tasks,
             }
         )
 
@@ -1084,13 +1190,9 @@ def todo_view(request):
         request,
         'dashboard/todo.html',
         {
-            "day_lists": day_lists,
+            "section_lists": section_lists,
             "todo_sections": todo_sections,
-            "week_start_iso": week_start.isoformat(),
-            "week_range_label": f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
-            "prev_week_iso": prev_week.isoformat(),
-            "next_week_iso": next_week.isoformat(),
-            "today_iso": datetime.today().date().isoformat(),
+            "today_iso": default_date,
             "nav_layout": preferences.nav_layout,
         },
     )

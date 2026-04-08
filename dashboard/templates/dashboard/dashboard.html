@@ -730,7 +730,7 @@
 
     .todo-board {
       display: grid;
-      grid-template-columns: repeat(5, minmax(170px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1rem;
       margin-top: 1rem;
     }
@@ -787,10 +787,6 @@
 
     .todo-list-progress h3 {
       background: #FACC15;
-    }
-
-    .todo-list-review h3 {
-      background: #FB7185;
     }
 
     .todo-list-done h3 {
@@ -1078,7 +1074,7 @@
 
           <section class="panel" id="todo">
             <h2>To Do Board</h2>
-            <p>Five colored lists for planning and tracking work without date or time slots.</p>
+            <p>Four focused lists for planning and tracking work without date or time slots.</p>
             <div class="todo-board" aria-label="To Do board">
               {% for column in todo_columns %}
                 <section class="todo-list {{ column.list_class }}" aria-label="{{ column.title }} list">
