@@ -607,6 +607,80 @@
       border-radius: 999px;
     }
 
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(3, 12, 20, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 1100;
+      padding: 1rem;
+    }
+
+    .app-modal[hidden] {
+      display: none;
+    }
+
+    .app-modal-dialog {
+      width: min(500px, 100%);
+      background: linear-gradient(155deg, #0E2335 0%, #081725 100%);
+      border: 1px solid rgba(0, 194, 255, 0.35);
+      border-radius: 14px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42);
+      padding: 1rem 1rem 0.9rem;
+      color: #D7E6F2;
+    }
+
+    .app-modal-title {
+      margin: 0;
+      font-size: 1rem;
+      color: #EAF4FF;
+    }
+
+    .app-modal-message {
+      margin: 0.55rem 0 0;
+      color: #AFC0CF;
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
+    .app-modal-actions {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .btn-modal {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D7E6F2;
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .btn-modal:hover,
+    .btn-modal:focus {
+      border-color: #53B7E8;
+      outline: none;
+    }
+
+    .btn-modal-primary {
+      border-color: #0EA5C6;
+      background: linear-gradient(135deg, #149FC9, #1577B0);
+      color: #EAF7FF;
+    }
+
+    .btn-modal-primary:hover,
+    .btn-modal-primary:focus {
+      border-color: #6AD4F1;
+      filter: brightness(1.05);
+    }
+
     .event-list {
       list-style: none;
       margin: 0;
@@ -1153,6 +1227,17 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <div class="app-modal" id="app-popup-modal" hidden>
+    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="app-popup-title" aria-describedby="app-popup-message">
+      <h2 class="app-modal-title" id="app-popup-title">Notice</h2>
+      <p class="app-modal-message" id="app-popup-message"></p>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="app-popup-cancel-btn" hidden>Cancel</button>
+        <button type="button" class="btn-modal btn-modal-primary" id="app-popup-ok-btn">OK</button>
+      </div>
+    </div>
   </div>
 
   <script>

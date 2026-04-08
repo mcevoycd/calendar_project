@@ -188,6 +188,11 @@ function renderWorldClock() {
   const toggle = document.getElementById('toggle-time-format');
   const addButton = document.getElementById('add-timezone');
   const timezoneInput = document.getElementById('timezone-input');
+  const popupModal = document.getElementById('app-popup-modal');
+  const popupTitle = document.getElementById('app-popup-title');
+  const popupMessage = document.getElementById('app-popup-message');
+  const popupCancelBtn = document.getElementById('app-popup-cancel-btn');
+  const popupOkBtn = document.getElementById('app-popup-ok-btn');
   console.log('renderWorldClock init', { container, toggle, addButton, timezoneInput });
   if (!container) {
     console.error('World clock container not found');
@@ -206,6 +211,69 @@ function renderWorldClock() {
   const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   let hour12 = localStorage.getItem('worldclockHour12') !== 'false';
   let timezones = JSON.parse(container.getAttribute('data-timezones') || '[]');
+
+  function showPopup(message, options) {
+    const config = options || {};
+    const title = config.title || 'Notice';
+    const mode = config.mode || 'alert';
+    const okText = config.okText || 'OK';
+    const cancelText = config.cancelText || 'Cancel';
+
+    if (!popupModal || !popupMessage || !popupOkBtn || !popupCancelBtn || !popupTitle) {
+      console.warn('World clock popup modal elements are missing. Message:', message);
+      return Promise.resolve(mode !== 'confirm');
+    }
+
+    popupTitle.textContent = title;
+    popupMessage.textContent = message;
+    popupOkBtn.textContent = okText;
+    popupCancelBtn.textContent = cancelText;
+    popupCancelBtn.hidden = mode !== 'confirm';
+    popupModal.hidden = false;
+    popupOkBtn.focus();
+
+    return new Promise(function (resolve) {
+      let settled = false;
+
+      function close(result) {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        popupModal.hidden = true;
+        popupModal.removeEventListener('click', onBackdropClick);
+        document.removeEventListener('keydown', onKeyDown);
+        popupCancelBtn.removeEventListener('click', onCancel);
+        popupOkBtn.removeEventListener('click', onOk);
+        resolve(result);
+      }
+
+      function onOk() {
+        close(true);
+      }
+
+      function onCancel() {
+        close(false);
+      }
+
+      function onBackdropClick(event) {
+        if (event.target === popupModal) {
+          close(false);
+        }
+      }
+
+      function onKeyDown(event) {
+        if (event.key === 'Escape') {
+          close(false);
+        }
+      }
+
+      popupModal.addEventListener('click', onBackdropClick);
+      document.addEventListener('keydown', onKeyDown);
+      popupCancelBtn.addEventListener('click', onCancel);
+      popupOkBtn.addEventListener('click', onOk);
+    });
+  }
 
   function saveTimezones() {
     container.setAttribute('data-timezones', JSON.stringify(timezones));
@@ -283,15 +351,21 @@ function renderWorldClock() {
   function addTimezone(value) {
     const resolved = resolveTimezone(value);
     if (!resolved) {
-      alert('Invalid city or timezone. Enter a city like Paris or a valid IANA timezone.');
+      showPopup('Invalid city or timezone. Enter a city like Paris or a valid IANA timezone.', {
+        title: 'World Clock'
+      });
       return;
     }
     if (timezones.includes(resolved)) {
-      alert('This timezone is already in your list.');
+      showPopup('This timezone is already in your list.', {
+        title: 'World Clock'
+      });
       return;
     }
     if (timezones.length >= 3) {
-      alert('Maximum of 3 clocks allowed. Remove one before adding another.');
+      showPopup('Maximum of 3 clocks allowed. Remove one before adding another.', {
+        title: 'World Clock'
+      });
       return;
     }
     timezones.push(resolved);
