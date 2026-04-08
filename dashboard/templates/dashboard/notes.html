@@ -449,6 +449,26 @@
       flex-shrink: 0;
     }
 
+    .box-text-tool {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D8E7F2;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      line-height: 1;
+      padding: 0.2rem 0.32rem;
+      cursor: pointer;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .box-text-tool:hover,
+    .box-text-tool:focus {
+      border-color: #00C2FF;
+      color: #EAF7FF;
+      outline: none;
+    }
+
     .box-head .dot {
       width: 7px;
       height: 7px;
@@ -522,7 +542,8 @@
 
     .box-text {
       width: 100%;
-      height: calc(100% - 28px);
+      flex: 1;
+      min-height: 72px;
       border: none;
       resize: none;
       padding: 0.6rem;
@@ -531,6 +552,147 @@
       color: #E5E7EB;
       font-size: 0.92rem;
       outline: none;
+    }
+
+    .box-title-row {
+      border-bottom: 1px solid #1F4F70;
+      padding: 0.42rem 0.55rem;
+      background: rgba(9, 24, 38, 0.52);
+      display: grid;
+      gap: 0;
+      flex: 0 0 auto;
+    }
+
+    .box-title-input {
+      width: 100%;
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #E5E7EB;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.38rem 0.55rem;
+      outline: none;
+    }
+
+    .box-title-input:focus {
+      border-color: #00C2FF;
+      box-shadow: 0 0 0 2px rgba(0, 194, 255, 0.2);
+    }
+
+    .box-checklist {
+      border-bottom: 1px solid #1F4F70;
+      padding: 0.45rem 0.55rem 0.5rem;
+      display: grid;
+      gap: 0.32rem;
+      max-height: 38%;
+      overflow-y: auto;
+      background: rgba(9, 24, 38, 0.62);
+      flex: 0 0 auto;
+      min-height: 46px;
+    }
+
+    .box-checklist-compose {
+      display: flex;
+      align-items: center;
+      gap: 0.38rem;
+    }
+
+    .box-checklist-compose input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D8E7F2;
+      border-radius: 7px;
+      font-size: 0.76rem;
+      padding: 0.2rem 0.45rem;
+      outline: none;
+    }
+
+    .box-checklist-compose input:focus {
+      border-color: #00C2FF;
+      box-shadow: 0 0 0 2px rgba(0, 194, 255, 0.2);
+    }
+
+    .box-checklist-add {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D8E7F2;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      line-height: 1;
+      padding: 0.25rem 0.45rem;
+      cursor: pointer;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .box-checklist-add:hover,
+    .box-checklist-add:focus {
+      border-color: #00C2FF;
+      color: #EAF7FF;
+      outline: none;
+    }
+
+    .box-checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: #D7E6F2;
+      font-size: 0.8rem;
+      line-height: 1.3;
+    }
+
+    .box-checklist-item input[type="checkbox"] {
+      width: 0.88rem;
+      height: 0.88rem;
+      margin: 0;
+      accent-color: #34D399;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .box-checklist-item-label {
+      overflow-wrap: anywhere;
+      flex: 1;
+      min-width: 0;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: #D7E6F2;
+      font-size: 0.8rem;
+      padding: 0.14rem 0.2rem;
+      outline: none;
+    }
+
+    .box-checklist-item-label:focus {
+      border-color: #2A5E82;
+      background: #0D2132;
+    }
+
+    .box-checklist-remove {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #AFC0CF;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      line-height: 1;
+      padding: 0.2rem 0.32rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .box-checklist-remove:hover,
+    .box-checklist-remove:focus {
+      border-color: #FB7185;
+      color: #FCA5A5;
+      outline: none;
+    }
+
+    .box-checklist-item.is-completed .box-checklist-item-label {
+      text-decoration: line-through;
+      opacity: 0.72;
     }
 
     .box-resize {
@@ -749,7 +911,8 @@
           x: x,
           y: y,
           w: 360,
-          h: 150,
+          h: 220,
+          title: '',
           type: boxTypeOptions[0],
           note_date: weekStartIso,
           completed: false,
@@ -796,7 +959,7 @@
 
       function normalizeBox(box) {
         const minW = 320;
-        const minH = 120;
+        const minH = 200;
         box.w = Math.max(minW, Math.min(Number(box.w) || 360, 700));
         box.h = Math.max(minH, Math.min(Number(box.h) || 150, 520));
 
@@ -810,6 +973,10 @@
           box.text = '';
         }
         box.text = box.text.slice(0, 1200);
+        if (typeof box.title !== 'string') {
+          box.title = '';
+        }
+        box.title = box.title.trim().slice(0, 120);
         box.type = sanitizeType(box.type);
         box.note_date = sanitizeNoteDate(box.note_date || weekStartIso);
         box.completed = !!box.completed;
@@ -864,6 +1031,26 @@
         const x = Math.max(0, Math.min(rawX, canvasSurface.clientWidth));
         const y = Math.max(0, Math.min(rawY, canvasSurface.clientHeight));
         return { x: x, y: y };
+      }
+
+      function insertLinePrefix(textarea, prefix) {
+        if (!textarea) {
+          return;
+        }
+
+        textarea.focus();
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || start;
+        const value = textarea.value || '';
+        const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+        const linePrefix = value.slice(lineStart, start);
+        const prependNewLine = linePrefix.trim().length > 0;
+        const token = (prependNewLine ? '\n' : '') + prefix;
+
+        textarea.value = value.slice(0, start) + token + value.slice(end);
+        const cursor = start + token.length;
+        textarea.setSelectionRange(cursor, cursor);
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
       }
 
       function boxCenter(box) {
@@ -1004,6 +1191,12 @@
           const headRight = document.createElement('div');
           headRight.className = 'box-head-right';
 
+          const bulletBtn = document.createElement('button');
+          bulletBtn.type = 'button';
+          bulletBtn.className = 'box-text-tool';
+          bulletBtn.title = 'Insert bullet point';
+          bulletBtn.textContent = '•';
+
           const dragLabel = document.createElement('span');
           dragLabel.textContent = 'Drag';
 
@@ -1078,22 +1271,228 @@
           });
 
           head.appendChild(headLeft);
+          headRight.appendChild(bulletBtn);
           headRight.appendChild(dragLabel);
           headRight.appendChild(linkHandle);
           head.appendChild(headRight);
 
+          const titleRow = document.createElement('div');
+          titleRow.className = 'box-title-row';
+
+          const titleInput = document.createElement('input');
+          titleInput.type = 'text';
+          titleInput.className = 'box-title-input';
+          titleInput.placeholder = 'To Do title...';
+          titleInput.maxLength = 120;
+          titleRow.appendChild(titleInput);
+
           const text = document.createElement('textarea');
           text.className = 'box-text';
-          text.value = box.text;
           text.placeholder = 'Write your note...';
+
+          const checklist = document.createElement('div');
+          checklist.className = 'box-checklist';
+
+          let checklistItems = [];
+          let bodyText = '';
+
+          function bindTextTool(btn, prefix) {
+            btn.addEventListener('mousedown', function (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            });
+            btn.addEventListener('click', function (event) {
+              event.preventDefault();
+              event.stopPropagation();
+              insertLinePrefix(text, prefix);
+            });
+          }
+
+          bindTextTool(bulletBtn, '- ');
+
+          function parseBoxText(rawText) {
+            const lines = String(rawText || '').split(/\r?\n/);
+            const parsedChecklist = [];
+            const bodyLines = [];
+            let derivedTitle = '';
+
+            for (const line of lines) {
+              const match = line.match(/^\s*[-*]\s*\[( |x|X)\]\s+(.*)$/);
+              if (match) {
+                parsedChecklist.push({
+                  checked: String(match[1]).toLowerCase() === 'x',
+                  label: String(match[2] || '').trim(),
+                });
+              } else {
+                if (!derivedTitle && String(line || '').trim().length) {
+                  derivedTitle = String(line || '').trim();
+                } else {
+                  bodyLines.push(line);
+                }
+              }
+            }
+
+            return {
+              title: derivedTitle,
+              checklist: parsedChecklist,
+              body: bodyLines.join('\n').replace(/^\n+|\n+$/g, ''),
+            };
+          }
+
+          function composeBoxText() {
+            const checklistLines = checklistItems
+              .filter(function (item) { return String(item.label || '').trim().length > 0; })
+              .map(function (item) {
+                return '- [' + (item.checked ? 'x' : ' ') + '] ' + String(item.label || '').trim();
+              });
+
+            const parts = [];
+            if (checklistLines.length) {
+              parts.push.apply(parts, checklistLines);
+            }
+            if (String(bodyText || '').trim().length) {
+              if (parts.length) {
+                parts.push('');
+              }
+              parts.push(bodyText);
+            }
+
+            return parts.join('\n').slice(0, 1200);
+          }
+
+          function syncBoxText() {
+            box.title = String(titleInput.value || '').trim().slice(0, 120);
+            box.text = composeBoxText();
+            markDirty();
+          }
+
+          function renderChecklist() {
+            checklist.innerHTML = '';
+
+            const composeRow = document.createElement('div');
+            composeRow.className = 'box-checklist-compose';
+
+            const composeInput = document.createElement('input');
+            composeInput.type = 'text';
+            composeInput.placeholder = 'Add checklist item...';
+
+            const composeAdd = document.createElement('button');
+            composeAdd.type = 'button';
+            composeAdd.className = 'box-checklist-add';
+            composeAdd.textContent = '+';
+            composeAdd.title = 'Add checklist item';
+
+            function createChecklistItemFromInput() {
+              const value = String(composeInput.value || '').trim();
+              if (!value) {
+                return;
+              }
+              checklistItems.push({ checked: false, label: value });
+              composeInput.value = '';
+              syncBoxText();
+              renderChecklist();
+            }
+
+            composeInput.addEventListener('keydown', function (event) {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                createChecklistItemFromInput();
+              }
+            });
+            composeAdd.addEventListener('click', function (event) {
+              event.preventDefault();
+              createChecklistItemFromInput();
+            });
+
+            composeRow.appendChild(composeInput);
+            composeRow.appendChild(composeAdd);
+            checklist.appendChild(composeRow);
+
+            for (let idx = 0; idx < checklistItems.length; idx += 1) {
+              const item = checklistItems[idx];
+              const row = document.createElement('label');
+              row.className = 'box-checklist-item';
+              if (item.checked) {
+                row.classList.add('is-completed');
+              }
+
+              const tick = document.createElement('input');
+              tick.type = 'checkbox';
+              tick.checked = item.checked;
+
+              tick.addEventListener('mousedown', function (event) {
+                event.stopPropagation();
+              });
+              tick.addEventListener('click', function (event) {
+                event.stopPropagation();
+              });
+              tick.addEventListener('change', function () {
+                checklistItems[idx].checked = !!tick.checked;
+                syncBoxText();
+                renderChecklist();
+              });
+
+              const label = document.createElement('input');
+              label.type = 'text';
+              label.className = 'box-checklist-item-label';
+              label.value = item.label || '';
+              label.placeholder = 'Checklist item';
+              label.addEventListener('input', function () {
+                checklistItems[idx].label = label.value;
+                syncBoxText();
+              });
+
+              const removeBtn = document.createElement('button');
+              removeBtn.type = 'button';
+              removeBtn.className = 'box-checklist-remove';
+              removeBtn.title = 'Remove item';
+              removeBtn.textContent = 'x';
+              removeBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                checklistItems.splice(idx, 1);
+                syncBoxText();
+                renderChecklist();
+              });
+
+              row.appendChild(tick);
+              row.appendChild(label);
+              row.appendChild(removeBtn);
+              checklist.appendChild(row);
+            }
+          }
+
+          const parsed = parseBoxText(box.text);
+          titleInput.value = (String(box.title || '').trim() || parsed.title || '').slice(0, 120);
+          checklistItems = parsed.checklist;
+          bodyText = parsed.body;
+          text.value = bodyText;
 
           const resizeHandle = document.createElement('div');
           resizeHandle.className = 'box-resize';
 
           text.addEventListener('input', function () {
-            box.text = text.value;
-            markDirty();
+            bodyText = text.value;
+            syncBoxText();
           });
+
+          titleInput.addEventListener('mousedown', function (event) {
+            event.stopPropagation();
+          });
+          titleInput.addEventListener('click', function (event) {
+            event.stopPropagation();
+          });
+          titleInput.addEventListener('input', function () {
+            syncBoxText();
+          });
+
+          checklist.addEventListener('mousedown', function (event) {
+            event.stopPropagation();
+          });
+          checklist.addEventListener('click', function (event) {
+            event.stopPropagation();
+          });
+
+          renderChecklist();
 
           boxEl.addEventListener('click', function (event) {
             const clickedText = event.target.classList.contains('box-text');
@@ -1122,6 +1521,8 @@
           enableResize(resizeHandle, box);
 
           boxEl.appendChild(head);
+          boxEl.appendChild(titleRow);
+          boxEl.appendChild(checklist);
           boxEl.appendChild(text);
           boxEl.appendChild(resizeHandle);
           boxesLayer.appendChild(boxEl);
@@ -1201,6 +1602,7 @@
               y: Math.round(box.y),
               w: Math.round(box.w),
               h: Math.round(box.h),
+              title: (box.title || '').slice(0, 120),
               type: sanitizeType(box.type),
               note_date: sanitizeNoteDate(box.note_date),
               completed: !!box.completed,

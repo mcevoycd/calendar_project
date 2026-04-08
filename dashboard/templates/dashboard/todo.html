@@ -381,6 +381,13 @@
 
     .todo-form textarea { min-height: 100px; resize: vertical; }
 
+    .todo-notes-tools {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 0.35rem;
+      flex-wrap: wrap;
+    }
+
     .todo-settings-form {
       margin-top: 1rem;
       display: grid;
@@ -545,6 +552,10 @@
             <label>
               Notes
               <textarea name="task_notes" id="task-notes-input" placeholder="Optional notes..."></textarea>
+              <div class="todo-notes-tools" aria-label="Notes formatting shortcuts">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-bullet-btn">Add bullet</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-checkbox-btn">Add checkbox</button>
+              </div>
             </label>
             <label>
               Priority
@@ -604,6 +615,8 @@
       const endDateInput = document.getElementById('task-end-date-input');
       const sectionInput = document.getElementById('task-section-input');
       const notesInput = document.getElementById('task-notes-input');
+      const noteBulletBtn = document.getElementById('todo-note-bullet-btn');
+      const noteCheckboxBtn = document.getElementById('todo-note-checkbox-btn');
       const priorityInput = document.getElementById('task-priority-input');
       const completedInput = document.getElementById('task-completed-input');
       const addToDiaryInput = document.getElementById('task-add-to-diary-input');
@@ -614,6 +627,24 @@
       const completeCheckboxes = Array.from(document.querySelectorAll('.todo-complete-checkbox'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
+
+      function insertLinePrefix(textarea, prefix) {
+        if (!textarea) return;
+        textarea.focus();
+
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || start;
+        const value = textarea.value || '';
+        const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+        const linePrefix = value.slice(lineStart, start);
+        const prependNewLine = linePrefix.trim().length > 0;
+        const token = (prependNewLine ? '\n' : '') + prefix;
+
+        textarea.value = value.slice(0, start) + token + value.slice(end);
+        const cursor = start + token.length;
+        textarea.setSelectionRange(cursor, cursor);
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      }
 
       function setAddMode() {
         formTypeInput.value = 'add_todo_entry';
@@ -659,6 +690,18 @@
           if (formEl) formEl.submit();
         });
       });
+
+      if (noteBulletBtn) {
+        noteBulletBtn.addEventListener('click', function () {
+          insertLinePrefix(notesInput, '- ');
+        });
+      }
+
+      if (noteCheckboxBtn) {
+        noteCheckboxBtn.addEventListener('click', function () {
+          insertLinePrefix(notesInput, '- [ ] ');
+        });
+      }
 
       setAddMode();
 

@@ -14,6 +14,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils.http import url_has_allowed_host_and_scheme
 from uuid import uuid4
 import json
+import re
 from types import SimpleNamespace
 
 from .forms import SignUpForm, SettingsForm
@@ -1308,6 +1309,7 @@ def notes_view(request):
                     'y': 70,
                     'w': 360,
                     'h': 150,
+                    'title': '',
                     'type': 'Note',
                     'note_date': week_start.isoformat(),
                     'completed': False,
@@ -1352,12 +1354,17 @@ def notes_view(request):
             x = max(0, min(x, 2400))
             y = max(0, min(y, 2400))
             w = max(320, min(w, 700))
-            h = max(120, min(h, 520))
+            h = max(200, min(h, 520))
 
             text = item.get('text', '')
             if not isinstance(text, str):
                 text = ''
             text = text[:1200]
+
+            title = item.get('title', '')
+            if not isinstance(title, str):
+                title = ''
+            title = title.strip()[:120]
 
             box_type = item.get('type', 'Note')
             if not isinstance(box_type, str):
@@ -1386,6 +1393,7 @@ def notes_view(request):
                     'y': y,
                     'w': w,
                     'h': h,
+                    'title': title,
                     'type': box_type,
                     'note_date': parsed_note_date.isoformat(),
                     'completed': completed,
@@ -1432,24 +1440,41 @@ def notes_view(request):
             if not section_key:
                 continue
 
+            raw_title = str(box.get('title', '')).strip()
+            title = raw_title[:120]
+
             raw_text = box.get('text', '')
             if not isinstance(raw_text, str):
                 continue
 
             clean_text = raw_text.strip()
-            if not clean_text:
+            if not title and not clean_text:
                 continue
-
-            lines = [line.strip() for line in clean_text.splitlines() if line.strip()]
-            if not lines:
-                continue
-
-            title = lines[0].lstrip('-* ').strip()[:120]
-            note_lines = [line.lstrip('-* ').strip() for line in lines[1:] if line.lstrip('-* ').strip()]
-            notes = '\n'.join(note_lines)[:180]
 
             if not title:
-                continue
+                lines = [line.strip() for line in clean_text.splitlines() if line.strip()]
+                if not lines:
+                    continue
+                title = lines[0].lstrip('-* ').strip()[:120]
+
+            note_lines = []
+            for raw_line in clean_text.splitlines():
+                stripped_line = raw_line.strip()
+                if not stripped_line:
+                    continue
+
+                # Convert markdown-like checklist lines to readable note text.
+                match = re.match(r'^\s*[-*]\s*\[( |x|X)\]\s+(.*)$', raw_line)
+                if match:
+                    marker = '[Done] ' if str(match.group(1)).lower() == 'x' else ''
+                    label = str(match.group(2) or '').strip()
+                    if label:
+                        note_lines.append(f"{marker}- {label}")
+                    continue
+
+                note_lines.append(stripped_line)
+
+            notes = '\n'.join(note_lines)[:180]
 
             note_date_raw = str(box.get('note_date', '')).strip()
             try:
