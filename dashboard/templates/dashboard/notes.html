@@ -261,6 +261,25 @@
       flex-wrap: wrap;
     }
 
+    .zoom-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.35rem;
+      border: 1px solid rgba(0, 194, 255, 0.25);
+      border-radius: 10px;
+      background: rgba(0, 194, 255, 0.06);
+    }
+
+    .zoom-level {
+      min-width: 3.5rem;
+      text-align: center;
+      color: #B7C8D6;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
     .toolbar-info {
       color: #A4B6C6;
       font-size: 0.82rem;
@@ -349,6 +368,8 @@
       height: 100%;
       min-height: 65vh;
       z-index: 1;
+      transform-origin: top left;
+      will-change: transform;
     }
 
     .canvas-links {
@@ -588,6 +609,12 @@
               <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
               <button type="button" class="btn-canvas" id="delete-box-btn">Delete Selected</button>
               <button type="button" class="btn-canvas" id="clear-links-btn">Clear Links</button>
+              <div class="zoom-controls" aria-label="Canvas zoom controls">
+                <button type="button" class="btn-canvas" id="zoom-out-btn" title="Zoom out">-</button>
+                <span class="zoom-level" id="zoom-level">100%</span>
+                <button type="button" class="btn-canvas" id="zoom-in-btn" title="Zoom in">+</button>
+                <button type="button" class="btn-canvas" id="zoom-reset-btn" title="Reset zoom">Reset</button>
+              </div>
             </div>
             <div class="toolbar-right">
               <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span>
@@ -620,6 +647,10 @@
       const cancelLinkBtn = document.getElementById('cancel-link-btn');
       const deleteBoxBtn = document.getElementById('delete-box-btn');
       const clearLinksBtn = document.getElementById('clear-links-btn');
+      const zoomOutBtn = document.getElementById('zoom-out-btn');
+      const zoomInBtn = document.getElementById('zoom-in-btn');
+      const zoomResetBtn = document.getElementById('zoom-reset-btn');
+      const zoomLevelEl = document.getElementById('zoom-level');
       const toolbarInfo = document.getElementById('toolbar-info');
       const autoSaveStatus = document.getElementById('autosave-status');
       const weekStartIso = '{{ week_start_iso|escapejs }}';
@@ -665,6 +696,7 @@
       let selectedBoxId = null;
       let linkMode = false;
       let linkSourceId = null;
+      let zoomLevel = 1;
       let isDirty = false;
       let autoSaveInFlight = false;
       let lastSavedPayload = '';
@@ -690,6 +722,25 @@
 
       function uid() {
         return 'box-' + Math.random().toString(16).slice(2) + Date.now().toString(16);
+      }
+
+      function updateZoomUi() {
+        if (zoomLevelEl) {
+          zoomLevelEl.textContent = Math.round(zoomLevel * 100) + '%';
+        }
+        canvasSurface.style.transform = 'scale(' + zoomLevel + ')';
+      }
+
+      function setZoom(nextZoom) {
+        const min = 0.5;
+        const max = 2;
+        const clamped = Math.max(min, Math.min(max, nextZoom));
+        if (Math.abs(clamped - zoomLevel) < 0.001) {
+          return;
+        }
+        zoomLevel = clamped;
+        updateZoomUi();
+        renderLinks();
       }
 
       function newBox(x, y) {
@@ -808,8 +859,10 @@
 
       function getPointerOnSurface(event) {
         const rect = canvasSurface.getBoundingClientRect();
-        const x = Math.max(0, Math.min(event.clientX - rect.left, canvasSurface.clientWidth));
-        const y = Math.max(0, Math.min(event.clientY - rect.top, canvasSurface.clientHeight));
+        const rawX = (event.clientX - rect.left) / zoomLevel;
+        const rawY = (event.clientY - rect.top) / zoomLevel;
+        const x = Math.max(0, Math.min(rawX, canvasSurface.clientWidth));
+        const y = Math.max(0, Math.min(rawY, canvasSurface.clientHeight));
         return { x: x, y: y };
       }
 
@@ -1337,9 +1390,9 @@
           return;
         }
 
-        const rect = canvasSurface.getBoundingClientRect();
-        const x = event.clientX - rect.left - 125;
-        const y = event.clientY - rect.top - 75;
+        const pointer = getPointerOnSurface(event);
+        const x = pointer.x - 125;
+        const y = pointer.y - 75;
 
         addBoxAt(x, y, true);
         updateToolbarInfo('New text box created at click position.');
@@ -1355,6 +1408,29 @@
 
       window.addEventListener('resize', function () {
         render();
+      });
+
+      canvasWrap.addEventListener('wheel', function (event) {
+        if (event.target && event.target.closest('.box-text')) {
+          return;
+        }
+
+        event.preventDefault();
+        const step = (event.ctrlKey || event.metaKey) ? 0.1 : 0.06;
+        const delta = event.deltaY > 0 ? -step : step;
+        setZoom(zoomLevel + delta);
+      }, { passive: false });
+
+      zoomOutBtn.addEventListener('click', function () {
+        setZoom(zoomLevel - 0.1);
+      });
+
+      zoomInBtn.addEventListener('click', function () {
+        setZoom(zoomLevel + 0.1);
+      });
+
+      zoomResetBtn.addEventListener('click', function () {
+        setZoom(1);
       });
 
       document.addEventListener('keydown', function (event) {
@@ -1382,6 +1458,7 @@
       window.addEventListener('beforeunload', immediateSaveOnLeave);
 
       refreshLinkControls();
+      updateZoomUi();
       lastSavedPayload = JSON.stringify(buildCanvasPayload());
       updateAutoSaveStatus('All changes saved', false);
       render();
