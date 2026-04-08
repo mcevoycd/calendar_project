@@ -826,7 +826,10 @@
       const deleteRedirectDateInput = document.getElementById('diary-delete-redirect-date');
       const entryCards = document.querySelectorAll('.diary-entry[data-entry-id]');
       const selectionHint = document.getElementById('diary-selection-hint');
-      const queryDate = new URLSearchParams(window.location.search).get('date');
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryDate = searchParams.get('date');
+      const selectedEntryId = (searchParams.get('entry_id') || '').trim();
+      let requestedEntryLoaded = false;
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
         month: 'dayGridMonth',
@@ -967,6 +970,29 @@
         setEditMode(false);
       }
 
+      function tryLoadRequestedEntry(events) {
+        if (!selectedEntryId || requestedEntryLoaded || !Array.isArray(events)) return;
+
+        const match = events.find(function (eventObj) {
+          return String(eventObj.id || '') === selectedEntryId;
+        });
+
+        if (!match) return;
+
+        loadEntryIntoForm({
+          id: String(match.id || ''),
+          title: match.title || '',
+          category: match.extendedProps.formCategory || 'general',
+          date: match.start ? formatDateForInput(match.start) : '',
+          endDate: match.extendedProps.formEndDate || '',
+          startTime: match.extendedProps.formStartTime || '',
+          endTime: match.extendedProps.formEndTime || '',
+          content: match.extendedProps.description || ''
+        });
+
+        requestedEntryLoaded = true;
+      }
+
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
         locale: 'en-gb',
@@ -1001,6 +1027,9 @@
           }
         },
         events: '/api/diary/',
+        eventsSet: function (events) {
+          tryLoadRequestedEntry(events);
+        },
         eventDidMount: function (info) {
           const categoryKey = info.event.extendedProps.category || info.event.extendedProps.formCategory || 'general';
           info.el.classList.add(`diary-event-${categoryKey}`);

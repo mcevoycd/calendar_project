@@ -767,13 +767,24 @@ def dashboard_view(request):
 
         display_tasks = []
         for task in section_tasks[:6]:
-            task_line = task['title']
-            if task.get('completed'):
-                task_line = f"[Done] {task_line}"
-            display_tasks.append(task_line)
+            display_tasks.append(
+                {
+                    "id": task.get("id", ""),
+                    "title": task.get("title", ""),
+                    "completed": bool(task.get("completed", False)),
+                    "is_placeholder": False,
+                }
+            )
 
         if not display_tasks:
-            display_tasks = ["No entries yet"]
+            display_tasks = [
+                {
+                    "id": "",
+                    "title": "No entries yet",
+                    "completed": False,
+                    "is_placeholder": True,
+                }
+            ]
 
         todo_columns.append(
             {

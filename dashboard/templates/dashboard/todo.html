@@ -612,6 +612,8 @@
       const cancelBtn = document.getElementById('todo-cancel-edit');
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
       const completeCheckboxes = Array.from(document.querySelectorAll('.todo-complete-checkbox'));
+      const params = new URLSearchParams(window.location.search);
+      const requestedTaskId = (params.get('task_id') || '').trim();
 
       function setAddMode() {
         formTypeInput.value = 'add_todo_entry';
@@ -659,6 +661,16 @@
       });
 
       setAddMode();
+
+      if (requestedTaskId) {
+        const requestedButton = taskButtons.find(function (btn) {
+          return (btn.dataset.id || '') === requestedTaskId;
+        });
+        if (requestedButton) {
+          requestedButton.click();
+          requestedButton.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }
+      }
     });
 
     (function () {
