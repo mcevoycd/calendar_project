@@ -450,12 +450,21 @@ def get_todo_week_dates(request):
 
 def get_todo_return_url(request):
     return_date = request.POST.get("return_date", "").strip()
+    return_task_id = request.POST.get("return_task_id", "").strip()
+
+    query_parts = []
     if return_date:
         try:
             datetime.strptime(return_date, "%Y-%m-%d")
-            return f"{reverse('todo')}?date={return_date}"
+            query_parts.append(f"date={return_date}")
         except ValueError:
             pass
+
+    if return_task_id:
+        query_parts.append(f"task_id={return_task_id}")
+
+    if query_parts:
+        return f"{reverse('todo')}?{'&'.join(query_parts)}"
 
     return reverse('todo')
 

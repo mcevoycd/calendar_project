@@ -587,6 +587,25 @@
       flex: 0 0 auto;
     }
 
+    .box-complete-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      margin-right: 0.08rem;
+      font-size: 0.72rem;
+      color: #BFD2E1;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .box-complete-toggle input[type="checkbox"] {
+      width: 0.86rem;
+      height: 0.86rem;
+      margin: 0;
+      accent-color: #34D399;
+      cursor: pointer;
+    }
+
     .box-title-input {
       width: 100%;
       border: 1px solid #2A5E82;
@@ -1437,6 +1456,33 @@
 
           const formatRow = document.createElement('div');
           formatRow.className = 'box-format-row';
+          const completeToggle = document.createElement('label');
+          completeToggle.className = 'box-complete-toggle';
+
+          const completeTick = document.createElement('input');
+          completeTick.type = 'checkbox';
+          completeTick.checked = !!box.completed;
+          completeTick.setAttribute('aria-label', 'Mark as completed');
+
+          const completeText = document.createElement('span');
+          completeText.textContent = 'Mark as completed';
+
+          completeToggle.appendChild(completeTick);
+          completeToggle.appendChild(completeText);
+
+          completeToggle.addEventListener('mousedown', function (event) {
+            event.stopPropagation();
+          });
+          completeToggle.addEventListener('click', function (event) {
+            event.stopPropagation();
+          });
+          completeTick.addEventListener('change', function () {
+            box.completed = !!completeTick.checked;
+            boxEl.classList.toggle('is-completed', box.completed);
+            markDirty();
+          });
+
+          formatRow.appendChild(completeToggle);
           formatRow.appendChild(bulletBtn);
           formatRow.appendChild(boldBtn);
           formatRow.appendChild(italicBtn);

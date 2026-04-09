@@ -679,6 +679,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="form_type" value="toggle_todo_completed">
                             <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <input type="hidden" name="return_task_id" value="{{ task.id }}">
                             <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
                           </form>
                           <button
@@ -715,6 +716,7 @@
                                   {% csrf_token %}
                                   <input type="hidden" name="form_type" value="toggle_todo_checklist_item">
                                   <input type="hidden" name="task_id" value="{{ task.id }}">
+                                  <input type="hidden" name="return_task_id" value="{{ task.id }}">
                                   <input type="hidden" name="checklist_index" value="{{ forloop.counter0 }}">
                                   <label class="todo-inline-checklist-row">
                                     <input class="todo-inline-checklist-checkbox" type="checkbox" {% if checklist_item.completed %}checked{% endif %} aria-label="Toggle checklist item {{ checklist_item.text }}">
