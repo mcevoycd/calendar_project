@@ -274,6 +274,53 @@
     .todo-task-notes { color: #9FB1C1; font-size: 0.76rem; white-space: pre-line; font-style: italic; }
     .todo-task-date { color: #9FB1C1; font-size: 0.72rem; letter-spacing: 0.03em; text-transform: uppercase; }
 
+    .todo-task-inline-checklist {
+      margin-top: 0;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: #102638;
+      padding: 0 0.45rem;
+      display: grid;
+      gap: 0.2rem;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
+    }
+
+    .todo-task.is-checklist-open .todo-task-inline-checklist {
+      margin-top: 0.38rem;
+      border-color: #2D4660;
+      padding: 0.35rem 0.45rem;
+      max-height: 260px;
+      opacity: 1;
+      overflow: auto;
+    }
+
+    .todo-inline-checklist-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0;
+      font-size: 0.76rem;
+      color: #CDE0EF;
+      line-height: 1.35;
+    }
+
+    .todo-inline-checklist-checkbox {
+      width: 0.86rem;
+      height: 0.86rem;
+      margin: 0;
+      accent-color: #34D399;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-inline-checklist-text.is-completed {
+      text-decoration: line-through;
+      opacity: 0.72;
+    }
+
     .todo-task-hit.is-completed .todo-task-title,
     .todo-task-hit.is-completed .todo-task-notes,
     .todo-task-hit.is-completed .todo-task-date {
@@ -302,6 +349,26 @@
       border-color: #00C2FF;
       background: #1D3850;
       outline: none;
+    }
+
+    .todo-task-hit[data-has-checklist='true'] {
+      position: relative;
+      padding-right: 2.3rem;
+    }
+
+    .todo-task-hit[data-has-checklist='true']::after {
+      content: '▾';
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8EC8AE;
+      font-size: 0.75rem;
+      transition: transform 0.2s ease;
+    }
+
+    .todo-task.is-checklist-open .todo-task-hit[data-has-checklist='true']::after {
+      transform: translateY(-50%) rotate(180deg);
     }
 
     .todo-task-hit.is-editing {
@@ -386,6 +453,141 @@
       gap: 0.45rem;
       margin-top: 0.35rem;
       flex-wrap: wrap;
+    }
+
+    .todo-entry-tabs {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin-top: 0.15rem;
+    }
+
+    .todo-entry-tab {
+      border: 1px solid #35546D;
+      background: #0A1A2A;
+      color: #AFC0CF;
+      border-radius: 999px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+
+    .todo-entry-tab:hover,
+    .todo-entry-tab:focus {
+      border-color: #00C2FF;
+      color: #D7E6F2;
+      outline: none;
+    }
+
+    .todo-entry-tab.is-active {
+      border-color: #00C2FF;
+      background: rgba(0, 194, 255, 0.16);
+      color: #E5E7EB;
+    }
+
+    .todo-entry-panel-content { display: none; }
+    .todo-entry-panel-content.is-active { display: block; }
+
+    .todo-checklist-editor {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.2rem;
+    }
+
+    .todo-checklist-add {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .todo-checklist-add input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .todo-checklist-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.38rem;
+      max-height: 180px;
+      overflow: auto;
+    }
+
+    .todo-checklist-empty {
+      color: #8EA0B1;
+      font-size: 0.76rem;
+      font-style: italic;
+    }
+
+    .todo-checklist-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.45rem;
+      border: 1px solid #2D4660;
+      background: #0D2132;
+      border-radius: 8px;
+      padding: 0.38rem 0.45rem;
+    }
+
+    .todo-checklist-item-toggle {
+      width: 0.9rem;
+      height: 0.9rem;
+      margin: 0;
+      accent-color: #34D399;
+      cursor: pointer;
+    }
+
+    .todo-checklist-item-text {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #D7E6F2;
+      border-radius: 6px;
+      padding: 0.2rem 0.3rem;
+      font-size: 0.8rem;
+      min-width: 0;
+    }
+
+    .todo-checklist-item-text:focus {
+      border-color: #2A5E82;
+      background: #0A1A2A;
+      outline: none;
+    }
+
+    .todo-checklist-item.is-completed .todo-checklist-item-text {
+      text-decoration: line-through;
+      opacity: 0.72;
+    }
+
+    .todo-checklist-item-remove {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #AFC0CF;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      line-height: 1;
+      padding: 0.2rem 0.32rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-checklist-item-remove:hover,
+    .todo-checklist-item-remove:focus {
+      border-color: #FB7185;
+      color: #FCA5A5;
+      outline: none;
+    }
+
+    .todo-task-checklist-meta {
+      color: #8EC8AE;
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
     }
 
     .todo-settings-form {
@@ -485,6 +687,8 @@
                             data-id="{{ task.id }}"
                             data-title="{{ task.title|escape }}"
                             data-notes="{{ task.notes|default:''|escape }}"
+                            data-checklist='{{ task.checklist_json|escape }}'
+                            data-has-checklist="{% if task.checklist %}true{% else %}false{% endif %}"
                             data-priority="{{ task.priority|default:'medium' }}"
                             data-completed="{% if task.completed %}true{% else %}false{% endif %}"
                             data-start-date="{{ task.start_date }}"
@@ -492,14 +696,34 @@
                             data-section="{{ section.key }}"
                             data-add-to-diary="{% if task.source == 'todo_diary' %}true{% else %}false{% endif %}"
                             data-diary-category="{{ task.diary_category|default:'general' }}"
+                            aria-expanded="false"
                           >
                             <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
                             <span class="todo-task-title">{{ task.title }}</span>
                             <span class="todo-task-date">{{ task.date_range_label }}</span>
+                            {% if task.checklist %}
+                              <span class="todo-task-checklist-meta">{{ task.checklist|length }} checklist item{{ task.checklist|length|pluralize }}</span>
+                            {% endif %}
                             {% if task.notes %}
                               <span class="todo-task-notes">{{ task.notes }}</span>
                             {% endif %}
                           </button>
+                          {% if task.checklist %}
+                            <div class="todo-task-inline-checklist" aria-label="Checklist for {{ task.title }}">
+                              {% for checklist_item in task.checklist %}
+                                <form method="post" action="{% url 'todo' %}" class="todo-inline-checklist-form">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="form_type" value="toggle_todo_checklist_item">
+                                  <input type="hidden" name="task_id" value="{{ task.id }}">
+                                  <input type="hidden" name="checklist_index" value="{{ forloop.counter0 }}">
+                                  <label class="todo-inline-checklist-row">
+                                    <input class="todo-inline-checklist-checkbox" type="checkbox" {% if checklist_item.completed %}checked{% endif %} aria-label="Toggle checklist item {{ checklist_item.text }}">
+                                    <span class="todo-inline-checklist-text{% if checklist_item.completed %} is-completed{% endif %}">{{ checklist_item.text }}</span>
+                                  </label>
+                                </form>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
                           <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
                             {% csrf_token %}
                             <input type="hidden" name="form_type" value="delete_todo_entry">
@@ -529,6 +753,7 @@
             {% csrf_token %}
             <input type="hidden" name="form_type" id="todo-form-type" value="add_todo_entry">
             <input type="hidden" name="task_id" id="task-id-input" value="">
+            <input type="hidden" name="task_checklist_json" id="task-checklist-json-input" value="[]">
             <label>
               Task title
               <input type="text" name="task_title" id="task-title-input" placeholder="Write task title" required>
@@ -549,14 +774,53 @@
                 {% endfor %}
               </select>
             </label>
-            <label>
-              Notes
-              <textarea name="task_notes" id="task-notes-input" placeholder="Optional notes..."></textarea>
-              <div class="todo-notes-tools" aria-label="Notes formatting shortcuts">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-bullet-btn">Add bullet</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-checkbox-btn">Add checkbox</button>
-              </div>
-            </label>
+            <div class="todo-entry-tabs" role="tablist" aria-label="Entry editor tabs">
+              <button
+                type="button"
+                class="todo-entry-tab is-active"
+                id="todo-entry-tab-notes"
+                data-tab-target="notes"
+                role="tab"
+                aria-selected="true"
+                aria-controls="todo-entry-panel-notes"
+              >
+                Notes
+              </button>
+              <button
+                type="button"
+                class="todo-entry-tab"
+                id="todo-entry-tab-checklist"
+                data-tab-target="checklist"
+                role="tab"
+                aria-selected="false"
+                aria-controls="todo-entry-panel-checklist"
+              >
+                Checklist
+              </button>
+            </div>
+            <div class="todo-entry-panel-content is-active" id="todo-entry-panel-notes" data-tab-panel="notes" role="tabpanel" aria-labelledby="todo-entry-tab-notes">
+              <label>
+                Notes
+                <textarea name="task_notes" id="task-notes-input" placeholder="Optional notes..."></textarea>
+                <div class="todo-notes-tools" aria-label="Notes formatting shortcuts">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-bullet-btn">Add bullet</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-checkbox-btn">Add checkbox</button>
+                </div>
+              </label>
+            </div>
+            <div class="todo-entry-panel-content" id="todo-entry-panel-checklist" data-tab-panel="checklist" role="tabpanel" aria-labelledby="todo-entry-tab-checklist">
+              <label>
+                Checklist (optional)
+                <div class="todo-checklist-editor" id="todo-checklist-editor">
+                  <div class="todo-checklist-add">
+                    <input type="text" id="todo-checklist-new-input" placeholder="Add checklist item">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-checklist-add-btn">Add</button>
+                  </div>
+                  <div class="todo-checklist-empty" id="todo-checklist-empty">No checklist items yet.</div>
+                  <ul class="todo-checklist-list" id="todo-checklist-list"></ul>
+                </div>
+              </label>
+            </div>
             <label>
               Priority
               <select name="task_priority" id="task-priority-input" required>
@@ -615,18 +879,133 @@
       const endDateInput = document.getElementById('task-end-date-input');
       const sectionInput = document.getElementById('task-section-input');
       const notesInput = document.getElementById('task-notes-input');
+      const checklistJsonInput = document.getElementById('task-checklist-json-input');
+      const checklistList = document.getElementById('todo-checklist-list');
+      const checklistEmpty = document.getElementById('todo-checklist-empty');
+      const checklistNewInput = document.getElementById('todo-checklist-new-input');
+      const checklistAddBtn = document.getElementById('todo-checklist-add-btn');
       const noteBulletBtn = document.getElementById('todo-note-bullet-btn');
       const noteCheckboxBtn = document.getElementById('todo-note-checkbox-btn');
       const priorityInput = document.getElementById('task-priority-input');
       const completedInput = document.getElementById('task-completed-input');
       const addToDiaryInput = document.getElementById('task-add-to-diary-input');
       const diaryCategoryInput = document.getElementById('task-diary-category-input');
+      const entryTabButtons = Array.from(document.querySelectorAll('.todo-entry-tab'));
+      const entryTabPanels = Array.from(document.querySelectorAll('.todo-entry-panel-content'));
       const submitBtn = document.getElementById('todo-submit-btn');
       const cancelBtn = document.getElementById('todo-cancel-edit');
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
       const completeCheckboxes = Array.from(document.querySelectorAll('.todo-complete-checkbox'));
+      const inlineChecklistCheckboxes = Array.from(document.querySelectorAll('.todo-inline-checklist-checkbox'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
+      let checklistState = [];
+
+      function normalizeChecklist(items) {
+        if (!Array.isArray(items)) {
+          return [];
+        }
+
+        return items
+          .map(function (item) {
+            if (item && typeof item === 'object') {
+              return {
+                text: String(item.text || '').trim().slice(0, 120),
+                completed: !!item.completed
+              };
+            }
+
+            return {
+              text: String(item || '').trim().slice(0, 120),
+              completed: false
+            };
+          })
+          .filter(function (item) {
+            return !!item.text;
+          })
+          .slice(0, 30);
+      }
+
+      function syncChecklistJsonInput() {
+        if (!checklistJsonInput) {
+          return;
+        }
+        checklistJsonInput.value = JSON.stringify(normalizeChecklist(checklistState));
+      }
+
+      function renderChecklistEditor() {
+        if (!checklistList || !checklistEmpty) {
+          return;
+        }
+
+        checklistState = normalizeChecklist(checklistState);
+        checklistList.innerHTML = '';
+        checklistEmpty.style.display = checklistState.length ? 'none' : 'block';
+
+        checklistState.forEach(function (item, index) {
+          const li = document.createElement('li');
+          li.className = 'todo-checklist-item' + (item.completed ? ' is-completed' : '');
+
+          const toggle = document.createElement('input');
+          toggle.type = 'checkbox';
+          toggle.className = 'todo-checklist-item-toggle';
+          toggle.checked = !!item.completed;
+          toggle.setAttribute('aria-label', 'Toggle checklist item');
+          toggle.addEventListener('change', function () {
+            checklistState[index].completed = !!toggle.checked;
+            renderChecklistEditor();
+          });
+
+          const text = document.createElement('input');
+          text.type = 'text';
+          text.className = 'todo-checklist-item-text';
+          text.value = item.text;
+          text.maxLength = 120;
+          text.setAttribute('aria-label', 'Checklist item text');
+          text.addEventListener('input', function () {
+            checklistState[index].text = text.value;
+            syncChecklistJsonInput();
+          });
+          text.addEventListener('blur', function () {
+            checklistState = normalizeChecklist(checklistState);
+            renderChecklistEditor();
+          });
+
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'todo-checklist-item-remove';
+          remove.textContent = 'x';
+          remove.setAttribute('aria-label', 'Remove checklist item');
+          remove.addEventListener('click', function () {
+            checklistState.splice(index, 1);
+            renderChecklistEditor();
+          });
+
+          li.appendChild(toggle);
+          li.appendChild(text);
+          li.appendChild(remove);
+          checklistList.appendChild(li);
+        });
+
+        syncChecklistJsonInput();
+      }
+
+      function addChecklistItemFromInput() {
+        if (!checklistNewInput) {
+          return;
+        }
+
+        const value = (checklistNewInput.value || '').trim();
+        if (!value) {
+          checklistNewInput.focus();
+          return;
+        }
+
+        checklistState.push({ text: value, completed: false });
+        checklistNewInput.value = '';
+        renderChecklistEditor();
+        checklistNewInput.focus();
+      }
 
       function insertLinePrefix(textarea, prefix) {
         if (!textarea) return;
@@ -646,6 +1025,19 @@
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
       }
 
+      function setEntryTab(tabName) {
+        entryTabButtons.forEach(function (tabButton) {
+          const isActive = (tabButton.dataset.tabTarget || '') === tabName;
+          tabButton.classList.toggle('is-active', isActive);
+          tabButton.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        entryTabPanels.forEach(function (panel) {
+          const isActive = (panel.dataset.tabPanel || '') === tabName;
+          panel.classList.toggle('is-active', isActive);
+        });
+      }
+
       function setAddMode() {
         formTypeInput.value = 'add_todo_entry';
         taskIdInput.value = '';
@@ -653,14 +1045,41 @@
         cancelBtn.style.display = 'none';
         addToDiaryInput.checked = false;
         diaryCategoryInput.value = 'general';
+        checklistState = [];
+        renderChecklistEditor();
         taskButtons.forEach(function (btn) { btn.classList.remove('is-editing'); });
       }
 
       taskButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
+          const taskItem = btn.closest('.todo-task');
+          const checklistPanel = taskItem ? taskItem.querySelector('.todo-task-inline-checklist') : null;
+
+          if (checklistPanel) {
+            const shouldOpen = !taskItem.classList.contains('is-checklist-open');
+            document.querySelectorAll('.todo-task.is-checklist-open').forEach(function (openTask) {
+              openTask.classList.remove('is-checklist-open');
+              const openBtn = openTask.querySelector('.todo-task-hit');
+              if (openBtn) {
+                openBtn.setAttribute('aria-expanded', 'false');
+              }
+            });
+
+            if (shouldOpen) {
+              taskItem.classList.add('is-checklist-open');
+              btn.setAttribute('aria-expanded', 'true');
+            }
+          }
+
           taskIdInput.value = btn.dataset.id || '';
           titleInput.value = btn.dataset.title || '';
           notesInput.value = btn.dataset.notes || '';
+          try {
+            checklistState = normalizeChecklist(JSON.parse(btn.dataset.checklist || '[]'));
+          } catch (error) {
+            checklistState = [];
+          }
+          renderChecklistEditor();
           priorityInput.value = btn.dataset.priority || 'medium';
           completedInput.checked = (btn.dataset.completed || 'false') === 'true';
           addToDiaryInput.checked = (btn.dataset.addToDiary || 'false') === 'true';
@@ -683,11 +1102,34 @@
         setAddMode();
       });
 
+      if (checklistAddBtn) {
+        checklistAddBtn.addEventListener('click', addChecklistItemFromInput);
+      }
+
+      if (checklistNewInput) {
+        checklistNewInput.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            addChecklistItemFromInput();
+          }
+        });
+      }
+
       completeCheckboxes.forEach(function (checkbox) {
         checkbox.addEventListener('click', function (event) { event.stopPropagation(); });
         checkbox.addEventListener('change', function () {
           const formEl = checkbox.closest('form');
           if (formEl) formEl.submit();
+        });
+      });
+
+      inlineChecklistCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('click', function (event) { event.stopPropagation(); });
+        checkbox.addEventListener('change', function () {
+          const formEl = checkbox.closest('form');
+          if (formEl) {
+            formEl.submit();
+          }
         });
       });
 
@@ -703,7 +1145,15 @@
         });
       }
 
+      entryTabButtons.forEach(function (tabButton) {
+        tabButton.addEventListener('click', function () {
+          setEntryTab(tabButton.dataset.tabTarget || 'notes');
+        });
+      });
+
       setAddMode();
+      renderChecklistEditor();
+      setEntryTab('notes');
 
       if (requestedTaskId) {
         const requestedButton = taskButtons.find(function (btn) {

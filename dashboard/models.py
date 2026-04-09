@@ -77,6 +77,7 @@ class TodoTask(models.Model):
     task_id = models.CharField(max_length=80)
     title = models.CharField(max_length=120)
     notes = models.TextField(blank=True)
+    checklist_data = models.JSONField(default=list, blank=True)
     priority = models.CharField(max_length=10, default='medium')
     completed = models.BooleanField(default=False)
     section = models.CharField(max_length=20, default='planning')

@@ -158,16 +158,95 @@
       margin-bottom: 1.2rem;
     }
 
+    .settings-section + .settings-section {
+      margin-top: 1.4rem;
+      border-top: 1px solid #1F4F70;
+      padding-top: 1.2rem;
+    }
+
+    .settings-section h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #E5E7EB;
+    }
+
+    .settings-section p {
+      margin-top: 0.45rem;
+      margin-bottom: 0.9rem;
+    }
+
     .form-label {
       color: #D3DEE8;
       font-weight: 600;
     }
 
+    .form-control,
     .form-select {
       background: #0A1A2A;
       border: 1px solid #1F4F70;
       color: #E5E7EB;
       border-radius: 10px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--accent-strong);
+      box-shadow: 0 0 0 0.2rem rgba(0, 194, 255, 0.15);
+      background: #0A1A2A;
+      color: #E5E7EB;
+    }
+
+    .form-error-list {
+      margin: 0.35rem 0 0;
+      padding-left: 1rem;
+      color: #FCA5A5;
+      font-size: 0.85rem;
+    }
+
+    .settings-actions {
+      margin-top: 0.3rem;
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .account-panel {
+      margin-top: 0.8rem;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+    }
+
+    .account-panel.is-open {
+      max-height: 900px;
+      opacity: 1;
+    }
+
+    .account-grid {
+      display: grid;
+      gap: 1.1rem;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #AFC0CF;
+      border: 1px solid #2A5E82;
+      border-radius: 10px;
+      padding: 0.65rem 1.2rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-outline:hover,
+    .btn-outline:focus {
+      border-color: #00C2FF;
+      color: #E5E7EB;
+      background: rgba(0, 194, 255, 0.12);
+      outline: none;
     }
 
     .btn-save {
@@ -199,26 +278,152 @@
     <main class="main">
       <section class="panel">
         <h1>Settings</h1>
-        <p>Set appearance and layout preferences for your account.</p>
+        <p>Manage your app preferences.</p>
 
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label" for="id_theme">Theme</label>
-            {{ form.theme }}
+        <section class="settings-section" aria-labelledby="preferences-heading">
+          <h2 id="preferences-heading">Preferences</h2>
+          <p>Set your navigation and diary defaults.</p>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="update_preferences">
+            <div class="mb-3">
+              <label class="form-label" for="id_nav_layout">Navigation layout</label>
+              {{ settings_form.nav_layout }}
+              {% if settings_form.nav_layout.errors %}
+                <ul class="form-error-list">
+                  {% for error in settings_form.nav_layout.errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+            <div class="mb-4">
+              <label class="form-label" for="id_default_diary_view">Default diary view</label>
+              {{ settings_form.default_diary_view }}
+              {% if settings_form.default_diary_view.errors %}
+                <ul class="form-error-list">
+                  {% for error in settings_form.default_diary_view.errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+            <div class="settings-actions">
+              <button type="submit" class="btn-save">Save preferences</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="settings-section" aria-labelledby="account-heading">
+          <h2 id="account-heading">Account</h2>
+          <p>Show account options only when you need them.</p>
+          <div class="settings-actions">
+            <button
+              type="button"
+              class="btn-outline"
+              id="open-account-settings-btn"
+              aria-expanded="{% if open_account %}true{% else %}false{% endif %}"
+              aria-controls="account-settings-panel"
+            >
+              Open account settings
+            </button>
           </div>
-          <div class="mb-3">
-            <label class="form-label" for="id_nav_layout">Navigation layout</label>
-            {{ form.nav_layout }}
+
+          <div class="account-panel{% if open_account %} is-open{% endif %}" id="account-settings-panel">
+            <div class="account-grid">
+              <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="update_email">
+                <div class="mb-3">
+                  <label class="form-label" for="id_email">E-mail address</label>
+                  {{ email_form.email }}
+                  {% if email_form.email.errors %}
+                    <ul class="form-error-list">
+                      {% for error in email_form.email.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </div>
+                <div class="settings-actions">
+                  <button type="submit" class="btn-save">Update email</button>
+                </div>
+              </form>
+
+              <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="update_password">
+                <div class="mb-3">
+                  <label class="form-label" for="id_old_password">Current password</label>
+                  {{ password_form.old_password }}
+                  {% if password_form.old_password.errors %}
+                    <ul class="form-error-list">
+                      {% for error in password_form.old_password.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="id_new_password1">New password</label>
+                  {{ password_form.new_password1 }}
+                  {% if password_form.new_password1.errors %}
+                    <ul class="form-error-list">
+                      {% for error in password_form.new_password1.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="id_new_password2">Confirm new password</label>
+                  {{ password_form.new_password2 }}
+                  {% if password_form.new_password2.errors %}
+                    <ul class="form-error-list">
+                      {% for error in password_form.new_password2.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </div>
+                {% if password_form.non_field_errors %}
+                  <ul class="form-error-list mb-3">
+                    {% for error in password_form.non_field_errors %}
+                      <li>{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+                <div class="settings-actions">
+                  <button type="submit" class="btn-save">Update password</button>
+                </div>
+              </form>
+            </div>
           </div>
-          <div class="mb-4">
-            <label class="form-label" for="id_default_diary_view">Default diary view</label>
-            {{ form.default_diary_view }}
-          </div>
-          <button type="submit" class="btn-save">Save settings</button>
-        </form>
+        </section>
       </section>
     </main>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const toggleButton = document.getElementById('open-account-settings-btn');
+      const accountPanel = document.getElementById('account-settings-panel');
+      if (!toggleButton || !accountPanel) return;
+
+      function setOpen(openState) {
+        accountPanel.classList.toggle('is-open', openState);
+        toggleButton.setAttribute('aria-expanded', openState ? 'true' : 'false');
+        toggleButton.textContent = openState ? 'Hide account settings' : 'Open account settings';
+      }
+
+      setOpen(accountPanel.classList.contains('is-open'));
+
+      toggleButton.addEventListener('click', function () {
+        const shouldOpen = !accountPanel.classList.contains('is-open');
+        setOpen(shouldOpen);
+      });
+    });
+  </script>
 </body>
 </html>

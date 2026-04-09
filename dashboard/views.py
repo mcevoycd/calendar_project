@@ -9,15 +9,15 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Q
 from django.db.utils import OperationalError, ProgrammingError
-from django.contrib.auth import login
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.utils.http import url_has_allowed_host_and_scheme
 from uuid import uuid4
 import json
 import re
 from types import SimpleNamespace
 
-from .forms import SignUpForm, SettingsForm
+from .forms import SignUpForm, SettingsForm, AccountEmailForm
 
 TODO_SECTION_CONFIG = [
     ("planning", "Planning", "todo-section-planning"),
@@ -44,6 +44,10 @@ TODO_PRIORITY_CHOICES = {
     "medium": "Medium",
     "low": "Low",
 }
+
+TODO_MAX_NOTES_LENGTH = 2000
+TODO_MAX_CHECKLIST_ITEMS = 30
+TODO_MAX_CHECKLIST_TEXT_LENGTH = 120
 
 TODO_SECTION_COLORS = {
     "planning": "#38BDF8",
@@ -164,9 +168,10 @@ def get_default_todo_seed():
 def normalize_todo_task(raw_task):
     if isinstance(raw_task, dict):
         title = str(raw_task.get("title", "")).strip()[:120]
-        notes = str(raw_task.get("notes", "")).strip()[:180]
+        notes = str(raw_task.get("notes", "")).strip()[:TODO_MAX_NOTES_LENGTH]
         priority = str(raw_task.get("priority", "medium")).strip().lower()
         completed = bool(raw_task.get("completed", False))
+        checklist = sanitize_task_checklist(raw_task.get("checklist", []))
     elif isinstance(raw_task, str):
         value = raw_task.strip()
         if not value:
@@ -181,6 +186,7 @@ def normalize_todo_task(raw_task):
             notes = ""
         priority = "medium"
         completed = False
+        checklist = []
     else:
         return None
 
@@ -193,10 +199,43 @@ def normalize_todo_task(raw_task):
     return {
         "title": title,
         "notes": notes,
+        "checklist": checklist,
         "priority": priority,
         "priority_label": TODO_PRIORITY_CHOICES[priority],
         "completed": completed,
     }
+
+
+def sanitize_task_checklist(raw_value):
+    if isinstance(raw_value, str):
+        try:
+            raw_value = json.loads(raw_value)
+        except (TypeError, ValueError):
+            raw_value = []
+
+    if not isinstance(raw_value, list):
+        return []
+
+    cleaned_items = []
+    for item in raw_value[:TODO_MAX_CHECKLIST_ITEMS]:
+        if isinstance(item, dict):
+            text = str(item.get("text", "")).strip()
+            completed = bool(item.get("completed", False))
+        else:
+            text = str(item).strip()
+            completed = False
+
+        if not text:
+            continue
+
+        cleaned_items.append(
+            {
+                "text": text[:TODO_MAX_CHECKLIST_TEXT_LENGTH],
+                "completed": completed,
+            }
+        )
+
+    return cleaned_items
 
 
 def normalize_todo_task_item(raw_item, default_day=None, default_section="planning"):
@@ -207,7 +246,8 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
     if not title:
         return None
 
-    notes = str(raw_item.get("notes", "")).strip()[:180]
+    notes = str(raw_item.get("notes", "")).strip()[:TODO_MAX_NOTES_LENGTH]
+    checklist = sanitize_task_checklist(raw_item.get("checklist", []))
     priority = str(raw_item.get("priority", "medium")).strip().lower()
     if priority not in TODO_PRIORITY_CHOICES:
         priority = "medium"
@@ -265,6 +305,7 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
         "id": task_id,
         "title": title,
         "notes": notes,
+        "checklist": checklist,
         "priority": priority,
         "priority_label": TODO_PRIORITY_CHOICES[priority],
         "completed": bool(raw_item.get("completed", False)),
@@ -326,6 +367,14 @@ def sync_todo_task_diary_entry(request, task_item, diary_category=None):
         return task_item
 
     content = str(task_item.get('notes', '')).strip()
+    checklist_items = sanitize_task_checklist(task_item.get('checklist', []))
+    if checklist_items:
+        checklist_lines = [
+            f"- [{'x' if item.get('completed') else ' '}] {item.get('text', '')}".rstrip()
+            for item in checklist_items
+        ]
+        checklist_block = "Checklist:\n" + "\n".join(checklist_lines)
+        content = f"{content}\n\n{checklist_block}".strip() if content else checklist_block
     category_key = normalize_diary_category(diary_category)
     diary_id_raw = str(task_item.get('source_box_id', '')).strip()
     diary_entry = None
@@ -463,6 +512,7 @@ def get_todo_task_items(request):
                             "id": row.task_id,
                             "title": row.title,
                             "notes": row.notes,
+                            "checklist": row.checklist_data,
                             "priority": row.priority,
                             "completed": row.completed,
                             "section": row.section,
@@ -514,6 +564,7 @@ def get_todo_task_items(request):
                             "id": str(uuid4()),
                             "title": normalized_task["title"],
                             "notes": normalized_task["notes"],
+                            "checklist": normalized_task.get("checklist", []),
                             "priority": normalized_task["priority"],
                             "completed": normalized_task["completed"],
                             "section": section_key,
@@ -569,6 +620,7 @@ def set_todo_task_items(request, task_items):
                 task_id=item['id'],
                 title=item['title'],
                 notes=item['notes'],
+                checklist_data=item.get('checklist', []),
                 priority=item['priority'],
                 completed=item['completed'],
                 section=item['section'],
@@ -965,40 +1017,79 @@ def signup_view(request):
 @login_required
 def settings_view(request):
     preferences = get_user_preferences(request)
+    open_account = request.GET.get('account', '').strip().lower() in {'1', 'true', 'open'}
+    settings_form = SettingsForm(
+        initial={
+            'nav_layout': preferences.nav_layout,
+            'default_diary_view': preferences.default_diary_view,
+        }
+    )
+    email_form = AccountEmailForm(initial={'email': request.user.email}, user=request.user)
+    password_form = PasswordChangeForm(request.user)
+
+    for field in password_form.fields.values():
+        field.widget.attrs.update({'class': 'form-control'})
 
     if request.method == 'POST':
-        form = SettingsForm(request.POST)
-        if form.is_valid():
-            try:
-                preferences.theme = form.cleaned_data['theme']
-                preferences.nav_layout = form.cleaned_data['nav_layout']
-                preferences.default_diary_view = form.cleaned_data['default_diary_view']
-                preferences.save(update_fields=['theme', 'nav_layout', 'default_diary_view', 'updated_at'])
-            except (OperationalError, ProgrammingError, AttributeError):
-                request.session['user_preferences'] = {
-                    'theme': form.cleaned_data['theme'],
-                    'nav_layout': form.cleaned_data['nav_layout'],
-                    'default_diary_view': form.cleaned_data['default_diary_view'],
-                }
-                request.session.modified = True
-            return redirect('settings')
-    else:
-        form = SettingsForm(
-            initial={
-                'theme': preferences.theme,
-                'nav_layout': preferences.nav_layout,
-                'default_diary_view': preferences.default_diary_view,
-            }
-        )
+        form_type = request.POST.get('form_type', '').strip()
+
+        if form_type == 'update_preferences':
+            settings_form = SettingsForm(request.POST)
+            if settings_form.is_valid():
+                try:
+                    preferences.nav_layout = settings_form.cleaned_data['nav_layout']
+                    preferences.default_diary_view = settings_form.cleaned_data['default_diary_view']
+                    preferences.save(update_fields=['nav_layout', 'default_diary_view', 'updated_at'])
+                except (OperationalError, ProgrammingError, AttributeError):
+                    session_prefs = request.session.get('user_preferences', {})
+                    if not isinstance(session_prefs, dict):
+                        session_prefs = {}
+                    session_prefs.update(
+                        {
+                            'nav_layout': settings_form.cleaned_data['nav_layout'],
+                            'default_diary_view': settings_form.cleaned_data['default_diary_view'],
+                        }
+                    )
+                    request.session['user_preferences'] = session_prefs
+                    request.session.modified = True
+
+                return redirect('settings')
+
+        elif form_type == 'update_email':
+            open_account = True
+            email_form = AccountEmailForm(request.POST, user=request.user)
+            if email_form.is_valid():
+                request.user.email = email_form.cleaned_data['email']
+                request.user.save(update_fields=['email'])
+                return redirect(f"{reverse('settings')}?account=1")
+
+        elif form_type == 'update_password':
+            open_account = True
+            password_form = PasswordChangeForm(request.user, request.POST)
+            for field in password_form.fields.values():
+                field.widget.attrs.update({'class': 'form-control'})
+
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                return redirect(f"{reverse('settings')}?account=1")
 
     return render(
         request,
         'dashboard/settings.html',
         {
-            'form': form,
+            'settings_form': settings_form,
+            'email_form': email_form,
+            'password_form': password_form,
+            'open_account': open_account,
             'nav_layout': preferences.nav_layout,
         },
     )
+
+
+@login_required
+def account_view(request):
+    return redirect(f"{reverse('settings')}?account=1")
 
 @login_required
 def todo_view(request):
@@ -1022,10 +1113,17 @@ def todo_view(request):
         task_end_date_raw = request.POST.get('task_end_date', '').strip()
         task_section = request.POST.get('task_section', '').strip()
         task_notes = request.POST.get('task_notes', '').strip()
+        task_checklist_json = request.POST.get('task_checklist_json', '').strip()
         task_priority = request.POST.get('task_priority', '').strip().lower()
         task_completed = request.POST.get('task_completed') == 'on'
         task_add_to_diary = request.POST.get('task_add_to_diary') == 'on'
         task_diary_category = normalize_diary_category(request.POST.get('task_diary_category', DIARY_DEFAULT_CATEGORY))
+
+        try:
+            task_checklist_raw = json.loads(task_checklist_json) if task_checklist_json else []
+        except (TypeError, ValueError):
+            task_checklist_raw = []
+        task_checklist = sanitize_task_checklist(task_checklist_raw)
 
         valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
 
@@ -1051,11 +1149,12 @@ def todo_view(request):
             task_priority = 'medium'
 
         task_title = task_title[:120]
-        task_notes = task_notes[:180]
+        task_notes = task_notes[:TODO_MAX_NOTES_LENGTH]
         task_value = {
             "id": str(uuid4()),
             "title": task_title,
             "notes": task_notes,
+            "checklist": task_checklist,
             "priority": task_priority,
             "completed": task_completed,
             "section": task_section,
@@ -1076,7 +1175,7 @@ def todo_view(request):
         set_todo_task_items(request, task_items)
         return HttpResponseRedirect(get_todo_return_url(request))
 
-    if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry', 'toggle_todo_completed'):
+    if request.method == 'POST' and request.POST.get('form_type') in ('edit_todo_entry', 'delete_todo_entry', 'toggle_todo_completed', 'toggle_todo_checklist_item'):
         form_type = request.POST.get('form_type')
         task_id = request.POST.get('task_id', '').strip()
         task_add_to_diary = request.POST.get('task_add_to_diary') == 'on'
@@ -1103,10 +1202,34 @@ def todo_view(request):
                 default_day=current_task.get('start_day', 'Monday'),
                 default_section=current_task.get('section', 'planning'),
             )
+        elif form_type == 'toggle_todo_checklist_item':
+            current_task = task_items[task_pos]
+            checklist_items = sanitize_task_checklist(current_task.get('checklist', []))
+            checklist_index_raw = request.POST.get('checklist_index', '').strip()
+            try:
+                checklist_index = int(checklist_index_raw)
+            except ValueError:
+                checklist_index = -1
+
+            if 0 <= checklist_index < len(checklist_items):
+                checklist_items[checklist_index]['completed'] = not bool(checklist_items[checklist_index].get('completed', False))
+
+            current_task['checklist'] = checklist_items
+            task_items[task_pos] = normalize_todo_task_item(
+                current_task,
+                default_day=current_task.get('start_day', 'Monday'),
+                default_section=current_task.get('section', 'planning'),
+            )
         else:
             existing_task = task_items[task_pos]
             updated_title = request.POST.get('task_title', '').strip()[:120]
-            updated_notes = request.POST.get('task_notes', '').strip()[:180]
+            updated_notes = request.POST.get('task_notes', '').strip()[:TODO_MAX_NOTES_LENGTH]
+            updated_checklist_json = request.POST.get('task_checklist_json', '').strip()
+            try:
+                updated_checklist_raw = json.loads(updated_checklist_json) if updated_checklist_json else []
+            except (TypeError, ValueError):
+                updated_checklist_raw = []
+            updated_checklist = sanitize_task_checklist(updated_checklist_raw)
             updated_priority = request.POST.get('task_priority', '').strip().lower()
             updated_completed = request.POST.get('task_completed') == 'on'
             updated_section = request.POST.get('task_section', '').strip().lower()
@@ -1138,6 +1261,7 @@ def todo_view(request):
                 "id": task_id,
                 "title": updated_title,
                 "notes": updated_notes,
+                "checklist": updated_checklist,
                 "priority": updated_priority,
                 "completed": updated_completed,
                 "section": updated_section,
@@ -1229,6 +1353,8 @@ def todo_view(request):
             start_date = parse_task_date(task.get('start_date'))
             end_date = parse_task_date(task.get('end_date'))
             display_task = dict(task)
+            display_task['checklist'] = sanitize_task_checklist(display_task.get('checklist', []))
+            display_task['checklist_json'] = json.dumps(display_task['checklist'])
             display_task['date_range_label'] = format_task_date_range(start_date, end_date)
 
             linked_diary_category = DIARY_DEFAULT_CATEGORY
@@ -1465,18 +1591,23 @@ def notes_view(request):
                 title = lines[0].lstrip('-* ').strip()[:120]
 
             note_lines = []
+            checklist_items = []
             for raw_line in clean_text.splitlines():
                 stripped_line = raw_line.strip()
                 if not stripped_line:
                     continue
 
-                # Convert markdown-like checklist lines to readable note text.
+                # Convert markdown-like checklist lines into structured checklist data.
                 match = re.match(r'^\s*[-*]\s*\[( |x|X)\]\s+(.*)$', raw_line)
                 if match:
-                    marker = '[Done] ' if str(match.group(1)).lower() == 'x' else ''
                     label = str(match.group(2) or '').strip()
                     if label:
-                        note_lines.append(f"{marker}- {label}")
+                        checklist_items.append(
+                            {
+                                'text': label[:TODO_MAX_CHECKLIST_TEXT_LENGTH],
+                                'completed': str(match.group(1)).lower() == 'x',
+                            }
+                        )
                     continue
 
                 note_lines.append(stripped_line)
@@ -1495,6 +1626,7 @@ def notes_view(request):
                 'id': str(uuid4()),
                 'title': title,
                 'notes': notes,
+                'checklist': checklist_items,
                 'priority': 'medium',
                 'completed': bool(box.get('completed', False)),
                 'section': section_key,

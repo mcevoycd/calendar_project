@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path('settings/', views.settings_view, name='settings'),
+    path('account/', views.account_view, name='account'),
     path('todo/', views.todo_view, name='todo'),
     path('notes/', views.notes_view, name='notes'),
     path('api/events/', views.events_api, name='events_api'),

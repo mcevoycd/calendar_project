@@ -27,11 +27,32 @@ class SignUpForm(UserCreationForm):
 
 
 class SettingsForm(forms.Form):
-    theme = forms.ChoiceField(choices=UserPreference.THEME_CHOICES)
     nav_layout = forms.ChoiceField(choices=UserPreference.NAV_LAYOUT_CHOICES)
     default_diary_view = forms.ChoiceField(choices=UserPreference.DIARY_VIEW_CHOICES)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field_name in ('theme', 'nav_layout', 'default_diary_view'):
+        for field_name in ('nav_layout', 'default_diary_view'):
             self.fields[field_name].widget.attrs.update({'class': 'form-select'})
+
+
+class AccountEmailForm(forms.Form):
+    email = forms.EmailField(max_length=254)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if not email:
+            raise forms.ValidationError('Please enter an email address.')
+
+        existing = User.objects.filter(email__iexact=email)
+        if self.user is not None:
+            existing = existing.exclude(pk=self.user.pk)
+        if existing.exists():
+            raise forms.ValidationError('That email address is already in use.')
+
+        return email
