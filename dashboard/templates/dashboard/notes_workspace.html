@@ -505,7 +505,7 @@
 
     .editor-body {
       flex: 1;
-      min-height: 320px;
+      min-height: 360px;
       overflow: auto;
       line-height: 1.5;
     }
@@ -541,8 +541,12 @@
     .editor-actions {
       display: flex;
       gap: 0.6rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
+    }
+
+    .editor-actions form {
+      margin: 0;
     }
 
     .editor-empty {
@@ -675,7 +679,10 @@
       .notes-grid {
         grid-template-columns: 1fr;
       }
-      .editor-body { min-height: 260px; }
+      .editor-body { min-height: 300px; }
+      .editor-actions {
+        flex-wrap: wrap;
+      }
     }
   </style>
 </head>
@@ -777,7 +784,7 @@
 
         <section class="panel editor-panel">
           {% if selected_note %}
-            <form method="post" action="{% url 'notes' %}" style="display:flex; flex-direction:column; gap:0.8rem; flex:1; min-height:0;">
+            <form id="note-editor-form" method="post" action="{% url 'notes' %}" style="display:flex; flex-direction:column; gap:0.8rem; flex:1; min-height:0;">
               {% csrf_token %}
               <input type="hidden" name="notes_action" value="save_note">
               <input type="hidden" name="note_id" value="{{ selected_note.id }}">
@@ -804,13 +811,10 @@
 
               <div id="rich-editor" class="editor-field editor-body" contenteditable="true" aria-label="Note content editor"></div>
               <input type="hidden" name="body" id="id_body_html">
-
-              <div class="editor-actions">
-                <button type="submit" class="mini-btn">Save note</button>
-              </div>
             </form>
 
             <div class="editor-actions">
+              <button type="submit" class="mini-btn" form="note-editor-form">Save note</button>
               <form method="post" action="{% url 'notes' %}">
                 {% csrf_token %}
                 <input type="hidden" name="notes_action" value="toggle_pin">
