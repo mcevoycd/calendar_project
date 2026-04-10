@@ -8,6 +8,8 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+FLUID_NOTES_VERSION = os.getenv('FLUID_NOTES_VERSION', 'Fluid Notes v2026.04.10')
+
 
 def env_bool(name, default=False):
     raw = os.getenv(name)

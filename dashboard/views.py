@@ -12,6 +12,7 @@ from django.db.utils import OperationalError, ProgrammingError
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
 from uuid import uuid4
 import json
 import re
@@ -1092,6 +1093,7 @@ def settings_view(request):
             'password_form': password_form,
             'open_account': open_account,
             'nav_layout': preferences.nav_layout,
+            'app_version': getattr(settings, 'FLUID_NOTES_VERSION', 'Fluid Notes v2026.04.10'),
         },
     )
 

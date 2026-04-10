@@ -1091,9 +1091,130 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Unified responsive navigation: top bar on wider screens, bottom bar on smaller screens */
+    body .app-shell {
+      grid-template-columns: 1fr !important;
+      height: 100vh;
+      width: 100%;
+    }
+
+    body .sidebar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      padding: 0.65rem 1rem !important;
+      border-right: none !important;
+      border-bottom: 1px solid rgba(0, 194, 255, 0.3);
+      background: rgba(10, 26, 42, 0.95);
+      backdrop-filter: blur(8px);
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+    }
+
+    body .sidebar > div:first-child {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      min-width: 0;
+    }
+
+    body .brand-logo {
+      width: auto;
+      height: 46px;
+      max-width: none;
+      margin: 0;
+      border-radius: 10px;
+    }
+
+    body .brand-subtitle {
+      margin: 0;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      color: #c9dae7;
+    }
+
+    body .nav-group {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.45rem;
+      margin: 0;
+    }
+
+    body .nav-link {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 10px;
+    }
+
+    body .sidebar-footer {
+      display: none;
+    }
+
+    body .main {
+      height: calc(100vh - 66px);
+      min-height: 0;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        padding-bottom: 80px;
+      }
+
+      body .sidebar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        border-bottom: none;
+        border-top: 1px solid rgba(0, 194, 255, 0.3);
+        padding: 0.5rem 0.55rem !important;
+        justify-content: flex-start;
+      }
+
+      body .sidebar > div:first-child {
+        flex: 0 0 auto;
+        max-width: 40%;
+      }
+
+      body .brand-logo {
+        height: 30px;
+      }
+
+      body .brand-subtitle {
+        font-size: 0.68rem;
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      body .nav-group {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.32rem;
+      }
+
+      body .nav-link {
+        text-align: center;
+        padding: 0.42rem 0.2rem;
+        font-size: 0.74rem;
+        line-height: 1.15;
+      }
+
+      body .main {
+        height: calc(100vh - 80px);
+      }
+    }
   </style>
 </head>
-<body class="nav-layout-{{ nav_layout|default:'sidebar' }}">
+<body class="nav-layout-unified">
   <div class="app-shell">
     <aside class="sidebar">
       <div>
@@ -1115,31 +1236,13 @@
     </aside>
 
     <main class="main">
-      <div class="topbar">
-        <div>
-          <h1>Dashboard</h1>
-          <p style="margin:0; color:var(--muted);">Your calendar, events, and world clock in one place.</p>
-        </div>
-        <div class="user-menu">
-          {% if request.user.is_authenticated %}
-            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-            <form method="post" action="{% url 'logout' %}" style="display:inline; margin-left:0.75rem;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
-            </form>
-          {% else %}
-            <a href="{% url 'login' %}" class="btn btn-sm btn-primary">Sign in</a>
-          {% endif %}
-        </div>
-      </div>
-
       <div class="content-grid">
         <div class="side-column">
           <section class="panel">
             <div class="worldclock-header" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
               <div>
-                <h2>World Clock</h2>
-                <p>Live timezones refresh every second so your team can stay in sync.</p>
+                <h2>Dashboard · World Clock</h2>
+                <p>Your calendar, events, and world clock in one place. Live timezones refresh every second.</p>
               </div>
               <div class="worldclock-actions">
               <div class="input-group input-group-sm" style="min-width: 230px;">
