@@ -945,6 +945,57 @@
       letter-spacing: 0.01em;
     }
 
+    body.nav-position-top .brand-logo {
+      height: 64px;
+      border-radius: 10px;
+    }
+
+    body.nav-position-top .sidebar > div:first-child {
+      order: 2;
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    body.nav-position-top .nav-group {
+      order: 1;
+      margin-right: auto;
+      justify-content: flex-start;
+      gap: 0.35rem;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    body.nav-position-top .nav-link {
+      min-width: 92px;
+      padding: 0.52rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #C9DAE7;
+      font-weight: 760;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    body.nav-position-top .nav-link:hover,
+    body.nav-position-top .nav-link:focus {
+      background: rgba(58, 96, 126, 0.28);
+      border-color: rgba(120, 154, 181, 0.5);
+      color: #EAF4FF;
+      transform: none;
+    }
+
+    body.nav-position-top .nav-link.active {
+      background: rgba(40, 84, 118, 0.42);
+      border-color: rgba(246, 195, 92, 0.55);
+      color: #F6C35C;
+      box-shadow: inset 0 -2px 0 #F6C35C;
+      transform: none;
+    }
+
     body .sidebar-footer {
       display: none;
     }
@@ -1053,8 +1104,8 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div>
-        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
         <p class="brand-subtitle js-sidebar-datetime">Loading date and time...</p>
+        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">
