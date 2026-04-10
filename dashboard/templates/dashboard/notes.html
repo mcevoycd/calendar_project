@@ -160,7 +160,7 @@
     }
 
     body.nav-layout-bottom .nav-group {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 0.38rem;
     }
 
@@ -1042,7 +1042,7 @@
       body .nav-group {
         flex: 1;
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 0.32rem;
       }
 
@@ -1113,7 +1113,8 @@
         <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
-        <a class="nav-link active" href="{% url 'notes' %}">Canvas</a>
+        <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+        <a class="nav-link active" href="{% url 'canvas' %}">Canvas</a>
         <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 
@@ -1130,7 +1131,7 @@
           </div>
           <div class="week-chip">Current Week: {{ week_range_label }}</div>
         </div>
-        <form method="post" action="{% url 'notes' %}" class="notes-form" id="notes-form">
+        <form method="post" action="{% url 'canvas' %}" class="notes-form" id="notes-form">
           {% csrf_token %}
           <input type="hidden" name="canvas_data" id="canvas-data-input">
           <input type="hidden" name="notes_action" id="notes-action-input" value="">

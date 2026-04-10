@@ -168,7 +168,7 @@
     }
 
     body.nav-layout-bottom .nav-group {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 0.38rem;
       width: 100%;
       margin: 0;
@@ -1453,7 +1453,7 @@
       body .nav-group {
         flex: 1;
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 0.32rem;
       }
 
@@ -1762,7 +1762,8 @@
         <a class="nav-link active" href="{% url 'dashboard' %}">Dashboard</a>
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
-        <a class="nav-link" href="{% url 'notes' %}">Canvas</a>
+        <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+        <a class="nav-link" href="{% url 'canvas' %}">Canvas</a>
         <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 

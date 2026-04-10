@@ -110,3 +110,39 @@ class NotesCanvasWeek(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.week_start.isoformat()}"
+
+
+class NoteCategory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_categories')
+    name = models.CharField(max_length=40)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        unique_together = ('user', 'name')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"
+
+
+class NoteEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_entries')
+    category = models.ForeignKey(
+        NoteCategory,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='note_entries',
+    )
+    title = models.CharField(max_length=140)
+    is_pinned = models.BooleanField(default=False)
+    body = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at', '-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"

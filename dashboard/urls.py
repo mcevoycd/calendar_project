@@ -8,6 +8,7 @@ urlpatterns = [
     path('account/', views.account_view, name='account'),
     path('todo/', views.todo_view, name='todo'),
     path('notes/', views.notes_view, name='notes'),
+    path('canvas/', views.canvas_view, name='canvas'),
     path('api/events/', views.events_api, name='events_api'),
     path('api/diary/', views.diary_api, name='diary_api'),
     path('diary/add/', views.add_diary_entry, name='add_diary_entry'),

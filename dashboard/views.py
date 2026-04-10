@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from datetime import datetime, timedelta, time
-from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek
+from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek, NoteCategory, NoteEntry
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -1421,6 +1421,148 @@ def todo_view(request):
 @login_required
 def notes_view(request):
     preferences = get_user_preferences(request)
+    selected_category_id = str(request.GET.get('category', '')).strip()
+    selected_note_id = str(request.GET.get('note', '')).strip()
+    search_query = str(request.GET.get('q', '')).strip()[:120]
+
+    def sanitize_note_html(value):
+        cleaned = str(value or '')[:30000]
+        cleaned = re.sub(r'<\s*script[^>]*>.*?<\s*/\s*script\s*>', '', cleaned, flags=re.IGNORECASE | re.DOTALL)
+        cleaned = re.sub(r'\son\w+\s*=\s*(["\']).*?\1', '', cleaned, flags=re.IGNORECASE | re.DOTALL)
+        cleaned = re.sub(r'\s(href|src)\s*=\s*(["\'])\s*javascript:.*?\2', r' \1="#"', cleaned, flags=re.IGNORECASE | re.DOTALL)
+        return cleaned
+
+    if request.method == 'POST':
+        notes_action = str(request.POST.get('notes_action', '')).strip().lower()
+
+        if notes_action == 'create_category':
+            category_name = str(request.POST.get('category_name', '')).strip()[:40]
+            if category_name:
+                exists = NoteCategory.objects.filter(user=request.user, name__iexact=category_name).exists()
+                if not exists:
+                    created_category = NoteCategory.objects.create(user=request.user, name=category_name)
+                    return HttpResponseRedirect(f"{reverse('notes')}?category={created_category.id}")
+            return HttpResponseRedirect(reverse('notes'))
+
+        if notes_action == 'delete_category':
+            category_id = str(request.POST.get('category_id', '')).strip()
+            if category_id.isdigit():
+                category = NoteCategory.objects.filter(user=request.user, id=int(category_id)).first()
+                if category:
+                    NoteEntry.objects.filter(user=request.user, category=category).update(category=None)
+                    category.delete()
+            return HttpResponseRedirect(reverse('notes'))
+
+        if notes_action == 'create_note':
+            note_title = str(request.POST.get('new_note_title', '')).strip()[:140]
+            if not note_title:
+                note_title = 'Untitled note'
+
+            category_id = str(request.POST.get('category_id', '')).strip()
+            category = None
+            if category_id.isdigit():
+                category = NoteCategory.objects.filter(user=request.user, id=int(category_id)).first()
+
+            note = NoteEntry.objects.create(
+                user=request.user,
+                category=category,
+                title=note_title,
+                body='',
+            )
+            return HttpResponseRedirect(f"{reverse('notes')}?note={note.id}")
+
+        if notes_action == 'save_note':
+            note_id = str(request.POST.get('note_id', '')).strip()
+            note = None
+            if note_id.isdigit():
+                note = NoteEntry.objects.filter(user=request.user, id=int(note_id)).first()
+
+            if note:
+                updated_title = str(request.POST.get('title', '')).strip()[:140]
+                if not updated_title:
+                    updated_title = 'Untitled note'
+                updated_body = sanitize_note_html(request.POST.get('body', ''))
+
+                category_id = str(request.POST.get('category_id', '')).strip()
+                category = None
+                if category_id.isdigit():
+                    category = NoteCategory.objects.filter(user=request.user, id=int(category_id)).first()
+
+                note.title = updated_title
+                note.body = updated_body
+                note.category = category
+                note.save(update_fields=['title', 'body', 'category', 'updated_at'])
+                return HttpResponseRedirect(f"{reverse('notes')}?note={note.id}")
+            return HttpResponseRedirect(reverse('notes'))
+
+        if notes_action == 'toggle_pin':
+            note_id = str(request.POST.get('note_id', '')).strip()
+            if note_id.isdigit():
+                note = NoteEntry.objects.filter(user=request.user, id=int(note_id)).first()
+                if note:
+                    note.is_pinned = not bool(note.is_pinned)
+                    note.save(update_fields=['is_pinned', 'updated_at'])
+                    return HttpResponseRedirect(f"{reverse('notes')}?note={note.id}")
+            return HttpResponseRedirect(reverse('notes'))
+
+        if notes_action == 'delete_note':
+            note_id = str(request.POST.get('note_id', '')).strip()
+            if note_id.isdigit():
+                NoteEntry.objects.filter(user=request.user, id=int(note_id)).delete()
+            return HttpResponseRedirect(reverse('notes'))
+
+    categories = list(NoteCategory.objects.filter(user=request.user).order_by('name'))
+    notes_queryset = NoteEntry.objects.filter(user=request.user).select_related('category')
+
+    active_category = None
+    if selected_category_id.isdigit():
+        active_category = next((item for item in categories if item.id == int(selected_category_id)), None)
+    if active_category:
+        notes_queryset = notes_queryset.filter(category=active_category)
+
+    if search_query:
+        notes_queryset = notes_queryset.filter(
+            Q(title__icontains=search_query)
+            | Q(body__icontains=search_query)
+            | Q(category__name__icontains=search_query)
+        )
+
+    notes = list(notes_queryset.order_by('-is_pinned', '-updated_at', '-created_at'))
+
+    # Keep Notes from landing on a blank workspace on first use.
+    if request.method == 'GET' and not notes and not search_query:
+        starter_category = active_category if active_category else None
+        starter_note = NoteEntry.objects.create(
+            user=request.user,
+            category=starter_category,
+            title='Untitled note',
+            body='<p><br></p>',
+        )
+        redirect_target = f"{reverse('notes')}?note={starter_note.id}"
+        if selected_category_id:
+            redirect_target = f"{redirect_target}&category={selected_category_id}"
+        return HttpResponseRedirect(redirect_target)
+
+    selected_note = None
+    if selected_note_id.isdigit():
+        selected_note = next((item for item in notes if item.id == int(selected_note_id)), None)
+    if not selected_note and notes:
+        selected_note = notes[0]
+
+    context = {
+        'categories': categories,
+        'notes': notes,
+        'selected_note': selected_note,
+        'selected_category_id': selected_category_id,
+        'search_query': search_query,
+        'nav_layout': preferences.nav_layout,
+    }
+    return render(request, 'dashboard/notes_workspace.html', context)
+
+
+@login_required
+def canvas_view(request):
+    preferences = get_user_preferences(request)
     today = datetime.today().date()
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
@@ -1710,7 +1852,7 @@ def notes_view(request):
                     preserved_items.append(normalized)
 
             set_todo_task_items(request, preserved_items)
-            return HttpResponseRedirect(reverse('notes'))
+            return HttpResponseRedirect(reverse('canvas'))
 
         canvas_raw = request.POST.get('canvas_data', '').strip()
         try:
@@ -1738,7 +1880,7 @@ def notes_view(request):
         set_todo_task_items(request, retained_items)
         if is_auto_save:
             return JsonResponse({'status': 'ok', 'saved_at': datetime.now().isoformat()})
-        return HttpResponseRedirect(reverse('notes'))
+        return HttpResponseRedirect(reverse('canvas'))
 
     current_state = sanitize_canvas_state(notes_canvas_by_week.get(week_key))
     context = {
