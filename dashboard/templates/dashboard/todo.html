@@ -740,9 +740,45 @@
         height: calc(100vh - 80px);
       }
     }
+
+    body.nav-position-top {
+      padding-bottom: 0 !important;
+    }
+
+    body.nav-position-top .sidebar {
+      position: sticky !important;
+      top: 0 !important;
+      bottom: auto !important;
+      border-top: none !important;
+      border-bottom: 1px solid rgba(0, 194, 255, 0.3) !important;
+      justify-content: space-between !important;
+    }
+
+    body.nav-position-top .main {
+      height: calc(100vh - 66px) !important;
+    }
+
+    body.nav-position-bottom {
+      padding-bottom: 66px !important;
+    }
+
+    body.nav-position-bottom .sidebar {
+      position: fixed !important;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: auto !important;
+      border-bottom: none !important;
+      border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+      justify-content: space-between !important;
+    }
+
+    body.nav-position-bottom .main {
+      height: calc(100vh - 66px) !important;
+    }
   </style>
 </head>
-<body class="nav-layout-unified">
+<body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
     <aside class="sidebar">
       <div>

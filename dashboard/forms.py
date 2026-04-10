@@ -27,7 +27,12 @@ class SignUpForm(UserCreationForm):
 
 
 class SettingsForm(forms.Form):
-    nav_layout = forms.ChoiceField(choices=UserPreference.NAV_LAYOUT_CHOICES)
+    NAV_LAYOUT_CHOICES = [
+        ('top', 'Top nav bar'),
+        ('bottom', 'Bottom nav bar'),
+    ]
+
+    nav_layout = forms.ChoiceField(choices=NAV_LAYOUT_CHOICES)
     default_diary_view = forms.ChoiceField(choices=UserPreference.DIARY_VIEW_CHOICES)
 
     def __init__(self, *args, **kwargs):

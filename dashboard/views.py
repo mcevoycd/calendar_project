@@ -70,6 +70,13 @@ DIARY_CATEGORY_COLORS = {key: color for key, _, color in DIARY_CATEGORY_CONFIG}
 DIARY_DEFAULT_CATEGORY = "general"
 
 
+def normalize_nav_layout(value):
+    candidate = str(value or '').strip().lower()
+    if candidate == 'bottom':
+        return 'bottom'
+    return 'top'
+
+
 def normalize_diary_category(value):
     candidate = str(value or "").strip().lower()
     return candidate if candidate in DIARY_CATEGORY_LABELS else DIARY_DEFAULT_CATEGORY
@@ -713,14 +720,26 @@ def set_notes_canvas_week(request, week_key, canvas_state):
 def get_user_preferences(request):
     try:
         preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        normalized_layout = normalize_nav_layout(getattr(preferences, 'nav_layout', 'top'))
+        if preferences.nav_layout != normalized_layout:
+            preferences.nav_layout = normalized_layout
+            try:
+                preferences.save(update_fields=['nav_layout', 'updated_at'])
+            except (OperationalError, ProgrammingError):
+                pass
         return preferences
     except (OperationalError, ProgrammingError):
         session_prefs = request.session.get('user_preferences', {})
         if not isinstance(session_prefs, dict):
             session_prefs = {}
+        nav_layout = normalize_nav_layout(session_prefs.get('nav_layout', 'top'))
+        if session_prefs.get('nav_layout') != nav_layout:
+            session_prefs['nav_layout'] = nav_layout
+            request.session['user_preferences'] = session_prefs
+            request.session.modified = True
         return SimpleNamespace(
             theme=session_prefs.get('theme', 'dark'),
-            nav_layout=session_prefs.get('nav_layout', 'sidebar'),
+            nav_layout=nav_layout,
             default_diary_view=session_prefs.get('default_diary_view', 'week'),
         )
 
