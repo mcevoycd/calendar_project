@@ -6,6 +6,6 @@
   "deploy": {
     "runtime": "v2",
     "preDeployCommand": "python manage.py collectstatic --noinput",
-    "startCommand": "gunicorn app.wsgi --log-file -"
+    "startCommand": "gunicorn app.wsgi --bind 0.0.0.0:${PORT:-8080} --log-file -"
   }
 }

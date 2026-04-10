@@ -7,26 +7,59 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
+  function getResponsiveCalendarMode(width) {
+    if (width <= 560) {
+      return { view: 'dayGridMonth', columns: 1 };
+    }
+    if (width >= 1200) {
+      return { view: 'multiMonth4', columns: 4 };
+    }
+    if (width <= 900) {
+      return { view: 'multiMonth3', columns: 2 };
+    }
+    return { view: 'multiMonth3', columns: 3 };
+  }
+
+  const initialMode = getResponsiveCalendarMode(window.innerWidth);
+
   const calendar = new FullCalendar.Calendar(calendarEl, {
     themeSystem: 'bootstrap',
     locale: 'en-gb',
-    initialView: 'multiMonthYear',
-    height: '78vh',
-    contentHeight: '78vh',
-    expandRows: true,
+    initialView: initialMode.view,
+    height: 'auto',
+    contentHeight: 'auto',
+    expandRows: false,
     firstDay: 1,
-    multiMonthMaxColumns: 3,
+    multiMonthMaxColumns: initialMode.columns,
     multiMonthMinWidth: 1,
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'multiMonthYear,dayGridMonth'
+      right: ''
     },
     views: {
       multiMonthYear: {
         type: 'multiMonth',
         duration: { years: 1 },
-        buttonText: 'Year',
+        multiMonthMaxColumns: 12,
+        eventDisplay: 'none'
+      },
+      multiMonth6: {
+        type: 'multiMonth',
+        duration: { months: 6 },
+        multiMonthMaxColumns: 6,
+        eventDisplay: 'none'
+      },
+      multiMonth4: {
+        type: 'multiMonth',
+        duration: { months: 4 },
+        multiMonthMaxColumns: 4,
+        eventDisplay: 'none'
+      },
+      multiMonth3: {
+        type: 'multiMonth',
+        duration: { months: 3 },
+        multiMonthMaxColumns: 3,
         eventDisplay: 'none'
       },
       dayGridMonth: {
@@ -87,4 +120,21 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   calendar.render();
+  calendarEl.style.setProperty('--calendar-columns', String(initialMode.columns));
+
+  let resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) {
+      clearTimeout(resizeTimer);
+    }
+
+    resizeTimer = setTimeout(function () {
+      const mode = getResponsiveCalendarMode(window.innerWidth);
+      calendar.setOption('multiMonthMaxColumns', mode.columns);
+      calendarEl.style.setProperty('--calendar-columns', String(mode.columns));
+      if (calendar.view.type !== mode.view) {
+        calendar.changeView(mode.view);
+      }
+    }, 150);
+  });
 });

@@ -7,8 +7,10 @@
   {% load static %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/multimonth/index.global.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/bootstrap/main.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/multimonth/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/bootstrap/index.global.min.js"></script>
   <style>
     :root {
@@ -235,7 +237,7 @@
 
     .content-grid {
       display: grid;
-      grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
+      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
       gap: 1.5rem;
       align-items: stretch;
       flex: 1;
@@ -248,12 +250,168 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
+      padding: 1.1rem;
     }
 
     .entry-panel {
-      align-self: start;
+      align-self: stretch;
       max-height: 100%;
       overflow: auto;
+      padding: 1rem;
+    }
+
+    .diary-left-stack {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .mini-month {
+      background: #111d30;
+      border: 1px solid #1F4F70;
+      border-radius: 16px;
+      padding: 0.9rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .mini-month-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+      gap: 0.5rem;
+    }
+
+    .mini-month-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #EAF4FF;
+      letter-spacing: 0.01em;
+    }
+
+    .mini-month-nav {
+      display: inline-flex;
+      gap: 0.35rem;
+    }
+
+    .mini-month-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid #2E4E68;
+      background: #19283C;
+      color: #C9DAE7;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .mini-month-btn:hover,
+    .mini-month-btn:focus {
+      background: #00C2FF;
+      color: #06111E;
+      border-color: #00C2FF;
+      outline: none;
+    }
+
+    .mini-month-weekdays,
+    .mini-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.3rem;
+    }
+
+    .mini-month-weekdays {
+      margin-bottom: 0.35rem;
+    }
+
+    .mini-month-weekday,
+    .mini-month-cell {
+      text-align: center;
+      font-size: 0.74rem;
+      border-radius: 10px;
+      padding: 0.28rem 0;
+    }
+
+    .mini-month-weekday {
+      color: #9EB0C2;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .mini-month-cell {
+      color: #D5E2EC;
+      border: 1px solid transparent;
+      min-height: 1.75rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .mini-month-cell.is-other {
+      color: rgba(158, 176, 194, 0.45);
+    }
+
+    .mini-month-cell.is-today {
+      color: #06111E;
+      background: #F6C35C;
+      font-weight: 700;
+      border-color: #F6C35C;
+    }
+
+    .mini-month-cell.is-active {
+      border-color: #00C2FF;
+      box-shadow: inset 0 0 0 1px rgba(0, 194, 255, 0.35);
+      background: rgba(0, 194, 255, 0.12);
+    }
+
+    .diary-right-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.15rem 0.2rem 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .diary-right-title {
+      margin: 0;
+      font-size: clamp(1.85rem, 2.6vw, 2.7rem);
+      letter-spacing: -0.02em;
+      color: #F3F7FB;
+      line-height: 1.1;
+      font-weight: 750;
+    }
+
+    .diary-view-switch {
+      display: inline-flex;
+      gap: 0.35rem;
+      background: #111D30;
+      border: 1px solid #244560;
+      border-radius: 999px;
+      padding: 0.25rem;
+    }
+
+    .diary-view-btn {
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: #B9CDDC;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+
+    .diary-view-btn.is-active,
+    .diary-view-btn:hover,
+    .diary-view-btn:focus {
+      background: #F2F4F7;
+      color: #06111E;
+      outline: none;
     }
 
     .panel {
@@ -299,9 +457,9 @@
 
     .calendar-wrapper {
       background: radial-gradient(circle at top, rgba(0, 194, 255, 0.08), transparent 70%);
-      padding: 14px;
+      padding: 10px;
       border-radius: 14px;
-      margin-top: 1rem;
+      margin-top: 0;
       flex: 1;
       min-height: 0;
       display: flex;
@@ -346,15 +504,15 @@
       width: 100%;
       background: #1C2733;
       border: 1px solid rgba(50, 66, 83, 0.5);
-      padding: 20px;
+      padding: 14px;
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(0, 194, 255, 0.18), 0 0 40px rgba(0, 194, 255, 0.08);
     }
 
     /* Add Diary Entry Form */
     .diary-form {
-      margin-bottom: 1.5rem;
-      padding: 1rem;
+      margin-bottom: 0;
+      padding: 0.9rem;
       background: #0A1A2A;
       border-radius: 12px;
       border: 1px solid #1B4A67;
@@ -672,6 +830,35 @@
       min-height: 118px;
     }
 
+    #calendar .fc-multimonth {
+      gap: 0.6rem;
+      background: #223548;
+      border-radius: 12px;
+      padding: 0.5rem;
+    }
+
+    #calendar .fc-multimonth-month {
+      background: #203447;
+      border: 1px solid #2E4E68;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #calendar .fc-multimonth-title {
+      font-size: 0.76rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #F6C35C;
+      font-weight: 700;
+      padding: 0.3rem 0.45rem;
+      background: #1A2C3E;
+    }
+
+    #calendar .fc-multimonth .fc-daygrid-day-number {
+      font-size: 0.62rem;
+      color: #D3DEE8;
+    }
+
     .btn-primary {
       background-color: #00C2FF;
       border-color: #00C2FF;
@@ -766,6 +953,15 @@
 
       .content-grid {
         grid-template-columns: 1fr;
+      }
+
+      .entry-panel,
+      .week-panel {
+        align-self: stretch;
+      }
+
+      .diary-right-title {
+        font-size: 1.7rem;
       }
 
       .sidebar {
@@ -983,8 +1179,83 @@
 
     <main class="main">
       <div class="content-grid">
+        <div class="panel diary-container entry-panel">
+          <div class="diary-left-stack">
+            <section class="mini-month" aria-label="Mini month calendar">
+              <div class="mini-month-head">
+                <h2 class="mini-month-title" id="mini-month-title">Month</h2>
+                <div class="mini-month-nav" role="group" aria-label="Mini calendar navigation">
+                  <button type="button" class="mini-month-btn" id="mini-month-prev" aria-label="Previous period">&#8249;</button>
+                  <button type="button" class="mini-month-btn" id="mini-month-next" aria-label="Next period">&#8250;</button>
+                </div>
+              </div>
+              <div class="mini-month-weekdays" aria-hidden="true">
+                <span class="mini-month-weekday">M</span>
+                <span class="mini-month-weekday">T</span>
+                <span class="mini-month-weekday">W</span>
+                <span class="mini-month-weekday">T</span>
+                <span class="mini-month-weekday">F</span>
+                <span class="mini-month-weekday">S</span>
+                <span class="mini-month-weekday">S</span>
+              </div>
+              <div class="mini-month-grid" id="mini-month-grid"></div>
+            </section>
+
+            <h2>Add Diary Entry</h2>
+            <form method="post" action="{% url 'add_diary_entry' %}" class="diary-form">
+              {% csrf_token %}
+              <div class="form-grid">
+                <input type="hidden" name="entry_id" id="entry-id-input">
+                <input type="text" name="title" placeholder="Diary entry title" required>
+                <div class="diary-category-row">
+                  <select name="category" id="diary-category-input">
+                    {% for category in diary_category_options %}
+                      <option value="{{ category.key }}" data-color="{{ category.color }}" {% if category.key == 'general' %}selected{% endif %}>{{ category.label }}</option>
+                    {% endfor %}
+                  </select>
+                  <span id="diary-category-badge" class="diary-category-badge" aria-live="polite">General</span>
+                </div>
+                <input type="date" name="date">
+                <input type="date" name="end_date" id="end-date-input" placeholder="End date (optional for all-day multi-day)">
+                <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                  <input type="time" name="start_time" step="900" placeholder="Start time">
+                  <input type="time" name="end_time" step="900" placeholder="End time">
+                </div>
+                <textarea class="diary-textarea" name="content" placeholder="Diary entry content (optional)"></textarea>
+                <input type="hidden" name="redirect_date" id="diary-delete-redirect-date">
+                <small id="diary-selection-hint">Tip: only title is required. Date defaults to today if left blank.</small>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                  <button type="submit" class="btn btn-primary diary-button" id="diary-submit-btn">Add Diary Entry</button>
+                  <button type="button" class="btn btn-outline-secondary diary-button" id="diary-cancel-edit" style="display:none;">Cancel Edit</button>
+                  <button
+                    type="submit"
+                    formmethod="post"
+                    formaction="{% url 'delete_diary_entry' %}"
+                    formnovalidate
+                    class="diary-delete-btn"
+                    id="diary-delete-btn"
+                    style="display:none;"
+                    aria-label="Delete diary entry"
+                    title="Delete diary entry"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <div class="panel week-panel">
-          <h2 class="title-inline">Diary · Week View <span class="title-blurb">Your personal diary by week. Click all-day cells or time slots to prefill a new entry.</span></h2>
+          <div class="diary-right-head">
+            <h1 class="diary-right-title" id="diary-right-title">Weekly Diary</h1>
+            <div class="diary-view-switch" role="group" aria-label="Diary view switcher">
+              <button type="button" class="diary-view-btn" data-diary-view="multiMonthYear">Year</button>
+              <button type="button" class="diary-view-btn" data-diary-view="dayGridMonth">Month</button>
+              <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
+              <button type="button" class="diary-view-btn" data-diary-view="timeGridDay">Day</button>
+            </div>
+          </div>
           <div class="diary-legend" aria-label="Diary category legend">
             {% for category in diary_category_options %}
               <span class="diary-legend-chip" style="--chip-color: {{ category.color }};">{{ category.label }}</span>
@@ -993,51 +1264,6 @@
           <div class="calendar-wrapper">
             <div id="calendar"></div>
           </div>
-        </div>
-
-        <div class="panel diary-container entry-panel">
-          <h2>Add Diary Entry</h2>
-          <form method="post" action="{% url 'add_diary_entry' %}" class="diary-form">
-            {% csrf_token %}
-            <div class="form-grid">
-              <input type="hidden" name="entry_id" id="entry-id-input">
-              <input type="text" name="title" placeholder="Diary entry title" required>
-              <div class="diary-category-row">
-                <select name="category" id="diary-category-input">
-                  {% for category in diary_category_options %}
-                    <option value="{{ category.key }}" data-color="{{ category.color }}" {% if category.key == 'general' %}selected{% endif %}>{{ category.label }}</option>
-                  {% endfor %}
-                </select>
-                <span id="diary-category-badge" class="diary-category-badge" aria-live="polite">General</span>
-              </div>
-              <input type="date" name="date">
-              <input type="date" name="end_date" id="end-date-input" placeholder="End date (optional for all-day multi-day)">
-              <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-                <input type="time" name="start_time" step="900" placeholder="Start time">
-                <input type="time" name="end_time" step="900" placeholder="End time">
-              </div>
-              <textarea class="diary-textarea" name="content" placeholder="Diary entry content (optional)"></textarea>
-              <input type="hidden" name="redirect_date" id="diary-delete-redirect-date">
-              <small id="diary-selection-hint">Tip: only title is required. Date defaults to today if left blank.</small>
-              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <button type="submit" class="btn btn-primary diary-button" id="diary-submit-btn">Add Diary Entry</button>
-                <button type="button" class="btn btn-outline-secondary diary-button" id="diary-cancel-edit" style="display:none;">Cancel Edit</button>
-                <button
-                  type="submit"
-                  formmethod="post"
-                  formaction="{% url 'delete_diary_entry' %}"
-                  formnovalidate
-                  class="diary-delete-btn"
-                  id="diary-delete-btn"
-                  style="display:none;"
-                  aria-label="Delete diary entry"
-                  title="Delete diary entry"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </form>
         </div>
       </div>
     </main>
@@ -1081,10 +1307,17 @@
       const searchParams = new URLSearchParams(window.location.search);
       const queryDate = searchParams.get('date');
       const selectedEntryId = (searchParams.get('entry_id') || '').trim();
+      const miniMonthTitle = document.getElementById('mini-month-title');
+      const miniMonthGrid = document.getElementById('mini-month-grid');
+      const miniPrevButton = document.getElementById('mini-month-prev');
+      const miniNextButton = document.getElementById('mini-month-next');
+      const rightTitle = document.getElementById('diary-right-title');
+      const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
       let requestedEntryLoaded = false;
       let allowDeleteSubmit = false;
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
+        year: 'multiMonthYear',
         month: 'dayGridMonth',
         week: 'timeGridWeek',
         day: 'timeGridDay'
@@ -1299,6 +1532,60 @@
         requestedEntryLoaded = true;
       }
 
+      function setActiveDiaryViewButton(viewType) {
+        viewSwitchButtons.forEach(function (button) {
+          const isActive = button.dataset.diaryView === viewType;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+
+      function renderMiniMonth(anchorDate, currentViewDate) {
+        if (!miniMonthTitle || !miniMonthGrid || !anchorDate) {
+          return;
+        }
+
+        const titleFormatter = new Intl.DateTimeFormat('en-GB', {
+          month: 'long',
+          year: 'numeric'
+        });
+        miniMonthTitle.textContent = titleFormatter.format(anchorDate);
+
+        miniMonthGrid.innerHTML = '';
+        const year = anchorDate.getFullYear();
+        const month = anchorDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const mondayStartOffset = (firstDay.getDay() + 6) % 7;
+        const gridStart = new Date(year, month, 1 - mondayStartOffset);
+        const today = new Date();
+        const todayKey = formatDateForInput(today);
+        const activeKey = currentViewDate ? formatDateForInput(currentViewDate) : '';
+
+        for (let i = 0; i < 42; i += 1) {
+          const day = new Date(gridStart);
+          day.setDate(gridStart.getDate() + i);
+
+          const cell = document.createElement('span');
+          cell.className = 'mini-month-cell';
+          cell.textContent = String(day.getDate());
+          const dayKey = formatDateForInput(day);
+
+          if (day.getMonth() !== month) {
+            cell.classList.add('is-other');
+          }
+
+          if (dayKey === todayKey) {
+            cell.classList.add('is-today');
+          }
+
+          if (activeKey && dayKey === activeKey) {
+            cell.classList.add('is-active');
+          }
+
+          miniMonthGrid.appendChild(cell);
+        }
+      }
+
       const calendar = new FullCalendar.Calendar(calendarEl, {
         themeSystem: 'bootstrap',
         locale: 'en-gb',
@@ -1318,9 +1605,10 @@
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          right: ''
         },
         buttonText: {
+          year: 'Year',
           today: 'Today',
           month: 'Month',
           week: 'Week',
@@ -1328,6 +1616,12 @@
         },
         eventDisplay: 'block',
         views: {
+          multiMonthYear: {
+            type: 'multiMonth',
+            duration: { years: 1 },
+            multiMonthMaxColumns: 4,
+            eventDisplay: 'none'
+          },
           dayGridMonth: {
             eventDisplay: 'block'
           }
@@ -1336,7 +1630,25 @@
         eventsSet: function (events) {
           tryLoadRequestedEntry(events);
         },
+        datesSet: function (info) {
+          if (rightTitle) {
+            const titleText = info.view.type === 'multiMonthYear'
+              ? 'Yearly Diary'
+              : (info.view.type === 'dayGridMonth'
+                ? 'Monthly Diary'
+                : (info.view.type === 'timeGridDay' ? 'Daily Diary' : 'Weekly Diary'));
+            rightTitle.textContent = titleText;
+          }
+          setActiveDiaryViewButton(info.view.type);
+          const activeDate = calendar.getDate();
+          renderMiniMonth(activeDate, activeDate);
+        },
         eventDidMount: function (info) {
+          if (info.view.type === 'multiMonthYear') {
+            info.el.style.display = 'none';
+            return;
+          }
+
           const categoryKey = info.event.extendedProps.category || info.event.extendedProps.formCategory || 'general';
           info.el.classList.add(`diary-event-${categoryKey}`);
 
@@ -1369,6 +1681,32 @@
       });
 
       calendar.render();
+
+      if (miniPrevButton) {
+        miniPrevButton.addEventListener('click', function () {
+          calendar.prev();
+        });
+      }
+
+      if (miniNextButton) {
+        miniNextButton.addEventListener('click', function () {
+          calendar.next();
+        });
+      }
+
+      viewSwitchButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const targetView = button.dataset.diaryView;
+          if (!targetView) {
+            return;
+          }
+          calendar.changeView(targetView);
+          setActiveDiaryViewButton(targetView);
+        });
+      });
+
+      setActiveDiaryViewButton(calendar.view.type);
+      renderMiniMonth(calendar.getDate(), calendar.getDate());
 
       if (selectedDate && dateInput && !(entryIdInput && entryIdInput.value)) {
         dateInput.value = selectedDate;

@@ -239,6 +239,18 @@
       flex-wrap: wrap;
     }
 
+    .clock-settings-grid {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .clock-settings-note {
+      margin: 0.45rem 0 0;
+      color: #9eb0c2;
+      font-size: 0.85rem;
+    }
+
     .account-panel {
       margin-top: 0.8rem;
       max-height: 0;
@@ -526,6 +538,26 @@
           </form>
         </section>
 
+        <section class="settings-section" id="clocks-section" aria-labelledby="clocks-heading">
+          <h2 id="clocks-heading" class="title-inline">Clocks <span class="title-blurb">Manage up to 3 clocks shown in your top menu bar.</span></h2>
+          <div class="clock-settings-grid">
+            <label class="form-label" for="clock-input-1">Clock 1
+              <input type="text" id="clock-input-1" class="form-control" placeholder="e.g. Europe/London or London">
+            </label>
+            <label class="form-label" for="clock-input-2">Clock 2
+              <input type="text" id="clock-input-2" class="form-control" placeholder="e.g. Asia/Manila or Manila">
+            </label>
+            <label class="form-label" for="clock-input-3">Clock 3
+              <input type="text" id="clock-input-3" class="form-control" placeholder="e.g. America/Chicago or Texas">
+            </label>
+          </div>
+          <div class="settings-actions">
+            <button type="button" class="btn-save" id="save-clocks-btn">Save clocks</button>
+            <button type="button" class="btn-outline" id="reset-clocks-btn">Reset defaults</button>
+          </div>
+          <p class="clock-settings-note" id="clock-settings-status">Saved clocks appear in the dashboard top menu bar.</p>
+        </section>
+
         <section class="settings-section" aria-labelledby="account-heading">
           <h2 id="account-heading" class="title-inline">Account <span class="title-blurb">Show account options only when you need them.</span></h2>
           <div class="account-summary">
@@ -635,6 +667,15 @@
       const dateTimeEl = document.querySelector('.js-sidebar-datetime');
       const toggleButton = document.getElementById('open-account-settings-btn');
       const accountPanel = document.getElementById('account-settings-panel');
+      const clockInputs = [
+        document.getElementById('clock-input-1'),
+        document.getElementById('clock-input-2'),
+        document.getElementById('clock-input-3')
+      ];
+      const saveClocksBtn = document.getElementById('save-clocks-btn');
+      const resetClocksBtn = document.getElementById('reset-clocks-btn');
+      const clockStatus = document.getElementById('clock-settings-status');
+      const defaultClocks = ['Europe/London', 'Asia/Manila', 'America/Chicago'];
 
       function updateSidebarDateTime() {
         if (!dateTimeEl) return;
@@ -657,20 +698,74 @@
       updateSidebarDateTime();
       setInterval(updateSidebarDateTime, 1000);
 
-      if (!toggleButton || !accountPanel) return;
-
-      function setOpen(openState) {
-        accountPanel.classList.toggle('is-open', openState);
-        toggleButton.setAttribute('aria-expanded', openState ? 'true' : 'false');
-        toggleButton.textContent = openState ? 'Hide account settings' : 'Open account settings';
+      function readSavedClocks() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem('worldclockTimezones') || 'null');
+          if (Array.isArray(parsed) && parsed.length) {
+            return parsed.slice(0, 3);
+          }
+        } catch (error) {
+          // Fall through to defaults when storage is invalid.
+        }
+        return defaultClocks.slice();
       }
 
-      setOpen(accountPanel.classList.contains('is-open'));
+      function writeClocksToInputs(values) {
+        clockInputs.forEach(function (input, index) {
+          if (!input) return;
+          input.value = values[index] || '';
+        });
+      }
 
-      toggleButton.addEventListener('click', function () {
-        const shouldOpen = !accountPanel.classList.contains('is-open');
-        setOpen(shouldOpen);
-      });
+      function setClockStatus(message, isError) {
+        if (!clockStatus) return;
+        clockStatus.textContent = message;
+        clockStatus.style.color = isError ? '#fca5a5' : '#9eb0c2';
+      }
+
+      writeClocksToInputs(readSavedClocks());
+
+      if (saveClocksBtn) {
+        saveClocksBtn.addEventListener('click', function () {
+          const values = clockInputs
+            .map(function (input) {
+              return input ? input.value.trim() : '';
+            })
+            .filter(Boolean)
+            .slice(0, 3);
+
+          if (!values.length) {
+            setClockStatus('Please enter at least one clock before saving.', true);
+            return;
+          }
+
+          localStorage.setItem('worldclockTimezones', JSON.stringify(values));
+          setClockStatus('Clock settings saved. Top menu clocks are updated on next load.', false);
+        });
+      }
+
+      if (resetClocksBtn) {
+        resetClocksBtn.addEventListener('click', function () {
+          localStorage.setItem('worldclockTimezones', JSON.stringify(defaultClocks));
+          writeClocksToInputs(defaultClocks);
+          setClockStatus('Defaults restored for top menu clocks.', false);
+        });
+      }
+
+      if (toggleButton && accountPanel) {
+        function setOpen(openState) {
+          accountPanel.classList.toggle('is-open', openState);
+          toggleButton.setAttribute('aria-expanded', openState ? 'true' : 'false');
+          toggleButton.textContent = openState ? 'Hide account settings' : 'Open account settings';
+        }
+
+        setOpen(accountPanel.classList.contains('is-open'));
+
+        toggleButton.addEventListener('click', function () {
+          const shouldOpen = !accountPanel.classList.contains('is-open');
+          setOpen(shouldOpen);
+        });
+      }
     });
   </script>
 </body>

@@ -184,7 +184,7 @@ function resolveTimezone(value) {
 }
 
 function renderWorldClock() {
-  const container = document.getElementById('worldclock-container');
+  const container = document.getElementById('worldclock-menu-clocks') || document.getElementById('worldclock-header-clocks') || document.getElementById('worldclock-container');
   const toggle = document.getElementById('toggle-time-format');
   const addButton = document.getElementById('add-timezone');
   const timezoneInput = document.getElementById('timezone-input');
@@ -198,19 +198,25 @@ function renderWorldClock() {
     console.error('World clock container not found');
     return;
   }
-  if (!toggle) {
-    console.warn('World clock toggle button not found');
-  }
-  if (!addButton) {
-    console.warn('World clock add button not found');
-  }
-  if (!timezoneInput) {
-    console.warn('World clock timezone input not found');
+  const renderMode = container.getAttribute('data-render-mode') || 'cards';
+  if (renderMode !== 'compact-header') {
+    if (!toggle) {
+      console.warn('World clock toggle button not found');
+    }
+    if (!addButton) {
+      console.warn('World clock add button not found');
+    }
+    if (!timezoneInput) {
+      console.warn('World clock timezone input not found');
+    }
   }
 
   const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  let hour12 = localStorage.getItem('worldclockHour12') !== 'false';
-  let timezones = JSON.parse(container.getAttribute('data-timezones') || '[]');
+  const savedTimezones = JSON.parse(localStorage.getItem('worldclockTimezones') || 'null');
+  let hour12 = renderMode === 'compact-header' ? true : localStorage.getItem('worldclockHour12') !== 'false';
+  let timezones = Array.isArray(savedTimezones) && savedTimezones.length
+    ? savedTimezones.slice(0, 3)
+    : JSON.parse(container.getAttribute('data-timezones') || '[]').slice(0, 3);
 
   function showPopup(message, options) {
     const config = options || {};
@@ -276,10 +282,16 @@ function renderWorldClock() {
   }
 
   function saveTimezones() {
-    container.setAttribute('data-timezones', JSON.stringify(timezones));
+    const normalized = Array.isArray(timezones) ? timezones.slice(0, 3) : [];
+    timezones = normalized;
+    container.setAttribute('data-timezones', JSON.stringify(normalized));
+    localStorage.setItem('worldclockTimezones', JSON.stringify(normalized));
   }
 
   function updateToggleText() {
+    if (!toggle) {
+      return;
+    }
     toggle.textContent = hour12 ? 'AM/PM' : '24-hour';
     toggle.classList.toggle('btn-outline-primary', !hour12);
     toggle.classList.toggle('btn-primary', hour12);
@@ -289,17 +301,59 @@ function renderWorldClock() {
     container.innerHTML = '';
     const sortedTimezones = [...timezones].sort((a, b) => getSortValue(a) - getSortValue(b));
 
-    sortedTimezones.forEach(tz => {
+    sortedTimezones.forEach((tz, index) => {
+      if (renderMode === 'compact-header') {
+        const compactItem = document.createElement('span');
+        compactItem.className = 'header-clock-item';
+        compactItem.dataset.tz = tz;
+
+        const city = document.createElement('span');
+        city.className = 'header-clock-city';
+        city.textContent = getTimezoneLabel(tz);
+
+        const timeInline = document.createElement('span');
+        timeInline.className = 'header-clock-time';
+        timeInline.textContent = formatClock(tz, true);
+
+        compactItem.appendChild(city);
+        compactItem.appendChild(timeInline);
+        container.appendChild(compactItem);
+
+        if (index < sortedTimezones.length - 1) {
+          const separator = document.createElement('span');
+          separator.className = 'header-clock-sep';
+          separator.textContent = '•';
+          container.appendChild(separator);
+        }
+        return;
+      }
+
       const card = document.createElement('div');
       card.className = 'clock-item';
       if (tz === localTimezone) {
         card.classList.add('highlight');
       }
 
+      const head = document.createElement('div');
+      head.className = 'clock-head';
+
       const zone = document.createElement('div');
       zone.className = 'clock-zone';
       zone.textContent = getTimezoneLabel(tz);
       card.dataset.tz = tz;
+
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-sm btn-outline-secondary clock-remove';
+      removeButton.textContent = 'Remove';
+      removeButton.addEventListener('click', function () {
+        timezones = timezones.filter(existing => existing !== tz);
+        saveTimezones();
+        buildItems();
+      });
+
+      head.appendChild(zone);
+      head.appendChild(removeButton);
 
       const time = document.createElement('div');
       time.className = 'clock-time';
@@ -309,30 +363,24 @@ function renderWorldClock() {
       info.className = 'clock-subtitle';
       info.textContent = formatOffset(tz) + (tz === localTimezone ? ' · Local timezone' : '');
 
-      const actions = document.createElement('div');
-      actions.style.display = 'flex';
-      actions.style.justifyContent = 'flex-end';
-
-      const removeButton = document.createElement('button');
-      removeButton.type = 'button';
-      removeButton.className = 'btn btn-sm btn-outline-secondary';
-      removeButton.textContent = 'Remove';
-      removeButton.addEventListener('click', function () {
-        timezones = timezones.filter(existing => existing !== tz);
-        saveTimezones();
-        buildItems();
-      });
-
-      actions.appendChild(removeButton);
-      card.appendChild(zone);
+      card.appendChild(head);
       card.appendChild(time);
       card.appendChild(info);
-      card.appendChild(actions);
       container.appendChild(card);
     });
   }
 
   function tick() {
+    if (renderMode === 'compact-header') {
+      container.querySelectorAll('.header-clock-item').forEach(item => {
+        const tz = item.dataset.tz;
+        const timeEl = item.querySelector('.header-clock-time');
+        if (!tz || !timeEl) return;
+        timeEl.textContent = formatClock(tz, true);
+      });
+      return;
+    }
+
     container.querySelectorAll('.clock-item').forEach(card => {
       const tz = card.dataset.tz;
       const timeEl = card.querySelector('.clock-time');
@@ -341,12 +389,14 @@ function renderWorldClock() {
     });
   }
 
-  toggle.addEventListener('click', function () {
-    hour12 = !hour12;
-    localStorage.setItem('worldclockHour12', String(hour12));
-    updateToggleText();
-    buildItems();
-  });
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      hour12 = !hour12;
+      localStorage.setItem('worldclockHour12', String(hour12));
+      updateToggleText();
+      buildItems();
+    });
+  }
 
   function addTimezone(value) {
     const resolved = resolveTimezone(value);
@@ -377,9 +427,8 @@ function renderWorldClock() {
     }
   }
 
-  if (addButton) {
+  if (addButton && timezoneInput) {
     addButton.addEventListener('click', function () {
-      if (!timezoneInput) return;
       if (!timezoneInput.value.trim()) return;
       addTimezone(timezoneInput.value);
     });
