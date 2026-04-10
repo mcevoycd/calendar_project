@@ -754,7 +754,7 @@
         <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link active" href="{% url 'todo' %}">To Do List</a>
-        <a class="nav-link" href="{% url 'notes' %}">Notes</a>
+        <a class="nav-link" href="{% url 'notes' %}">Canvas</a>
         <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 
@@ -767,7 +767,7 @@
       <div class="content-grid">
         <section class="panel todo-board-panel">
           <h2>To Do · Section Board</h2>
-          <p>Four focused sections with date-ranged tasks that sync into your diary timeline.</p>
+          <p>Four focused sections with date-ranged tasks that sync into your diary timeline and Canvas workflows.</p>
 
           <div class="todo-sections-grid" aria-label="Section-based To Do Board">
             {% for section in section_lists %}
