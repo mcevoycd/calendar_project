@@ -292,6 +292,8 @@
     /* Unified responsive navigation: top bar on wider screens, bottom bar on smaller screens */
     body .app-shell {
       grid-template-columns: 1fr !important;
+      grid-template-rows: auto minmax(0, 1fr);
+      align-content: start;
       min-height: 100vh;
       width: 100%;
     }
@@ -310,6 +312,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.9rem;
+      align-self: start;
+    }
+
+    body .main {
+      min-height: 0;
     }
 
     body .sidebar > div:first-child {
