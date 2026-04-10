@@ -1534,6 +1534,8 @@
       grid-template-rows: auto auto minmax(0, 1fr);
       gap: 1rem;
       min-height: 0;
+      overflow-y: auto;
+      padding-right: 0.2rem;
     }
 
     #todo-panel,
@@ -1677,6 +1679,9 @@
     #diary .event-list {
       padding: 0;
       gap: 0.55rem;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     #diary .event-list::before,
@@ -1697,14 +1702,49 @@
       font-size: 0.76rem;
     }
 
+    @media (max-width: 1400px), (max-height: 900px) {
+      #diary .event-list {
+        gap: 0.45rem;
+      }
+
+      #diary .event-item {
+        padding: 0.46rem 0.58rem;
+        border-radius: 10px;
+      }
+
+      #diary .event-item-head {
+        gap: 0.45rem;
+      }
+
+      #diary .event-item strong {
+        font-size: 0.8rem;
+      }
+
+      #diary .event-item span {
+        font-size: 0.68rem;
+        line-height: 1.25;
+      }
+
+      #diary .category-badge {
+        font-size: 0.62rem;
+        padding: 0.12rem 0.48rem;
+      }
+
+      #diary .entry-preview {
+        display: none;
+      }
+    }
+
     @media (max-width: 1100px) {
       .dashboard-layout {
         grid-template-columns: 1fr !important;
+        overflow: auto;
       }
 
       .dashboard-left,
       .dashboard-right {
         grid-template-rows: auto;
+        overflow: visible;
       }
     }
   </style>
@@ -1766,7 +1806,7 @@
                       <span class="category-badge category-badge-{{ entry.category_key }}">{{ entry.category_label }}</span>
                     </div>
                     <span>
-                      {{ entry.date|date:"j M" }}
+                      <span class="entry-meta-main">{{ entry.date|date:"j M" }}
                       {% if entry.end_date and entry.end_date != entry.date %}
                         to {{ entry.end_date|date:"j M" }}
                       {% endif %}
@@ -1777,8 +1817,7 @@
                         {% endif %}
                       {% else %}
                         · All day
-                      {% endif %}
-                      · {{ entry.content|truncatechars:50 }}
+                      {% endif %}</span>{% if entry.content %}<span class="entry-preview"> · {{ entry.content|truncatechars:40 }}</span>{% endif %}
                     </span>
                   </a>
                 </li>

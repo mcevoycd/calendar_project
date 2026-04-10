@@ -830,7 +830,7 @@ def dashboard_view(request):
         if effective_end_time and effective_end_time >= current_time:
             upcoming_entries.append(entry)
 
-    diary_entries = upcoming_entries[:4]
+    diary_entries = upcoming_entries[:6]
     for entry in diary_entries:
         category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
         entry.category_key = category_key
