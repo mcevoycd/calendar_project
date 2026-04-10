@@ -844,7 +844,7 @@ def dashboard_view(request):
         section_tasks = [
             item
             for item in task_items
-            if item["section"] == section["key"] and item.get("priority") == "high"
+            if item["section"] == section["key"] and item.get("priority") in {"high", "medium"}
         ]
 
         display_tasks = []
