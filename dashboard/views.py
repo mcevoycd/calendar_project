@@ -1907,7 +1907,6 @@ def add_diary_entry(request):
         end_time = request.POST.get('end_time')
         content = request.POST.get('content')
         redirect_date = datetime.today().date().isoformat()
-
         if date:
             try:
                 redirect_date = datetime.strptime(date, '%Y-%m-%d').date().isoformat()
@@ -1992,7 +1991,7 @@ def add_diary_entry(request):
                         content=content or ''
                     )
                     messages.success(request, 'Diary entry added successfully!')
-                    return HttpResponseRedirect(reverse('diary'))
+                    return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
         else:
             messages.error(request, 'Please provide a diary entry title.')
         return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
