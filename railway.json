@@ -6,6 +6,6 @@
   "deploy": {
     "runtime": "v2",
     "preDeployCommand": "python manage.py migrate",
-    "startCommand": "python manage.py collectstatic --noinput --clear ; gunicorn app.wsgi --bind 0.0.0.0:${PORT:-8080} --log-file -"
+    "startCommand": "python manage.py collectstatic --noinput --clear ; gunicorn app.wsgi --bind 0.0.0.0:$PORT --log-file -"
   }
 }
