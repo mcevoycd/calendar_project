@@ -880,6 +880,7 @@ def dashboard_view(request):
         'diary_entries': diary_entries,
         'todo_columns': todo_columns,
         'nav_layout': preferences.nav_layout,
+        'app_version': getattr(settings, 'FLUID_NOTES_VERSION', 'Fluid Notes v2.0.0'),
     }
     return render(request, 'dashboard/dashboard.html', context)
 

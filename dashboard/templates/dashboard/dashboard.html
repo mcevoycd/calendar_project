@@ -1515,36 +1515,126 @@
       display: none !important;
     }
 
-    /* Mock-driven dashboard layout */
+    .utility-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid rgba(31, 79, 112, 0.85);
+      border-radius: 16px;
+      background: linear-gradient(120deg, rgba(9, 21, 35, 0.95), rgba(13, 27, 45, 0.9));
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      flex-shrink: 0;
+    }
+
+    .utility-title {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 650;
+      color: #eaf4ff;
+      letter-spacing: 0.01em;
+    }
+
+    .utility-subtitle {
+      margin: 0.15rem 0 0;
+      font-size: 0.86rem;
+      color: #93a8bc;
+      line-height: 1.35;
+    }
+
+    .utility-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .date-chip {
+      border: 1px solid rgba(6, 182, 212, 0.5);
+      background: rgba(6, 182, 212, 0.13);
+      color: #d7f6ff;
+      border-radius: 999px;
+      padding: 0.34rem 0.75rem;
+      font-size: 0.79rem;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      white-space: nowrap;
+    }
+
+    .profile-chip {
+      border: 1px solid rgba(59, 130, 246, 0.52);
+      background: rgba(59, 130, 246, 0.16);
+      color: #dce9ff;
+      border-radius: 999px;
+      padding: 0.34rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .btn-quick-add {
+      border: 1px solid rgba(6, 182, 212, 0.68);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.36), rgba(59, 130, 246, 0.35));
+      color: #ebfbff;
+      border-radius: 999px;
+      padding: 0.42rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.3) inset;
+    }
+
+    .btn-quick-add:hover,
+    .btn-quick-add:focus {
+      filter: brightness(1.08);
+      outline: none;
+    }
+
     .dashboard-layout {
-      grid-template-columns: minmax(235px, 0.9fr) minmax(0, 3.5fr) !important;
+      grid-template-columns: minmax(0, 2.15fr) minmax(300px, 1fr) !important;
       gap: 1rem;
       overflow: hidden;
       padding-bottom: 0.8rem;
-    }
-
-    .dashboard-left {
-      display: grid;
-      grid-template-rows: minmax(0, 1fr) minmax(170px, 0.45fr);
-      gap: 1rem;
       min-height: 0;
     }
 
-    .dashboard-right {
+    .dashboard-primary {
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) minmax(240px, auto);
+      gap: 1rem;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .dashboard-secondary {
+      display: grid;
+      grid-template-rows: auto auto auto auto;
       gap: 1rem;
       min-height: 0;
       overflow-y: auto;
       padding-right: 0.2rem;
     }
 
+    #calendar-hub,
     #todo-panel,
     #notes-placeholder-panel,
+    #canvas-placeholder-panel,
     #worldclocks-panel,
-    #mini-calendar-panel,
     #diary {
       min-height: 0;
+    }
+
+    #calendar-hub {
+      display: flex;
+      flex-direction: column;
+      border-color: rgba(6, 182, 212, 0.42);
+      box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.2) inset, 0 24px 48px rgba(0, 0, 0, 0.35);
+    }
+
+    #calendar-hub .title-inline {
+      margin-bottom: 0.55rem;
     }
 
     #todo-panel {
@@ -1557,20 +1647,55 @@
       align-content: start;
     }
 
-    #notes-placeholder-panel {
+    #notes-placeholder-panel,
+    #canvas-placeholder-panel {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
+      border-style: dashed;
+      border-width: 1px;
+      border-color: rgba(107, 138, 165, 0.5);
+      background-image: linear-gradient(rgba(10, 22, 35, 0.88), rgba(10, 22, 35, 0.88)), linear-gradient(90deg, rgba(40, 75, 101, 0.15) 1px, transparent 1px), linear-gradient(rgba(40, 75, 101, 0.15) 1px, transparent 1px);
+      background-size: auto, 24px 24px, 24px 24px;
+      background-position: center;
+    }
+
+    .coming-soon-badge {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #9fddee;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 999px;
+      padding: 0.22rem 0.62rem;
+      margin-bottom: 0.45rem;
+      background: rgba(6, 182, 212, 0.14);
     }
 
     .notes-placeholder-copy {
-      font-size: clamp(1.1rem, 1.4vw, 1.7rem);
+      font-size: 0.9rem;
       color: #d7e5f2;
       line-height: 1.35;
-      max-width: 38ch;
-      margin-top: 0.8rem;
+      max-width: 30ch;
+      margin-top: 0.2rem;
+    }
+
+    .placeholder-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.65rem;
+      padding: 0.33rem 0.7rem;
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      border-radius: 999px;
+      color: #d6e7ff;
+      background: rgba(59, 130, 246, 0.14);
+      font-size: 0.74rem;
+      text-decoration: none;
+      font-weight: 600;
     }
 
     #worldclocks-panel #worldclock-container {
@@ -1585,7 +1710,7 @@
       border-radius: 14px;
       padding: 0.6rem 0.7rem;
       gap: 0.16rem;
-      box-shadow: none;
+      box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.2) inset;
     }
 
     #worldclocks-panel .clock-item .clock-time {
@@ -1597,6 +1722,7 @@
       border: 1px solid #1F4F70;
       border-radius: 12px;
       padding: 0.7rem;
+      flex: 1;
     }
 
     .mini-month-head {
@@ -1703,6 +1829,51 @@
       font-size: 0.76rem;
     }
 
+    .dashboard-footer {
+      margin-top: 0.45rem;
+      border: 1px solid rgba(31, 79, 112, 0.7);
+      border-radius: 12px;
+      padding: 0.46rem 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      color: #91a6bb;
+      font-size: 0.74rem;
+      background: rgba(8, 20, 33, 0.9);
+      flex-shrink: 0;
+    }
+
+    .sync-ok {
+      color: #6ee7b7;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .quick-add-links {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .quick-add-link {
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 10px;
+      padding: 0.5rem 0.7rem;
+      color: #d6e8f7;
+      text-decoration: none;
+      font-size: 0.86rem;
+      background: rgba(10, 31, 46, 0.8);
+    }
+
+    .quick-add-link:hover,
+    .quick-add-link:focus {
+      color: #f4fbff;
+      border-color: rgba(59, 130, 246, 0.62);
+      background: rgba(24, 49, 73, 0.9);
+      outline: none;
+    }
+
     @media (max-width: 1400px), (max-height: 900px) {
       #diary .event-list {
         gap: 0.45rem;
@@ -1742,10 +1913,22 @@
         overflow: auto;
       }
 
-      .dashboard-left,
-      .dashboard-right {
+      .dashboard-primary,
+      .dashboard-secondary {
         grid-template-rows: auto;
         overflow: visible;
+      }
+
+      .utility-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .utility-actions {
+        justify-content: flex-start;
+      }
+
+      .dashboard-footer {
+        flex-wrap: wrap;
       }
     }
   </style>
@@ -1773,32 +1956,47 @@
     </aside>
 
     <main class="main">
-      <div class="content-grid dashboard-layout">
-        <aside class="dashboard-right">
-          <section class="panel" id="worldclocks-panel">
-            <div id="worldclock-container" data-timezones='["Europe/London","Asia/Manila","America/Chicago"]'>
-              <span class="title-blurb">Loading clocks...</span>
-            </div>
-          </section>
+      <header class="utility-bar">
+        <div>
+          <h1 class="utility-title">Dashboard Workspace</h1>
+          <p class="utility-subtitle">Premium command center for scheduling, planning, and daily flow.</p>
+        </div>
+        <div class="utility-actions">
+          <span class="date-chip js-utility-datetime">Loading date and time...</span>
+          <span class="profile-chip">{{ request.user.username|slice:':1'|upper }}</span>
+          <button type="button" class="btn-quick-add" id="quick-add-open-btn">+ Add</button>
+        </div>
+      </header>
 
-          <section class="panel" id="mini-calendar-panel">
-            <div class="mini-month" aria-label="Mini month calendar">
-              <div class="mini-month-head">
-                <strong id="mini-month-title">Month</strong>
-                <div class="mini-month-nav" role="group" aria-label="Mini calendar navigation">
-                  <button type="button" class="mini-month-btn" id="mini-month-prev" aria-label="Previous month">&#8249;</button>
-                  <button type="button" class="mini-month-btn" id="mini-month-next" aria-label="Next month">&#8250;</button>
-                </div>
-              </div>
-              <div class="mini-month-weekdays" aria-hidden="true">
-                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-              </div>
-              <div class="mini-month-grid" id="mini-month-grid"></div>
+
+      <div class="content-grid dashboard-layout">
+        <section class="dashboard-primary">
+          <section class="panel" id="todo-panel">
+            <h2 class="title-inline">To Do Board <span class="title-blurb">Primary workspace for planning and tracking task flow.</span></h2>
+            <div class="todo-board" aria-label="To Do board">
+              {% for column in todo_columns %}
+                <section class="todo-list {{ column.list_class }}" aria-label="{{ column.title }} list">
+                  <h3>{{ column.title }}</h3>
+                  <ul>
+                    {% for task in column.tasks %}
+                      {% if task.is_placeholder %}
+                        <li class="todo-item">{{ task.title }}</li>
+                      {% else %}
+                        <li class="todo-item">
+                          <a class="todo-item-link" href="{% url 'todo' %}?task_id={{ task.id }}">
+                            {% if task.completed %}[Done] {% endif %}{{ task.title }}
+                          </a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  </ul>
+                </section>
+              {% endfor %}
             </div>
           </section>
 
           <section class="panel" id="diary">
-            <h2 class="title-inline">Up & Coming Diary entries <span class="title-blurb"><a href="{% url 'diary' %}">View full diary</a></span></h2>
+            <h2 class="title-inline">Up & Coming Diary Entries <span class="title-blurb"><a href="{% url 'diary' %}">Open full diary</a></span></h2>
             <ul class="event-list">
               {% for entry in diary_entries %}
                 <li class="event-item event-item-category-{{ entry.category_key }}">
@@ -1830,40 +2028,70 @@
               {% endfor %}
             </ul>
           </section>
-        </aside>
+        </section>
 
-        <div class="dashboard-left">
-          <section class="panel" id="todo-panel">
-            <h2 class="title-inline">To Do Board <span class="title-blurb">Primary workspace for planning and tracking task flow.</span></h2>
-            <div class="todo-board" aria-label="To Do board">
-              {% for column in todo_columns %}
-                <section class="todo-list {{ column.list_class }}" aria-label="{{ column.title }} list">
-                  <h3>{{ column.title }}</h3>
-                  <ul>
-                    {% for task in column.tasks %}
-                      {% if task.is_placeholder %}
-                        <li class="todo-item">{{ task.title }}</li>
-                      {% else %}
-                        <li class="todo-item">
-                          <a class="todo-item-link" href="{% url 'todo' %}?task_id={{ task.id }}">
-                            {% if task.completed %}[Done] {% endif %}{{ task.title }}
-                          </a>
-                        </li>
-                      {% endif %}
-                    {% endfor %}
-                  </ul>
-                </section>
-              {% endfor %}
+        <aside class="dashboard-secondary">
+          <section class="panel" id="worldclocks-panel">
+            <div id="worldclock-container" data-timezones='["Europe/London","Asia/Manila","America/Chicago"]'>
+              <span class="title-blurb">Loading clocks...</span>
+            </div>
+          </section>
+
+          <section class="panel" id="calendar-hub">
+            <h2 class="title-inline">Calendar Overview <span class="title-blurb">Your primary timeline surface.</span></h2>
+            <div class="mini-month" aria-label="Calendar month overview">
+              <div class="mini-month-head">
+                <strong id="mini-month-title">Month</strong>
+                <div class="mini-month-nav" role="group" aria-label="Mini calendar navigation">
+                  <button type="button" class="mini-month-btn" id="mini-month-prev" aria-label="Previous month">&#8249;</button>
+                  <button type="button" class="mini-month-btn" id="mini-month-next" aria-label="Next month">&#8250;</button>
+                </div>
+              </div>
+              <div class="mini-month-weekdays" aria-hidden="true">
+                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              </div>
+              <div class="mini-month-grid" id="mini-month-grid"></div>
             </div>
           </section>
 
           <section class="panel" id="notes-placeholder-panel">
-            <h2 class="title-inline">Canvas (Reserved) <span class="title-blurb">Reserved for your next notes/canvas module.</span></h2>
-            <p class="notes-placeholder-copy">Reserved for new notes section yet to be developed.</p>
+            <span class="coming-soon-badge">Coming soon</span>
+            <h2 class="title-inline">Notes Hub <span class="title-blurb">Drafts and scratchpads.</span></h2>
+            <p class="notes-placeholder-copy">Intentional placeholder for quick notes panel.</p>
+            <a class="placeholder-cta" href="{% url 'notes' %}">+ Create Note</a>
           </section>
-        </div>
+
+          <section class="panel" id="canvas-placeholder-panel">
+            <span class="coming-soon-badge">Coming soon</span>
+            <h2 class="title-inline">Canvas Space <span class="title-blurb">Visual planning board zone.</span></h2>
+            <p class="notes-placeholder-copy">Faint grid and action placeholder for your next canvas sprint.</p>
+            <a class="placeholder-cta" href="{% url 'canvas' %}">Open Canvas</a>
+          </section>
+        </aside>
       </div>
+
+      <footer class="dashboard-footer">
+        <span>Version: {{ app_version|default:'Fluid Notes v2.0.0' }}</span>
+        <span class="sync-ok">Sync status: Connected</span>
+        <span>&copy; {{ request.user.username }} workspace</span>
+      </footer>
     </main>
+  </div>
+
+  <div class="app-modal" id="quick-add-modal" hidden>
+    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-add-title" aria-describedby="quick-add-message">
+      <h2 class="app-modal-title" id="quick-add-title">Quick Add</h2>
+      <p class="app-modal-message" id="quick-add-message">Choose what you want to create next.</p>
+      <div class="quick-add-links">
+        <a class="quick-add-link" href="{% url 'diary' %}">+ Diary entry</a>
+        <a class="quick-add-link" href="{% url 'todo' %}">+ To Do task</a>
+        <a class="quick-add-link" href="{% url 'notes' %}">+ Note</a>
+        <a class="quick-add-link" href="{% url 'canvas' %}">+ Canvas card</a>
+      </div>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="quick-add-close-btn">Close</button>
+      </div>
+    </div>
   </div>
 
   <div class="app-modal" id="app-popup-modal" hidden>
@@ -1881,6 +2109,7 @@
     console.log('Dashboard HTML loaded');
     (function () {
       const el = document.querySelector('.js-sidebar-datetime');
+      const utilityDateEl = document.querySelector('.js-utility-datetime');
       if (!el) return;
 
       function updateSidebarDateTime() {
@@ -1898,6 +2127,9 @@
           hour12: false
         });
         el.textContent = `${datePart} | ${timePart}`;
+        if (utilityDateEl) {
+          utilityDateEl.textContent = `${datePart} | ${timePart}`;
+        }
       }
 
       updateSidebarDateTime();
@@ -1970,6 +2202,36 @@
       });
 
       renderMiniMonth();
+    })();
+
+    (function () {
+      const openBtn = document.getElementById('quick-add-open-btn');
+      const closeBtn = document.getElementById('quick-add-close-btn');
+      const modal = document.getElementById('quick-add-modal');
+      if (!openBtn || !closeBtn || !modal) {
+        return;
+      }
+
+      function closeModal() {
+        modal.hidden = true;
+      }
+
+      openBtn.addEventListener('click', function () {
+        modal.hidden = false;
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hidden) {
+          closeModal();
+        }
+      });
     })();
   </script>
 </body>
