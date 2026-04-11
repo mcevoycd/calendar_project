@@ -470,6 +470,7 @@
       font-size: 0.76rem;
       color: #A7C3D7;
       user-select: none;
+      touch-action: none;
     }
 
     .box-head-left {
@@ -569,6 +570,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 0 0 1px rgba(6, 17, 30, 0.7);
+      touch-action: none;
     }
 
     .box-link-handle::after {
@@ -784,6 +786,7 @@
       height: 14px;
       cursor: nwse-resize;
       background: linear-gradient(135deg, transparent 0 45%, rgba(0, 194, 255, 0.65) 45% 65%, transparent 65% 100%);
+      touch-action: none;
     }
 
     .notes-form {
@@ -1253,12 +1256,49 @@
       let isDirty = false;
       let autoSaveInFlight = false;
       let lastSavedPayload = '';
+      const supportsPointerEvents = typeof window !== 'undefined' && !!window.PointerEvent;
       let linkDrag = {
         active: false,
         sourceId: null,
         pointerX: 0,
         pointerY: 0
       };
+
+      function skipMouseEvent(event) {
+        return supportsPointerEvents && event.type === 'mousedown';
+      }
+
+      function bindDragSequence(startEvent, onMove, onEnd) {
+        const usePointerEvents = supportsPointerEvents && startEvent.type === 'pointerdown';
+        const activePointerId = usePointerEvents ? startEvent.pointerId : null;
+        const moveEventName = usePointerEvents ? 'pointermove' : 'mousemove';
+        const endEventName = usePointerEvents ? 'pointerup' : 'mouseup';
+
+        function moveHandler(moveEvent) {
+          if (usePointerEvents && moveEvent.pointerId !== activePointerId) {
+            return;
+          }
+          onMove(moveEvent);
+        }
+
+        function endHandler(endEvent) {
+          if (usePointerEvents && endEvent.pointerId !== activePointerId) {
+            return;
+          }
+          document.removeEventListener(moveEventName, moveHandler);
+          document.removeEventListener(endEventName, endHandler);
+          if (usePointerEvents) {
+            document.removeEventListener('pointercancel', endHandler);
+          }
+          onEnd(endEvent);
+        }
+
+        document.addEventListener(moveEventName, moveHandler);
+        document.addEventListener(endEventName, endHandler);
+        if (usePointerEvents) {
+          document.addEventListener('pointercancel', endHandler);
+        }
+      }
 
       function updateAutoSaveStatus(text, isError) {
         if (!autoSaveStatus) {
@@ -1556,6 +1596,12 @@
           typeSelect.style.borderColor = typeColor;
 
           typeSelect.addEventListener('mousedown', function (event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
+            event.stopPropagation();
+          });
+          typeSelect.addEventListener('pointerdown', function (event) {
             event.stopPropagation();
           });
           typeSelect.addEventListener('click', function (event) {
@@ -1576,6 +1622,12 @@
           box.note_date = dateInput.value;
 
           dateInput.addEventListener('mousedown', function (event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
+            event.stopPropagation();
+          });
+          dateInput.addEventListener('pointerdown', function (event) {
             event.stopPropagation();
           });
           dateInput.addEventListener('click', function (event) {
@@ -1631,7 +1683,10 @@
             linkHandle.classList.add('is-disabled');
           }
 
-          linkHandle.addEventListener('mousedown', function (event) {
+          function handleLinkDragStart(event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
             event.preventDefault();
             event.stopPropagation();
             if (!linkMode) {
@@ -1662,9 +1717,6 @@
             }
 
             function onUp(upEvent) {
-              document.removeEventListener('mousemove', onMove);
-              document.removeEventListener('mouseup', onUp);
-
               if (!linkDrag.active || !linkDrag.sourceId) {
                 cancelPendingLink();
                 render();
@@ -1689,9 +1741,11 @@
               render();
             }
 
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-          });
+            bindDragSequence(event, onMove, onUp);
+          }
+
+          linkHandle.addEventListener('mousedown', handleLinkDragStart);
+          linkHandle.addEventListener('pointerdown', handleLinkDragStart);
 
           head.appendChild(headLeft);
           headRight.appendChild(dragLabel);
@@ -1725,6 +1779,12 @@
           completeToggle.appendChild(completeText);
 
           completeToggle.addEventListener('mousedown', function (event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
+            event.stopPropagation();
+          });
+          completeToggle.addEventListener('pointerdown', function (event) {
             event.stopPropagation();
           });
           completeToggle.addEventListener('click', function (event) {
@@ -1757,6 +1817,13 @@
 
           function bindTextTool(btn, prefix) {
             btn.addEventListener('mousedown', function (event) {
+              if (skipMouseEvent(event)) {
+                return;
+              }
+              event.preventDefault();
+              event.stopPropagation();
+            });
+            btn.addEventListener('pointerdown', function (event) {
               event.preventDefault();
               event.stopPropagation();
             });
@@ -1771,6 +1838,13 @@
 
           function bindFormatTool(btn, command) {
             btn.addEventListener('mousedown', function (event) {
+              if (skipMouseEvent(event)) {
+                return;
+              }
+              event.preventDefault();
+              event.stopPropagation();
+            });
+            btn.addEventListener('pointerdown', function (event) {
               event.preventDefault();
               event.stopPropagation();
             });
@@ -1913,6 +1987,12 @@
               tick.checked = item.checked;
 
               tick.addEventListener('mousedown', function (event) {
+                if (skipMouseEvent(event)) {
+                  return;
+                }
+                event.stopPropagation();
+              });
+              tick.addEventListener('pointerdown', function (event) {
                 event.stopPropagation();
               });
               tick.addEventListener('click', function (event) {
@@ -1973,6 +2053,12 @@
           });
 
           titleInput.addEventListener('mousedown', function (event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
+            event.stopPropagation();
+          });
+          titleInput.addEventListener('pointerdown', function (event) {
             event.stopPropagation();
           });
           titleInput.addEventListener('click', function (event) {
@@ -1983,6 +2069,12 @@
           });
 
           checklist.addEventListener('mousedown', function (event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
+            event.stopPropagation();
+          });
+          checklist.addEventListener('pointerdown', function (event) {
             event.stopPropagation();
           });
           checklist.addEventListener('click', function (event) {
@@ -2028,7 +2120,10 @@
       }
 
       function enableDrag(handle, box) {
-        handle.addEventListener('mousedown', function (event) {
+        function onDragStart(event) {
+          if (skipMouseEvent(event)) {
+            return;
+          }
           event.preventDefault();
           event.stopPropagation();
 
@@ -2047,18 +2142,21 @@
           }
 
           function onUp() {
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onUp);
             markDirty();
           }
 
-          document.addEventListener('mousemove', onMove);
-          document.addEventListener('mouseup', onUp);
-        });
+          bindDragSequence(event, onMove, onUp);
+        }
+
+        handle.addEventListener('mousedown', onDragStart);
+        handle.addEventListener('pointerdown', onDragStart);
       }
 
       function enableResize(handle, box) {
-        handle.addEventListener('mousedown', function (event) {
+        function onResizeStart(event) {
+          if (skipMouseEvent(event)) {
+            return;
+          }
           event.preventDefault();
           event.stopPropagation();
 
@@ -2075,14 +2173,14 @@
           }
 
           function onUp() {
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onUp);
             markDirty();
           }
 
-          document.addEventListener('mousemove', onMove);
-          document.addEventListener('mouseup', onUp);
-        });
+          bindDragSequence(event, onMove, onUp);
+        }
+
+        handle.addEventListener('mousedown', onResizeStart);
+        handle.addEventListener('pointerdown', onResizeStart);
       }
 
       function render() {
