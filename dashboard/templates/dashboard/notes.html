@@ -20,8 +20,32 @@
       --page-bottom-gap: 16px;
     }
 
-    * {
-      box-sizing: border-box;
+    .section-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      padding: 0.15rem 0.15rem 0;
+      margin-bottom: 0.2rem;
+    }
+
+    .section-title {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.4rem;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      font-size: 0.86rem;
+      color: #9EB0C2;
+      font-weight: 500;
+      letter-spacing: 0;
     }
 
     body {
@@ -245,6 +269,15 @@
       flex-direction: column;
       gap: 0.8rem;
       overflow: hidden;
+    }
+
+    /* Match Notes Workspace look by removing the extra outer host card */
+    .notes-panel {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      border-radius: 0;
     }
 
     .notes-panel-header {
@@ -1009,7 +1042,7 @@
       min-height: 0;
     }
 
-    @media (max-width: 980px) {
+    @media (max-width: 1024px) {
       body {
         padding-bottom: 80px;
       }
@@ -1059,6 +1092,26 @@
       body .main {
         height: calc(100vh - 80px - var(--page-bottom-gap));
       }
+
+      /* Force bottom navigation on smaller screens regardless of saved layout */
+      body.nav-position-top {
+        padding-bottom: 66px !important;
+      }
+
+      body.nav-position-top .sidebar {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+        justify-content: space-between !important;
+      }
+
+      body.nav-position-top .main {
+        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      }
     }
 
     body.nav-position-top {
@@ -1102,6 +1155,28 @@
     body.nav-position-bottom .main {
       height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
     }
+
+    @media (max-width: 1024px) {
+      /* Final override: always keep nav at the bottom on small screens */
+      body.nav-position-top {
+        padding-bottom: 66px !important;
+      }
+
+      body.nav-position-top .sidebar {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+        justify-content: space-between !important;
+      }
+
+      body.nav-position-top .main {
+        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -1127,13 +1202,11 @@
     </aside>
 
     <main class="main">
+      <div class="section-topbar">
+        <h1 class="section-title">Canvas <span class="section-subtitle">Drop text boxes and connect related ideas for this week</span></h1>
+        <div class="week-chip">Current Week: {{ week_range_label }}</div>
+      </div>
       <section class="notes-panel">
-        <div class="notes-panel-header">
-          <div>
-            <h2 class="title-inline">Weekly Canvas <span class="title-blurb">Drop text boxes and connect related ideas for this week.</span></h2>
-          </div>
-          <div class="week-chip">Current Week: {{ week_range_label }}</div>
-        </div>
         <form method="post" action="{% url 'canvas' %}" class="notes-form" id="notes-form">
           {% csrf_token %}
           <input type="hidden" name="canvas_data" id="canvas-data-input">
@@ -2566,5 +2639,28 @@
       setInterval(updateSidebarDateTime, 1000);
     })();
   </script>
+  <script>
+    (function () {
+      const bodyEl = document.body;
+      if (!bodyEl) return;
+      const preferredLayout = bodyEl.classList.contains('nav-position-bottom') ? 'bottom' : 'top';
+
+      function applyResponsiveNavLayout() {
+        const useBottomNav = window.matchMedia('(max-width: 1024px)').matches;
+        if (useBottomNav) {
+          bodyEl.classList.remove('nav-position-top');
+          bodyEl.classList.add('nav-position-bottom');
+          return;
+        }
+
+        bodyEl.classList.remove('nav-position-top', 'nav-position-bottom');
+        bodyEl.classList.add(preferredLayout === 'bottom' ? 'nav-position-bottom' : 'nav-position-top');
+      }
+
+      applyResponsiveNavLayout();
+      window.addEventListener('resize', applyResponsiveNavLayout);
+    })();
+  </script>
+
 </body>
 </html>

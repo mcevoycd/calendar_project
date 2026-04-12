@@ -254,6 +254,14 @@
       padding: 1.1rem;
     }
 
+    /* Match Notes-style shell: no heavy outer host card */
+    .week-panel.panel {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
     .entry-panel {
       align-self: stretch;
       max-height: 100%;
@@ -379,11 +387,22 @@
 
     .diary-right-title {
       margin: 0;
-      font-size: clamp(1.85rem, 2.6vw, 2.7rem);
-      letter-spacing: -0.02em;
-      color: #F3F7FB;
-      line-height: 1.1;
-      font-weight: 750;
+      font-size: 1.4rem;
+      letter-spacing: 0;
+      color: var(--accent);
+      line-height: 1.2;
+      font-weight: 700;
+      display: flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .diary-right-subtitle {
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: #9EB0C2;
+      letter-spacing: 0;
     }
 
     .diary-view-switch {
@@ -993,10 +1012,6 @@
         align-self: stretch;
       }
 
-      .diary-right-title {
-        font-size: 1.7rem;
-      }
-
       .sidebar {
         padding: 1.5rem;
       }
@@ -1145,7 +1160,7 @@
       min-height: 0;
     }
 
-    @media (max-width: 980px) {
+    @media (max-width: 1024px) {
       body {
         padding-bottom: 80px;
       }
@@ -1195,6 +1210,26 @@
       body .main {
         height: calc(100vh - 80px - var(--page-bottom-gap));
       }
+
+      /* Force bottom navigation on smaller screens regardless of saved layout */
+      body.nav-position-top {
+        padding-bottom: 66px !important;
+      }
+
+      body.nav-position-top .sidebar {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+        justify-content: space-between !important;
+      }
+
+      body.nav-position-top .main {
+        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      }
     }
 
     body.nav-position-top {
@@ -1238,6 +1273,28 @@
     body.nav-position-bottom .main {
       height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
     }
+
+    @media (max-width: 1024px) {
+      /* Final override: always keep nav at the bottom on small screens */
+      body.nav-position-top {
+        padding-bottom: 66px !important;
+      }
+
+      body.nav-position-top .sidebar {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+        justify-content: space-between !important;
+      }
+
+      body.nav-position-top .main {
+        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -1263,17 +1320,17 @@
     </aside>
 
     <main class="main">
+      <div class="diary-right-head">
+        <h1 class="diary-right-title" id="diary-right-title">Diary <span class="diary-right-subtitle">Calendar, planning, and focused editor</span></h1>
+        <div class="diary-view-switch" role="group" aria-label="Diary view switcher">
+          <button type="button" class="diary-view-btn" data-diary-view="multiMonthYear">Year</button>
+          <button type="button" class="diary-view-btn" data-diary-view="dayGridMonth">Month</button>
+          <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
+          <button type="button" class="diary-view-btn" data-diary-view="timeGridDay">Day</button>
+        </div>
+      </div>
       <div class="content-grid">
         <div class="panel week-panel" style="grid-column: 1 / -1; width: 100%;">
-          <div class="diary-right-head">
-            <h1 class="diary-right-title" id="diary-right-title">Weekly Diary</h1>
-            <div class="diary-view-switch" role="group" aria-label="Diary view switcher">
-              <button type="button" class="diary-view-btn" data-diary-view="multiMonthYear">Year</button>
-              <button type="button" class="diary-view-btn" data-diary-view="dayGridMonth">Month</button>
-              <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
-              <button type="button" class="diary-view-btn" data-diary-view="timeGridDay">Day</button>
-            </div>
-          </div>
           <div class="diary-legend" aria-label="Diary category legend">
             {% for category in diary_category_options %}
               <span class="diary-legend-chip" style="--chip-color: {{ category.color }};">{{ category.label }}</span>
@@ -1563,6 +1620,27 @@
   </div>
 
   <script>
+    (function () {
+      const bodyEl = document.body;
+      if (!bodyEl) return;
+      const preferredLayout = bodyEl.classList.contains('nav-position-bottom') ? 'bottom' : 'top';
+
+      function applyResponsiveNavLayout() {
+        const useBottomNav = window.matchMedia('(max-width: 1024px)').matches;
+        if (useBottomNav) {
+          bodyEl.classList.remove('nav-position-top');
+          bodyEl.classList.add('nav-position-bottom');
+          return;
+        }
+
+        bodyEl.classList.remove('nav-position-top', 'nav-position-bottom');
+        bodyEl.classList.add(preferredLayout === 'bottom' ? 'nav-position-bottom' : 'nav-position-top');
+      }
+
+      applyResponsiveNavLayout();
+      window.addEventListener('resize', applyResponsiveNavLayout);
+    })();
+
     document.addEventListener('DOMContentLoaded', function () {
       const calendarEl = document.getElementById('calendar');
       const diaryForm = document.querySelector('.diary-form');
@@ -1913,14 +1991,6 @@
           tryLoadRequestedEntry(events);
         },
         datesSet: function (info) {
-          if (rightTitle) {
-            const titleText = info.view.type === 'multiMonthYear'
-              ? 'Yearly Diary'
-              : (info.view.type === 'dayGridMonth'
-                ? 'Monthly Diary'
-                : (info.view.type === 'timeGridDay' ? 'Daily Diary' : 'Weekly Diary'));
-            rightTitle.textContent = titleText;
-          }
           setActiveDiaryViewButton(info.view.type);
           const activeDate = window.calendar.getDate();
           renderMiniMonth(activeDate, activeDate);

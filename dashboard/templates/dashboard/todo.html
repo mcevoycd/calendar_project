@@ -184,6 +184,34 @@
       border: 1px solid var(--border);
       min-height: 0;
     }
+    
+    .section-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      padding: 0.15rem 0.15rem 0;
+      margin-bottom: 0.2rem;
+    }
+    
+    .section-title {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.4rem;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    
+    .section-subtitle {
+      font-size: 0.86rem;
+      color: #9EB0C2;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
 
     .panel h2 { margin: 0; font-size: 1.2rem; color: var(--accent); }
 
@@ -210,6 +238,14 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+    }
+
+    /* Match Notes-style shell: no heavy outer host card */
+    .todo-board-panel.panel {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
     }
 
     .todo-sections-grid {
@@ -907,7 +943,7 @@
       min-height: 0;
     }
 
-    @media (max-width: 980px) {
+    @media (max-width: 1024px) {
       body {
         padding-bottom: 80px;
       }
@@ -957,6 +993,26 @@
       body .main {
         height: calc(100vh - 80px - var(--page-bottom-gap));
       }
+
+      /* Force bottom navigation on smaller screens regardless of saved layout */
+      body.nav-position-top {
+        padding-bottom: 66px !important;
+      }
+
+      body.nav-position-top .sidebar {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+        justify-content: space-between !important;
+      }
+
+      body.nav-position-top .main {
+        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      }
     }
 
     body.nav-position-top {
@@ -1000,6 +1056,28 @@
     body.nav-position-bottom .main {
       height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
     }
+
+    @media (max-width: 1024px) {
+      /* Final override: always keep nav at the bottom on small screens */
+      body.nav-position-top {
+        padding-bottom: 66px !important;
+      }
+
+      body.nav-position-top .sidebar {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+        justify-content: space-between !important;
+      }
+
+      body.nav-position-top .main {
+        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -1025,10 +1103,11 @@
     </aside>
 
     <main class="main">
+      <div class="section-topbar">
+        <h1 class="section-title">To Do <span class="section-subtitle">Section board and task workflows</span></h1>
+      </div>
       <div class="content-grid">
         <section class="panel todo-board-panel">
-          <h2 class="title-inline">To Do · Section Board <span class="title-blurb">Four sections with date-ranged tasks synced to Diary and Canvas workflows.</span></h2>
-
           <div class="todo-sections-grid" aria-label="Section-based To Do Board">
             {% for section in section_lists %}
               <article class="todo-section-column {{ section.class_name }}" aria-label="{{ section.name }} tasks" data-section-key="{{ section.key }}" data-section-name="{{ section.name|escape }}">
@@ -1234,6 +1313,27 @@
   </div>
 
   <script>
+    (function () {
+      const bodyEl = document.body;
+      if (!bodyEl) return;
+      const preferredLayout = bodyEl.classList.contains('nav-position-bottom') ? 'bottom' : 'top';
+
+      function applyResponsiveNavLayout() {
+        const useBottomNav = window.matchMedia('(max-width: 1024px)').matches;
+        if (useBottomNav) {
+          bodyEl.classList.remove('nav-position-top');
+          bodyEl.classList.add('nav-position-bottom');
+          return;
+        }
+
+        bodyEl.classList.remove('nav-position-top', 'nav-position-bottom');
+        bodyEl.classList.add(preferredLayout === 'bottom' ? 'nav-position-bottom' : 'nav-position-top');
+      }
+
+      applyResponsiveNavLayout();
+      window.addEventListener('resize', applyResponsiveNavLayout);
+    })();
+
     document.addEventListener('DOMContentLoaded', function () {
       const form = document.getElementById('todo-entry-form');
       if (!form) return;
