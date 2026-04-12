@@ -1973,6 +1973,78 @@
         flex-wrap: wrap;
       }
     }
+
+    /* ── iPad / touch focus layout (≤1180px) ─────────────────────────────────
+       Hide world clock, calendar overview, notes hub and canvas space.
+       Show only the To Do Board (70%) and Diary Entries (30%) side-by-side.
+    ─────────────────────────────────────────────────────────────────────────── */
+    @media (max-width: 1180px) {
+      .dashboard-secondary {
+        display: none !important;
+      }
+
+      .dashboard-layout {
+        grid-template-columns: 1fr !important;
+        overflow: hidden !important;
+      }
+
+      .dashboard-primary {
+        display: grid !important;
+        grid-template-columns: 7fr 3fr !important;
+        grid-template-rows: 1fr !important;
+        gap: 1rem !important;
+        overflow: hidden !important;
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+
+      #todo-panel {
+        min-height: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      #todo-panel .todo-board {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        align-content: start !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+
+      #diary {
+        min-height: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      #diary .event-list {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        min-height: 0 !important;
+      }
+    }
+
+    /* ── Phone portrait (≤600px): stack todo above diary ──────────────────── */
+    @media (max-width: 600px) {
+      .dashboard-primary {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto !important;
+        overflow-y: auto !important;
+        height: auto !important;
+      }
+
+      #todo-panel,
+      #diary {
+        overflow: visible !important;
+        min-height: 0 !important;
+      }
+
+      #todo-panel .todo-board {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
