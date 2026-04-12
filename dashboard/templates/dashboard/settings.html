@@ -489,7 +489,7 @@
       transform: none;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1180px) {
       body {
         padding-bottom: 80px;
       }
@@ -571,7 +571,7 @@
       max-width: 40%;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1180px) {
       /* Final override: always keep nav at the bottom on small screens */
       body.nav-position-top {
         padding-bottom: 66px !important;
@@ -778,7 +778,7 @@
       const preferredLayout = bodyEl.classList.contains('nav-position-bottom') ? 'bottom' : 'top';
 
       function applyResponsiveNavLayout() {
-        const useBottomNav = window.matchMedia('(max-width: 1024px)').matches;
+        const useBottomNav = window.matchMedia('(max-width: 1180px)').matches;
         if (useBottomNav) {
           bodyEl.classList.remove('nav-position-top');
           bodyEl.classList.add('nav-position-bottom');
