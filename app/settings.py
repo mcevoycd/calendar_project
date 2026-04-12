@@ -30,7 +30,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-only-change-me")
 DEBUG = env_bool("DEBUG", default=True)
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost,www.fluidnotes.co.uk,fluidnotes.co.uk,web-production-c6c41.up.railway.app")
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://www.fluidnotes.co.uk,https://fluidnotes.co.uk,https://web-production-c6c41.up.railway.app",
+)
 
 
 # Application definition
