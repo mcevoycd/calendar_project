@@ -24,6 +24,8 @@
       --accent: #F6C35C;
       --accent-strong: #00C2FF;
       --border: rgba(24, 73, 108, 0.9);
+      --border-soft: rgba(44, 91, 124, 0.92);
+      --border-glow: rgba(0, 194, 255, 0.12);
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
       --page-bottom-gap: 16px;
     }
@@ -435,11 +437,11 @@
     }
 
     .panel {
-      background: var(--surface);
+      background: linear-gradient(180deg, #102033 0%, #0D1A2A 100%);
       border-radius: 20px;
       padding: 1.5rem;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-soft);
     }
 
     .panel h2 {
@@ -476,24 +478,26 @@
     }
 
     .calendar-wrapper {
-      background: radial-gradient(circle at top, rgba(0, 194, 255, 0.08), transparent 70%);
+      background: linear-gradient(180deg, rgba(10, 21, 34, 0.9), rgba(9, 18, 29, 0.98));
       padding: 10px;
       border-radius: 14px;
       margin-top: 0;
       flex: 1;
       min-height: 0;
       display: flex;
+      border: 1px solid rgba(31, 79, 112, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 1px var(--border-glow);
     }
 
     #calendar {
       min-height: 0;
       height: 100%;
       width: 100%;
-      background: #1C2733;
-      border: 1px solid rgba(50, 66, 83, 0.5);
+      background: linear-gradient(180deg, #182637 0%, #162332 100%);
+      border: none;
       padding: 14px;
       border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 194, 255, 0.18), 0 0 40px rgba(0, 194, 255, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     /* Add Diary Entry Form */
