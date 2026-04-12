@@ -169,7 +169,7 @@
     .content-grid {
       margin-top: 1.25rem;
       display: grid;
-      grid-template-columns: minmax(0, 4fr) minmax(300px, 1fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 1.5rem;
       align-items: stretch;
       flex: 1;
@@ -232,15 +232,74 @@
       display: grid;
       grid-template-rows: auto 1fr;
       overflow: hidden;
+      min-width: 0;
     }
 
     .todo-section-head {
-      padding: 0.65rem 0.75rem;
+      padding: 0.4rem 0.45rem;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 0.45rem;
+      color: #06111E;
+    }
+
+    .todo-section-title-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: inherit;
+      width: 100%;
+      min-width: 0;
+      text-align: left;
+      padding: 0.25rem 0.3rem;
+      border-radius: 8px;
       font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      cursor: text;
+      transition: background 0.15s ease;
+    }
+
+    .todo-section-title-btn:hover,
+    .todo-section-title-btn:focus {
+      background: rgba(6, 17, 30, 0.12);
+      outline: none;
+    }
+
+    .todo-section-title-form {
+      display: none;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .todo-section-head.is-editing-title .todo-section-title-btn {
+      display: none;
+    }
+
+    .todo-section-head.is-editing-title .todo-section-title-form {
+      display: block;
+    }
+
+    .todo-section-title-input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid rgba(6, 17, 30, 0.28);
+      background: rgba(255, 255, 255, 0.25);
       color: #06111E;
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .todo-section-title-input:focus {
+      outline: none;
+      border-color: rgba(6, 17, 30, 0.55);
+      background: rgba(255, 255, 255, 0.4);
     }
 
     .todo-section-planning .todo-section-head { background: #38BDF8; }
@@ -252,6 +311,7 @@
       padding: 0.75rem;
       overflow-y: auto;
       min-height: 0;
+      cursor: pointer;
     }
 
     .todo-section-tasks {
@@ -435,12 +495,6 @@
       outline: none;
     }
 
-    .todo-entry-panel {
-      align-self: start;
-      max-height: 100%;
-      overflow: auto;
-    }
-
     .todo-form-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .todo-form { margin-top: 0.9rem; display: grid; gap: 0.7rem; }
 
@@ -607,21 +661,100 @@
       text-transform: uppercase;
     }
 
-    .todo-settings-form {
-      margin-top: 1rem;
-      display: grid;
-      gap: 0.55rem;
-      border-top: 1px solid #2D4660;
-      padding-top: 1rem;
+    .todo-panel-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 20, 30, 0.65);
+      z-index: 1200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
     }
 
-    .todo-settings-form h3 { margin: 0; font-size: 0.95rem; color: var(--accent); }
+    .todo-panel-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
-    .todo-settings-form label {
-      font-size: 0.78rem;
+    .todo-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(460px, 100vw);
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1.5px solid var(--border);
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.32);
+      z-index: 1300;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(.77, 0, .18, 1);
+      display: flex;
+      flex-direction: column;
+      padding: 1.25rem 1.25rem 1rem;
+      overflow-y: auto;
+    }
+
+    .todo-panel.active {
+      transform: translateX(0);
+    }
+
+    .todo-panel-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 2rem;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+
+    .todo-panel-close:hover,
+    .todo-panel-close:focus {
+      color: var(--accent);
+      outline: none;
+    }
+
+    .todo-panel-heading {
+      margin: 0.25rem 0 0;
+      color: var(--accent);
+      font-size: 1.55rem;
+    }
+
+    .todo-panel-subtitle {
+      margin: 0.35rem 0 0.9rem;
       color: #AFC0CF;
-      display: grid;
-      gap: 0.3rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .open-todo-panel-fab {
+      position: fixed;
+      right: 2rem;
+      bottom: 2rem;
+      z-index: 1100;
+      width: 60px;
+      height: 60px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #00C2FF, #F6C35C);
+      color: #06111E;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .open-todo-panel-fab:hover,
+    .open-todo-panel-fab:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(0, 194, 255, 0.2);
+      outline: none;
     }
 
     @media (max-width: 1080px) {
@@ -629,12 +762,26 @@
       .sidebar { padding: 1.5rem; }
       .content-grid { grid-template-columns: 1fr; }
       .todo-sections-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .todo-panel {
+        width: min(100vw, 460px);
+      }
     }
 
     @media (max-width: 720px) {
       .sidebar { padding: 1.25rem; }
       .topbar { flex-direction: column; align-items: stretch; }
       .todo-sections-grid { grid-template-columns: 1fr; }
+      .todo-panel {
+        width: 100vw;
+        padding: 1rem 0.8rem 0.9rem;
+      }
+      .open-todo-panel-fab {
+        width: 52px;
+        height: 52px;
+        right: 1rem;
+        bottom: 1rem;
+        font-size: 2rem;
+      }
     }
 
     /* Unified responsive navigation: top bar on wider screens, bottom bar on smaller screens */
@@ -884,8 +1031,16 @@
 
           <div class="todo-sections-grid" aria-label="Section-based To Do Board">
             {% for section in section_lists %}
-              <article class="todo-section-column {{ section.class_name }}" aria-label="{{ section.name }} tasks">
-                <header class="todo-section-head">{{ section.name }}</header>
+              <article class="todo-section-column {{ section.class_name }}" aria-label="{{ section.name }} tasks" data-section-key="{{ section.key }}" data-section-name="{{ section.name|escape }}">
+                <header class="todo-section-head">
+                  <button type="button" class="todo-section-title-btn" data-section-title-trigger aria-label="Rename {{ section.name }} section">{{ section.name }}</button>
+                  <form class="todo-section-title-form" method="post" action="{% url 'todo' %}" data-section-title-form>
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="rename_todo_section">
+                    <input type="hidden" name="section_key" value="{{ section.key }}">
+                    <input type="text" class="todo-section-title-input" name="section_title" value="{{ section.name }}" maxlength="30" aria-label="Section title for {{ section.name }}">
+                  </form>
+                </header>
                 <div class="todo-section-body">
                   {% if section.tasks %}
                     <ul class="todo-section-tasks">
@@ -956,132 +1111,126 @@
                       {% endfor %}
                     </ul>
                   {% else %}
-                    <div class="todo-empty">No tasks</div>
+                    <div class="todo-empty">No tasks yet. Click anywhere in this section to add one.</div>
                   {% endif %}
                 </div>
               </article>
             {% endfor %}
           </div>
         </section>
-
-        <aside class="panel todo-entry-panel">
-          <h2 class="title-inline">Add To Do Entry <span class="title-blurb">Include title, section, dates, priority, and notes.</span></h2>
-          <form class="todo-form" action="{% url 'todo' %}" method="post" id="todo-entry-form">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" id="todo-form-type" value="add_todo_entry">
-            <input type="hidden" name="task_id" id="task-id-input" value="">
-            <input type="hidden" name="task_checklist_json" id="task-checklist-json-input" value="[]">
-            <label>
-              Task title
-              <input type="text" name="task_title" id="task-title-input" placeholder="Write task title" required>
-            </label>
-            <label>
-              Start date
-              <input type="date" name="task_start_date" id="task-start-date-input" value="{{ today_iso }}" required>
-            </label>
-            <label>
-              End date
-              <input type="date" name="task_end_date" id="task-end-date-input" value="{{ today_iso }}" required>
-            </label>
-            <label>
-              Section
-              <select name="task_section" id="task-section-input" required>
-                {% for section in todo_sections %}
-                  <option value="{{ section.key }}">{{ section.title }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            <div class="todo-entry-tabs" role="tablist" aria-label="Entry editor tabs">
-              <button
-                type="button"
-                class="todo-entry-tab is-active"
-                id="todo-entry-tab-notes"
-                data-tab-target="notes"
-                role="tab"
-                aria-selected="true"
-                aria-controls="todo-entry-panel-notes"
-              >
-                Notes
-              </button>
-              <button
-                type="button"
-                class="todo-entry-tab"
-                id="todo-entry-tab-checklist"
-                data-tab-target="checklist"
-                role="tab"
-                aria-selected="false"
-                aria-controls="todo-entry-panel-checklist"
-              >
-                Checklist
-              </button>
-            </div>
-            <div class="todo-entry-panel-content is-active" id="todo-entry-panel-notes" data-tab-panel="notes" role="tabpanel" aria-labelledby="todo-entry-tab-notes">
-              <label>
-                Notes
-                <textarea name="task_notes" id="task-notes-input" placeholder="Optional notes..."></textarea>
-                <div class="todo-notes-tools" aria-label="Notes formatting shortcuts">
-                  <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-bullet-btn">Add bullet</button>
-                  <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-checkbox-btn">Add checkbox</button>
-                </div>
-              </label>
-            </div>
-            <div class="todo-entry-panel-content" id="todo-entry-panel-checklist" data-tab-panel="checklist" role="tabpanel" aria-labelledby="todo-entry-tab-checklist">
-              <label>
-                Checklist (optional)
-                <div class="todo-checklist-editor" id="todo-checklist-editor">
-                  <div class="todo-checklist-add">
-                    <input type="text" id="todo-checklist-new-input" placeholder="Add checklist item">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-checklist-add-btn">Add</button>
-                  </div>
-                  <div class="todo-checklist-empty" id="todo-checklist-empty">No checklist items yet.</div>
-                  <ul class="todo-checklist-list" id="todo-checklist-list"></ul>
-                </div>
-              </label>
-            </div>
-            <label>
-              Priority
-              <select name="task_priority" id="task-priority-input" required>
-                <option value="high">High</option>
-                <option value="medium" selected>Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </label>
-            <label style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="checkbox" name="task_completed" id="task-completed-input" style="width:0.95rem; height:0.95rem; accent-color:#34D399;">
-              Mark as completed
-            </label>
-            <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
-              <label style="display:flex; align-items:center; gap:0.5rem; margin:0; font-size:0.82rem; color:#AFC0CF;">
-                <input type="checkbox" name="task_add_to_diary" id="task-add-to-diary-input" style="width:0.95rem; height:0.95rem; accent-color:#00C2FF;">
-                Add entry to diary
-              </label>
-              <select name="task_diary_category" id="task-diary-category-input" style="max-width:180px; font-size:0.82rem;">
-                {% for category in diary_category_options %}
-                  <option value="{{ category.key }}">{{ category.label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="todo-form-actions">
-              <button type="submit" class="btn btn-primary" id="todo-submit-btn">Add Task</button>
-              <button type="button" class="btn btn-outline-secondary" id="todo-cancel-edit" style="display:none;">Cancel Edit</button>
-            </div>
-          </form>
-
-          <form class="todo-settings-form" method="post" action="{% url 'todo' %}">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="update_section_titles">
-            <h3>Customize Section Titles</h3>
-            {% for section in todo_sections %}
-              <label>
-                {{ section.title }}
-                <input type="text" name="section_{{ section.key }}" value="{{ section.title }}" maxlength="30">
-              </label>
-            {% endfor %}
-            <button type="submit" class="btn btn-outline-secondary">Save Section Titles</button>
-          </form>
-        </aside>
       </div>
     </main>
+
+    <button id="open-todo-panel-fab" class="open-todo-panel-fab" title="Add To Do Entry" aria-label="Add To Do Entry">
+      <span>+</span>
+    </button>
+
+    <div id="todo-panel-backdrop" class="todo-panel-backdrop" tabindex="-1"></div>
+    <aside id="todo-panel" class="todo-panel" aria-modal="true" role="dialog" aria-labelledby="todo-panel-heading">
+      <button class="todo-panel-close" id="todo-panel-close" aria-label="Close">&times;</button>
+      <h2 class="todo-panel-heading" id="todo-panel-heading">New Task</h2>
+      <p class="todo-panel-subtitle" id="todo-panel-subtitle">Add a task, keep it in the right section, and link it to Diary when needed.</p>
+      <form class="todo-form" action="{% url 'todo' %}" method="post" id="todo-entry-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" id="todo-form-type" value="add_todo_entry">
+        <input type="hidden" name="task_id" id="task-id-input" value="">
+        <input type="hidden" name="task_checklist_json" id="task-checklist-json-input" value="[]">
+        <label>
+          Task title
+          <input type="text" name="task_title" id="task-title-input" placeholder="Write task title" required>
+        </label>
+        <label>
+          Start date
+          <input type="date" name="task_start_date" id="task-start-date-input" value="{{ today_iso }}" required>
+        </label>
+        <label>
+          End date
+          <input type="date" name="task_end_date" id="task-end-date-input" value="{{ today_iso }}" required>
+        </label>
+        <label>
+          Section
+          <select name="task_section" id="task-section-input" required>
+            {% for section in todo_sections %}
+              <option value="{{ section.key }}">{{ section.title }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div class="todo-entry-tabs" role="tablist" aria-label="Entry editor tabs">
+          <button
+            type="button"
+            class="todo-entry-tab is-active"
+            id="todo-entry-tab-notes"
+            data-tab-target="notes"
+            role="tab"
+            aria-selected="true"
+            aria-controls="todo-entry-panel-notes"
+          >
+            Notes
+          </button>
+          <button
+            type="button"
+            class="todo-entry-tab"
+            id="todo-entry-tab-checklist"
+            data-tab-target="checklist"
+            role="tab"
+            aria-selected="false"
+            aria-controls="todo-entry-panel-checklist"
+          >
+            Checklist
+          </button>
+        </div>
+        <div class="todo-entry-panel-content is-active" id="todo-entry-panel-notes" data-tab-panel="notes" role="tabpanel" aria-labelledby="todo-entry-tab-notes">
+          <label>
+            Notes
+            <textarea name="task_notes" id="task-notes-input" placeholder="Optional notes..."></textarea>
+            <div class="todo-notes-tools" aria-label="Notes formatting shortcuts">
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-bullet-btn">Add bullet</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-note-checkbox-btn">Add checkbox</button>
+            </div>
+          </label>
+        </div>
+        <div class="todo-entry-panel-content" id="todo-entry-panel-checklist" data-tab-panel="checklist" role="tabpanel" aria-labelledby="todo-entry-tab-checklist">
+          <label>
+            Checklist (optional)
+            <div class="todo-checklist-editor" id="todo-checklist-editor">
+              <div class="todo-checklist-add">
+                <input type="text" id="todo-checklist-new-input" placeholder="Add checklist item">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="todo-checklist-add-btn">Add</button>
+              </div>
+              <div class="todo-checklist-empty" id="todo-checklist-empty">No checklist items yet.</div>
+              <ul class="todo-checklist-list" id="todo-checklist-list"></ul>
+            </div>
+          </label>
+        </div>
+        <label>
+          Priority
+          <select name="task_priority" id="task-priority-input" required>
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.5rem;">
+          <input type="checkbox" name="task_completed" id="task-completed-input" style="width:0.95rem; height:0.95rem; accent-color:#34D399;">
+          Mark as completed
+        </label>
+        <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+          <label style="display:flex; align-items:center; gap:0.5rem; margin:0; font-size:0.82rem; color:#AFC0CF;">
+            <input type="checkbox" name="task_add_to_diary" id="task-add-to-diary-input" style="width:0.95rem; height:0.95rem; accent-color:#00C2FF;">
+            Add entry to diary
+          </label>
+          <select name="task_diary_category" id="task-diary-category-input" style="max-width:180px; font-size:0.82rem;">
+            {% for category in diary_category_options %}
+              <option value="{{ category.key }}">{{ category.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="todo-form-actions">
+          <button type="submit" class="btn btn-primary" id="todo-submit-btn">Add Task</button>
+          <button type="button" class="btn btn-outline-secondary" id="todo-cancel-edit">Cancel</button>
+        </div>
+      </form>
+    </aside>
   </div>
 
   <script>
@@ -1111,12 +1260,62 @@
       const entryTabPanels = Array.from(document.querySelectorAll('.todo-entry-panel-content'));
       const submitBtn = document.getElementById('todo-submit-btn');
       const cancelBtn = document.getElementById('todo-cancel-edit');
+      const panel = document.getElementById('todo-panel');
+      const panelBackdrop = document.getElementById('todo-panel-backdrop');
+      const panelCloseBtn = document.getElementById('todo-panel-close');
+      const panelHeading = document.getElementById('todo-panel-heading');
+      const panelSubtitle = document.getElementById('todo-panel-subtitle');
+      const panelFab = document.getElementById('open-todo-panel-fab');
+      const sectionColumns = Array.from(document.querySelectorAll('.todo-section-column'));
+      const sectionTitleTriggers = Array.from(document.querySelectorAll('[data-section-title-trigger]'));
+      const sectionTitleForms = Array.from(document.querySelectorAll('[data-section-title-form]'));
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
       const completeCheckboxes = Array.from(document.querySelectorAll('.todo-complete-checkbox'));
       const inlineChecklistCheckboxes = Array.from(document.querySelectorAll('.todo-inline-checklist-checkbox'));
+      const deleteButtons = Array.from(document.querySelectorAll('.todo-delete-btn'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
+      const defaultStartDateValue = startDateInput ? startDateInput.value : '';
+      const defaultEndDateValue = endDateInput ? endDateInput.value : '';
       let checklistState = [];
+
+      function openTodoPanel() {
+        if (!panel || !panelBackdrop) {
+          return;
+        }
+        panel.classList.add('active');
+        panelBackdrop.classList.add('active');
+      }
+
+      function closeTodoPanel() {
+        if (!panel || !panelBackdrop) {
+          return;
+        }
+        panel.classList.remove('active');
+        panelBackdrop.classList.remove('active');
+      }
+
+      function getSectionTitle(sectionKey) {
+        if (!sectionInput) {
+          return 'Task';
+        }
+        const matchingOption = Array.from(sectionInput.options).find(function (option) {
+          return option.value === sectionKey;
+        });
+        return matchingOption ? matchingOption.textContent.trim() : 'Task';
+      }
+
+      function updatePanelCopy(editing) {
+        const sectionTitle = getSectionTitle(sectionInput ? sectionInput.value : '');
+        if (panelHeading) {
+          panelHeading.textContent = editing ? 'Edit Task' : 'New Task';
+        }
+        if (panelSubtitle) {
+          panelSubtitle.textContent = editing
+            ? 'Update the task details, dates, checklist, and Diary sync settings.'
+            : 'Adding to section: ' + sectionTitle + '.';
+        }
+      }
 
       function normalizeChecklist(items) {
         if (!Array.isArray(items)) {
@@ -1255,16 +1454,64 @@
         });
       }
 
-      function setAddMode() {
+      function setAddMode(sectionKey) {
+        form.reset();
         formTypeInput.value = 'add_todo_entry';
         taskIdInput.value = '';
         submitBtn.textContent = 'Add Task';
-        cancelBtn.style.display = 'none';
+        cancelBtn.textContent = 'Close';
         addToDiaryInput.checked = false;
         diaryCategoryInput.value = 'general';
+        if (startDateInput) {
+          startDateInput.value = defaultStartDateValue;
+        }
+        if (endDateInput) {
+          endDateInput.value = defaultEndDateValue;
+        }
+        if (sectionInput && sectionKey) {
+          sectionInput.value = sectionKey;
+        }
         checklistState = [];
         renderChecklistEditor();
         taskButtons.forEach(function (btn) { btn.classList.remove('is-editing'); });
+        updatePanelCopy(false);
+      }
+
+      function openCreateMode(sectionKey) {
+        setAddMode(sectionKey);
+        setEntryTab('notes');
+        openTodoPanel();
+        if (titleInput) {
+          titleInput.focus();
+        }
+      }
+
+      function openEditMode(btn) {
+        taskIdInput.value = btn.dataset.id || '';
+        titleInput.value = btn.dataset.title || '';
+        notesInput.value = btn.dataset.notes || '';
+        try {
+          checklistState = normalizeChecklist(JSON.parse(btn.dataset.checklist || '[]'));
+        } catch (error) {
+          checklistState = [];
+        }
+        renderChecklistEditor();
+        priorityInput.value = btn.dataset.priority || 'medium';
+        completedInput.checked = (btn.dataset.completed || 'false') === 'true';
+        addToDiaryInput.checked = (btn.dataset.addToDiary || 'false') === 'true';
+        diaryCategoryInput.value = btn.dataset.diaryCategory || 'general';
+        startDateInput.value = btn.dataset.startDate || defaultStartDateValue;
+        endDateInput.value = btn.dataset.endDate || defaultEndDateValue;
+        sectionInput.value = btn.dataset.section || sectionInput.value;
+        formTypeInput.value = 'edit_todo_entry';
+        submitBtn.textContent = 'Save Task';
+        cancelBtn.textContent = 'Close';
+
+        taskButtons.forEach(function (other) { other.classList.remove('is-editing'); });
+        btn.classList.add('is-editing');
+        updatePanelCopy(true);
+        openTodoPanel();
+        titleInput.focus();
       }
 
       taskButtons.forEach(function (btn) {
@@ -1287,36 +1534,121 @@
               btn.setAttribute('aria-expanded', 'true');
             }
           }
-
-          taskIdInput.value = btn.dataset.id || '';
-          titleInput.value = btn.dataset.title || '';
-          notesInput.value = btn.dataset.notes || '';
-          try {
-            checklistState = normalizeChecklist(JSON.parse(btn.dataset.checklist || '[]'));
-          } catch (error) {
-            checklistState = [];
-          }
-          renderChecklistEditor();
-          priorityInput.value = btn.dataset.priority || 'medium';
-          completedInput.checked = (btn.dataset.completed || 'false') === 'true';
-          addToDiaryInput.checked = (btn.dataset.addToDiary || 'false') === 'true';
-          diaryCategoryInput.value = btn.dataset.diaryCategory || 'general';
-          startDateInput.value = btn.dataset.startDate || startDateInput.value;
-          endDateInput.value = btn.dataset.endDate || endDateInput.value;
-          sectionInput.value = btn.dataset.section || sectionInput.value;
-          formTypeInput.value = 'edit_todo_entry';
-          submitBtn.textContent = 'Save Task';
-          cancelBtn.style.display = 'inline-flex';
-
-          taskButtons.forEach(function (other) { other.classList.remove('is-editing'); });
-          btn.classList.add('is-editing');
-          titleInput.focus();
+          openEditMode(btn);
         });
       });
 
       cancelBtn.addEventListener('click', function () {
-        form.reset();
-        setAddMode();
+        setAddMode(sectionInput ? sectionInput.value : '');
+        closeTodoPanel();
+      });
+
+      if (panelBackdrop) {
+        panelBackdrop.addEventListener('click', closeTodoPanel);
+      }
+
+      if (panelCloseBtn) {
+        panelCloseBtn.addEventListener('click', function () {
+          setAddMode(sectionInput ? sectionInput.value : '');
+          closeTodoPanel();
+        });
+      }
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && panel && panel.classList.contains('active')) {
+          setAddMode(sectionInput ? sectionInput.value : '');
+          closeTodoPanel();
+        }
+      });
+
+      if (panelFab) {
+        panelFab.addEventListener('click', function () {
+          openCreateMode(sectionInput ? sectionInput.value : '');
+        });
+      }
+
+      if (sectionInput) {
+        sectionInput.addEventListener('change', function () {
+          updatePanelCopy(formTypeInput.value === 'edit_todo_entry');
+        });
+      }
+
+      sectionColumns.forEach(function (column) {
+        column.addEventListener('click', function (event) {
+          if (event.target.closest('.todo-task, .todo-delete-form, .todo-complete-form, .todo-section-title-form, .todo-section-title-btn')) {
+            return;
+          }
+          openCreateMode(column.dataset.sectionKey || 'planning');
+        });
+      });
+
+      sectionTitleTriggers.forEach(function (trigger) {
+        trigger.addEventListener('click', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          const header = trigger.closest('.todo-section-head');
+          if (!header) {
+            return;
+          }
+          header.classList.add('is-editing-title');
+          const input = header.querySelector('.todo-section-title-input');
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        });
+      });
+
+      sectionTitleForms.forEach(function (titleForm) {
+        const header = titleForm.closest('.todo-section-head');
+        const input = titleForm.querySelector('.todo-section-title-input');
+        const trigger = header ? header.querySelector('.todo-section-title-btn') : null;
+        if (!header || !input || !trigger) {
+          return;
+        }
+
+        titleForm.addEventListener('click', function (event) {
+          event.stopPropagation();
+        });
+
+        titleForm.addEventListener('submit', function () {
+          titleForm.dataset.submitting = 'true';
+        });
+
+        input.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            const nextValue = input.value.trim();
+            const currentValue = trigger.textContent.trim();
+            if (nextValue === currentValue) {
+              header.classList.remove('is-editing-title');
+              input.value = currentValue;
+              return;
+            }
+            titleForm.requestSubmit();
+          }
+
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            input.value = trigger.textContent.trim();
+            header.classList.remove('is-editing-title');
+            trigger.focus();
+          }
+        });
+
+        input.addEventListener('blur', function () {
+          if (titleForm.dataset.submitting === 'true') {
+            return;
+          }
+          const nextValue = input.value.trim();
+          const currentValue = trigger.textContent.trim();
+          if (nextValue === currentValue) {
+            header.classList.remove('is-editing-title');
+            input.value = currentValue;
+            return;
+          }
+          titleForm.requestSubmit();
+        });
       });
 
       if (checklistAddBtn) {
@@ -1350,6 +1682,12 @@
         });
       });
 
+      deleteButtons.forEach(function (button) {
+        button.addEventListener('click', function (event) {
+          event.stopPropagation();
+        });
+      });
+
       if (noteBulletBtn) {
         noteBulletBtn.addEventListener('click', function () {
           insertLinePrefix(notesInput, '- ');
@@ -1368,7 +1706,7 @@
         });
       });
 
-      setAddMode();
+      setAddMode(sectionInput ? sectionInput.value : '');
       renderChecklistEditor();
       setEntryTab('notes');
 

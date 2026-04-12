@@ -1128,6 +1128,17 @@ def todo_view(request):
     todo_sections = get_todo_sections(request)
     default_date = datetime.today().date().isoformat()
 
+    if request.method == 'POST' and request.POST.get('form_type') == 'rename_todo_section':
+        section_key = request.POST.get('section_key', '').strip().lower()
+        section_map = {section['key']: section for section in todo_sections}
+
+        if section_key in section_map:
+            raw_title = request.POST.get('section_title', '')
+            updated_title = raw_title.strip()[:30] or section_map[section_key]['default_title']
+            set_todo_section_titles(request, {section_key: updated_title})
+
+        return HttpResponseRedirect(get_todo_return_url(request))
+
     if request.method == 'POST' and request.POST.get('form_type') == 'update_section_titles':
         updated_titles = {}
         for section in todo_sections:
@@ -1531,8 +1542,10 @@ def notes_view(request):
     notes = list(notes_queryset.order_by('-is_pinned', '-updated_at', '-created_at'))
 
     # Keep Notes from landing on a blank workspace on first use.
-    if request.method == 'GET' and not notes and not search_query:
-        starter_category = active_category if active_category else None
+    # Only auto-create a starter note when there are no notes at all for the user.
+    has_any_user_notes = NoteEntry.objects.filter(user=request.user).exists()
+    if request.method == 'GET' and not notes and not search_query and not selected_category_id and not has_any_user_notes:
+        starter_category = None
         starter_note = NoteEntry.objects.create(
             user=request.user,
             category=starter_category,
@@ -1547,8 +1560,6 @@ def notes_view(request):
     selected_note = None
     if selected_note_id.isdigit():
         selected_note = next((item for item in notes if item.id == int(selected_note_id)), None)
-    if not selected_note and notes:
-        selected_note = notes[0]
 
     context = {
         'categories': categories,

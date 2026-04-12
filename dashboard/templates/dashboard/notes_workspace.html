@@ -8,19 +8,22 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #06111E;
       --surface: #0E1B2A;
       --surface-strong: #091624;
+      --surface-soft: #12273A;
       --text: #E5E7EB;
       --muted: #9EB0C2;
       --accent: #F6C35C;
       --accent-strong: #00C2FF;
       --border: rgba(24, 73, 108, 0.9);
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      --panel-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
       --page-bottom-gap: 16px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -65,7 +68,10 @@
       font-weight: 600;
     }
 
-    .nav-group { display: grid; gap: 0.5rem; }
+    .nav-group {
+      display: grid;
+      gap: 0.5rem;
+    }
 
     .nav-link {
       display: block;
@@ -82,61 +88,13 @@
       color: var(--accent);
     }
 
-    body.nav-layout-tabs .app-shell { grid-template-columns: 112px 1fr; }
-    body.nav-layout-tabs .sidebar { padding: 1.2rem 0.6rem; gap: 1rem; }
-    body.nav-layout-tabs .brand-logo { max-width: 72px; margin: 0 auto 0.2rem; }
-    body.nav-layout-tabs .brand-subtitle { display: none; }
-    body.nav-layout-tabs .nav-link { text-align: center; padding: 0.62rem 0.3rem; font-size: 0.76rem; line-height: 1.2; }
-
-    body.nav-position-bottom {
-      height: 100vh;
-      overflow: hidden;
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.75;
     }
 
-    body.nav-position-bottom .app-shell {
-      grid-template-columns: 1fr;
-      height: 100vh;
-      min-height: 0;
-    }
-
-    body.nav-position-bottom .sidebar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1000;
-      padding: 0.55rem 0.6rem 0.65rem;
-      border-right: none;
-      border-top: 1px solid rgba(0, 194, 255, 0.3);
-      background: rgba(10, 26, 42, 0.96);
-      backdrop-filter: blur(8px);
-      gap: 0.45rem;
-    }
-
-    body.nav-position-bottom .sidebar > div:first-child { display: none; }
-    body.nav-position-bottom .nav-group { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.38rem; }
-    body.nav-position-bottom .nav-link {
-      text-align: center;
-      padding: 0.5rem 0.2rem;
-      font-size: 0.84rem;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-      line-height: 1.2;
-      border-radius: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .main {
-      padding: 1.4rem 1.6rem;
-      min-height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Match the same top-vs-bottom navigation behavior used on other pages. */
     body .app-shell {
       grid-template-columns: 1fr !important;
       height: 100vh;
@@ -254,38 +212,666 @@
       display: none;
     }
 
-    body .main {
+    .main {
       height: calc(100vh - 66px - var(--page-bottom-gap));
       min-height: 0;
+      overflow: hidden;
+      padding: 1.2rem 1.2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
     }
 
-    body.nav-position-top {
-      padding-bottom: 0 !important;
-    }
-
-    body.nav-position-top .main {
-      height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
+    .notes-shell {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      flex: 1;
       min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(240px, 280px) minmax(340px, 1fr);
+      gap: 0.85rem;
+      padding: 0.85rem;
+      overflow: hidden;
+      position: relative;
     }
 
-    body.nav-position-bottom {
-      padding-bottom: 66px !important;
+    .section-pane {
+      border: 1px solid rgba(53, 84, 109, 0.9);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #13283A 0%, #0E2234 100%);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
     }
 
-    body.nav-position-bottom .sidebar {
-      position: fixed !important;
+    .pane-head {
+      padding: 0.7rem;
+      border-bottom: 1px solid rgba(53, 84, 109, 0.75);
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .pane-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .pane-title {
+      margin: 0;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9EB0C2;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .pill-btn {
+      border: 1px solid rgba(0, 194, 255, 0.45);
+      border-radius: 999px;
+      background: rgba(0, 194, 255, 0.16);
+      color: #E6F6FF;
+      font-size: 0.76rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0.43rem 0.7rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    .pill-btn:hover,
+    .pill-btn:focus {
+      border-color: #53B7E8;
+      background: rgba(0, 194, 255, 0.26);
+      outline: none;
+      color: #F1FAFF;
+    }
+
+    .pill-btn.warn {
+      border-color: rgba(251, 113, 133, 0.45);
+      background: rgba(251, 113, 133, 0.14);
+      color: #FFDCE3;
+    }
+
+    .pill-btn.warn:hover,
+    .pill-btn.warn:focus {
+      border-color: rgba(251, 113, 133, 0.75);
+      background: rgba(251, 113, 133, 0.24);
+    }
+
+    .ios-search {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(53, 84, 109, 0.95);
+      background: #0C1E2D;
+      color: var(--text);
+      padding: 0.5rem 0.68rem;
+      font-size: 0.86rem;
+      outline: none;
+    }
+
+    .ios-search:focus {
+      border-color: #53B7E8;
+      box-shadow: 0 0 0 2px rgba(83, 183, 232, 0.2);
+    }
+
+    .pane-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 0.55rem;
+      position: relative;
+      scrollbar-width: thin;
+    }
+
+    .pane-scroll::before,
+    .pane-scroll::after {
+      content: "";
+      position: sticky;
       left: 0;
       right: 0;
-      bottom: 0;
-      top: auto !important;
-      border-bottom: none !important;
-      border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
-      justify-content: space-between !important;
+      height: 14px;
+      display: block;
+      pointer-events: none;
+      z-index: 2;
     }
 
-    body.nav-position-bottom .main {
-      height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
+    .pane-scroll::before {
+      top: 0;
+      background: linear-gradient(180deg, rgba(9, 22, 36, 0.9) 0%, rgba(9, 22, 36, 0) 100%);
+      margin-bottom: -14px;
+    }
+
+    .pane-scroll::after {
+      bottom: 0;
+      background: linear-gradient(0deg, rgba(9, 22, 36, 0.9) 0%, rgba(9, 22, 36, 0) 100%);
+      margin-top: -14px;
+    }
+
+    .category-block-label {
+      margin: 0.55rem 0 0.35rem;
+      color: #7F95AA;
+      font-size: 0.69rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .category-list,
+    .note-list {
+      display: grid;
+      gap: 0.42rem;
+    }
+
+    .category-item,
+    .note-item {
+      border: 1px solid rgba(53, 84, 109, 0.8);
+      border-radius: 12px;
+      background: rgba(5, 20, 34, 0.68);
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      min-width: 0;
+    }
+
+    .category-item:hover,
+    .note-item:hover {
+      border-color: rgba(0, 194, 255, 0.6);
+      background: rgba(12, 35, 55, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .category-item.active,
+    .note-item.active {
+      border-color: rgba(246, 195, 92, 0.65);
+      background: rgba(246, 195, 92, 0.1);
+    }
+
+    .category-link {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 0.5rem;
+      color: #DCE8F2;
+      text-decoration: none;
+      padding: 0.56rem 0.62rem;
+      font-size: 0.84rem;
+      min-width: 0;
+    }
+
+    .category-link strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .category-icon {
+      width: 1.3rem;
+      height: 1.3rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 194, 255, 0.18);
+      color: #C7E8FA;
+      font-size: 0.74rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .category-delete-row {
+      border-top: 1px solid rgba(53, 84, 109, 0.65);
+      padding: 0.36rem 0.5rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .tiny-icon-btn {
+      border: 1px solid rgba(251, 113, 133, 0.4);
+      background: rgba(251, 113, 133, 0.15);
+      color: #FFC8D3;
+      border-radius: 8px;
+      width: 1.5rem;
+      height: 1.5rem;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+
+    .tiny-icon-btn:hover,
+    .tiny-icon-btn:focus {
+      border-color: rgba(251, 113, 133, 0.75);
+      background: rgba(251, 113, 133, 0.24);
+      outline: none;
+    }
+
+    .new-note-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .note-link {
+      color: inherit;
+      text-decoration: none;
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.65rem 0.72rem;
+      min-width: 0;
+    }
+
+    .note-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.45rem;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .note-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #E6F1F9;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .note-pin {
+      color: #F6C35C;
+      font-size: 0.85rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .note-preview {
+      margin: 0;
+      color: #B4C4D3;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+    }
+
+    .note-meta {
+      color: #8EA0B1;
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .notes-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      padding: 0.15rem 0.15rem 0;
+    }
+
+    .notes-title {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .notes-mobile-tools {
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .mobile-icon-btn {
+      border: 1px solid rgba(0, 194, 255, 0.45);
+      border-radius: 10px;
+      background: rgba(0, 194, 255, 0.16);
+      color: #E9F8FF;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.45rem 0.65rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .mobile-icon-btn:hover,
+    .mobile-icon-btn:focus {
+      border-color: #53B7E8;
+      background: rgba(0, 194, 255, 0.26);
+      outline: none;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 11, 18, 0.62);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 1200;
+    }
+
+    .drawer-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .editor-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100vw;
+      min-width: 0;
+      height: 100vh;
+      background: linear-gradient(180deg, #0F2336 0%, #091624 100%);
+      border-left: 1px solid rgba(53, 84, 109, 0.95);
+      box-shadow: var(--panel-shadow);
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(.77, 0, .18, 1);
+      z-index: 1300;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-drawer.active {
+      transform: translateX(0);
+    }
+
+    .editor-handle {
+      display: none;
+      width: 44px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(158, 176, 194, 0.55);
+      margin: 0.45rem auto 0;
+      flex-shrink: 0;
+    }
+
+    .editor-head {
+      padding: 0.85rem 0.95rem 0.7rem;
+      border-bottom: 1px solid rgba(53, 84, 109, 0.7);
+      display: grid;
+      gap: 0.6rem;
+      flex-shrink: 0;
+    }
+
+    .editor-head-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+
+    .editor-label {
+      margin: 0;
+      color: #9EB0C2;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.68rem;
+    }
+
+    .editor-close-btn {
+      border: 1px solid rgba(53, 84, 109, 0.95);
+      border-radius: 9px;
+      background: #102436;
+      color: #C8D9E8;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .editor-close-btn:hover,
+    .editor-close-btn:focus {
+      border-color: #53B7E8;
+      color: #F0F8FF;
+      outline: none;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      border: 1px solid rgba(53, 84, 109, 0.78);
+      border-radius: 12px;
+      background: rgba(10, 28, 44, 0.8);
+      padding: 0.4rem;
+    }
+
+    .tool-btn {
+      border: 1px solid rgba(0, 194, 255, 0.38);
+      border-radius: 8px;
+      background: rgba(0, 194, 255, 0.16);
+      color: #E6F6FF;
+      padding: 0.28rem 0.48rem;
+      min-width: 34px;
+      line-height: 1;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tool-btn:hover,
+    .tool-btn:focus {
+      border-color: #53B7E8;
+      background: rgba(0, 194, 255, 0.28);
+      outline: none;
+    }
+
+    .editor-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .editor-form {
+      flex: 1;
       min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      padding: 0.8rem 0.95rem 0.95rem;
+      overflow: hidden;
+    }
+
+    .editor-field {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(53, 84, 109, 0.95);
+      background: #0B1F2F;
+      color: var(--text);
+      padding: 0.6rem 0.72rem;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .editor-field:focus {
+      border-color: #53B7E8;
+      box-shadow: 0 0 0 2px rgba(83, 183, 232, 0.2);
+    }
+
+    .editor-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+    }
+
+    .editor-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      line-height: 1.58;
+      background: #0A1A28;
+    }
+
+    .editor-empty {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 1.3rem;
+      border: 1px dashed rgba(158, 176, 194, 0.42);
+      border-radius: 14px;
+      color: var(--muted);
+      background: rgba(2, 14, 26, 0.6);
+    }
+
+    .editor-empty p {
+      margin: 0;
+      max-width: 420px;
+      line-height: 1.55;
+    }
+
+    .form-hidden {
+      display: none;
+    }
+
+    .dialog {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(3, 12, 20, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 1400;
+      padding: 1rem;
+    }
+
+    .dialog[hidden] {
+      display: none;
+    }
+
+    .dialog-card {
+      width: min(500px, 100%);
+      background: linear-gradient(155deg, #0E2335 0%, #081725 100%);
+      border: 1px solid rgba(0, 194, 255, 0.35);
+      border-radius: 14px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42);
+      padding: 1rem 1rem 0.9rem;
+      color: #D7E6F2;
+    }
+
+    .dialog-title {
+      margin: 0;
+      font-size: 1rem;
+      color: #EAF4FF;
+    }
+
+    .dialog-message {
+      margin: 0.55rem 0 0;
+      color: #AFC0CF;
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
+    .dialog-input {
+      width: 100%;
+      margin-top: 0.75rem;
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D7E6F2;
+      border-radius: 8px;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .dialog-input:focus {
+      border-color: #53B7E8;
+      box-shadow: 0 0 0 2px rgba(83, 183, 232, 0.2);
+    }
+
+    .dialog-actions {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .dialog-btn {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D7E6F2;
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .dialog-btn:hover,
+    .dialog-btn:focus {
+      border-color: #53B7E8;
+      outline: none;
+    }
+
+    .dialog-btn.primary {
+      border-color: #0EA5C6;
+      background: linear-gradient(135deg, #149FC9, #1577B0);
+      color: #EAF7FF;
+    }
+
+    .dialog-btn.primary:hover,
+    .dialog-btn.primary:focus {
+      border-color: #6AD4F1;
+      filter: brightness(1.05);
+    }
+
+    @media (max-width: 1250px) {
+      .notes-shell {
+        grid-template-columns: minmax(320px, 1fr);
+      }
+
+      .categories-pane {
+        display: none;
+      }
+
+      .notes-mobile-tools {
+        display: inline-flex;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .editor-drawer {
+        width: 100vw;
+        min-width: 0;
+        border-left: none;
+      }
+
+      .editor-handle {
+        display: block;
+      }
+
+      .editor-head {
+        padding-top: 0.45rem;
+      }
     }
 
     @media (max-width: 980px) {
@@ -335,358 +921,42 @@
         line-height: 1.15;
       }
 
-      body .main {
+      .main {
         height: calc(100vh - 80px - var(--page-bottom-gap));
       }
     }
 
-    .title-inline {
-      margin: 0 0 1rem;
-      color: var(--accent);
-      font-size: 1.35rem;
-      display: flex;
-      align-items: baseline;
-      gap: 0.7rem;
+    body.nav-position-top {
+      padding-bottom: 0 !important;
     }
 
-    .title-blurb {
-      color: var(--muted);
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .notes-grid {
-      flex: 1;
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(220px, 10%) minmax(0, 90%);
-      gap: 1rem;
-    }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .left-panel {
-      padding: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      gap: 0.9rem;
-    }
-
-    .panel-label {
-      margin: 0;
-      color: #d5e5f4;
-      font-size: 0.83rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .filter-list,
-    .note-list {
-      display: grid;
-      gap: 0.4rem;
-    }
-
-    .note-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.35rem;
-      align-items: stretch;
-    }
-
-    .scroll {
-      overflow: auto;
+    body.nav-position-top .main {
+      height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
       min-height: 0;
     }
 
-    .filter-link,
-    .note-link {
-      display: block;
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 194, 255, 0.25);
-      background: rgba(5, 20, 34, 0.6);
-      color: #dbe7f4;
-      text-decoration: none;
-      padding: 0.55rem 0.62rem;
-      font-size: 0.86rem;
-      line-height: 1.3;
+    body.nav-position-bottom {
+      padding-bottom: 66px !important;
     }
 
-    .filter-link.active,
-    .note-link.active,
-    .filter-link:hover,
-    .note-link:hover {
-      background: rgba(0, 194, 255, 0.2);
-      color: var(--accent);
+    body.nav-position-bottom .sidebar {
+      position: fixed !important;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: auto !important;
+      border-bottom: none !important;
+      border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
+      justify-content: space-between !important;
     }
 
-    .mini-form {
-      display: flex;
-      gap: 0.42rem;
-    }
-
-    .mini-form input,
-    .mini-form select {
-      flex: 1;
-      min-width: 0;
-      padding: 0.45rem 0.55rem;
-      border-radius: 10px;
-      border: 1px solid rgba(0, 194, 255, 0.35);
-      background: rgba(2, 14, 26, 0.9);
-      color: var(--text);
-      font-size: 0.85rem;
-    }
-
-    .mini-btn {
-      border: 1px solid rgba(0, 194, 255, 0.45);
-      border-radius: 10px;
-      background: rgba(0, 194, 255, 0.14);
-      color: #e7f7ff;
-      padding: 0.45rem 0.6rem;
-      font-size: 0.83rem;
-      font-weight: 700;
-    }
-
-    .pin-btn {
-      min-width: 40px;
-      padding: 0.45rem 0.5rem;
-      border-radius: 10px;
-      border: 1px solid rgba(246, 195, 92, 0.5);
-      background: rgba(246, 195, 92, 0.14);
-      color: #ffe7b3;
-      font-weight: 700;
-      font-size: 0.88rem;
-      line-height: 1;
-    }
-
-    .search-form {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.45rem;
-    }
-
-    .search-input {
-      padding: 0.45rem 0.55rem;
-      border-radius: 10px;
-      border: 1px solid rgba(0, 194, 255, 0.35);
-      background: rgba(2, 14, 26, 0.9);
-      color: var(--text);
-      font-size: 0.85rem;
-    }
-
-    .editor-panel {
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
+    body.nav-position-bottom .main {
+      height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
       min-height: 0;
-      gap: 0.8rem;
-    }
-
-    .editor-field {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 194, 255, 0.35);
-      background: rgba(2, 14, 26, 0.95);
-      color: var(--text);
-      padding: 0.65rem 0.75rem;
-      font-size: 0.95rem;
-    }
-
-    .editor-title {
-      font-size: 1.07rem;
-      font-weight: 700;
-    }
-
-    .editor-body {
-      flex: 1;
-      min-height: 360px;
-      overflow: auto;
-      line-height: 1.5;
-    }
-
-    .editor-body[contenteditable="true"] {
-      white-space: normal;
-    }
-
-    .rich-toolbar {
-      display: flex;
-      gap: 0.45rem;
-      flex-wrap: wrap;
-      align-items: center;
-      border: 1px solid rgba(0, 194, 255, 0.28);
-      border-radius: 12px;
-      padding: 0.5rem;
-      background: rgba(5, 20, 34, 0.6);
-    }
-
-    .rich-btn {
-      border: 1px solid rgba(0, 194, 255, 0.45);
-      border-radius: 8px;
-      background: rgba(0, 194, 255, 0.14);
-      color: #e7f7ff;
-      padding: 0.3rem 0.5rem;
-      min-width: 34px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      line-height: 1.1;
-    }
-
-    .editor-top,
-    .editor-actions {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: nowrap;
-      align-items: center;
-    }
-
-    .editor-actions form {
-      margin: 0;
-    }
-
-    .editor-empty {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      font-size: 0.95rem;
-      flex: 1;
-      border: 1px dashed rgba(158, 176, 194, 0.45);
-      border-radius: 14px;
-      background: rgba(2, 14, 26, 0.6);
-      text-align: center;
-      padding: 1rem;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .editor-empty p {
-      margin: 0;
-      max-width: 420px;
-    }
-
-    .danger-btn {
-      border-color: rgba(255, 90, 90, 0.5);
-      background: rgba(160, 40, 40, 0.22);
-      color: #ffd4d4;
-    }
-
-    .app-modal {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      background: rgba(3, 12, 20, 0.65);
-      backdrop-filter: blur(3px);
-      z-index: 1200;
-      padding: 1rem;
-    }
-
-    .app-modal[hidden] {
-      display: none;
-    }
-
-    .app-modal-dialog {
-      width: min(500px, 100%);
-      background: linear-gradient(155deg, #0E2335 0%, #081725 100%);
-      border: 1px solid rgba(0, 194, 255, 0.35);
-      border-radius: 14px;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42);
-      padding: 1rem 1rem 0.9rem;
-      color: #D7E6F2;
-    }
-
-    .app-modal-title {
-      margin: 0;
-      font-size: 1rem;
-      color: #EAF4FF;
-    }
-
-    .app-modal-message {
-      margin: 0.55rem 0 0;
-      color: #AFC0CF;
-      line-height: 1.45;
-      font-size: 0.92rem;
-    }
-
-    .app-modal-input {
-      width: 100%;
-      margin-top: 0.75rem;
-      border: 1px solid #2A5E82;
-      background: #0D2132;
-      color: #D7E6F2;
-      border-radius: 8px;
-      padding: 0.55rem 0.65rem;
-      font-size: 0.9rem;
-      outline: none;
-    }
-
-    .app-modal-input:focus {
-      border-color: #53B7E8;
-      box-shadow: 0 0 0 2px rgba(83, 183, 232, 0.2);
-    }
-
-    .app-modal-actions {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-    }
-
-    .btn-modal {
-      border: 1px solid #2A5E82;
-      background: #0D2132;
-      color: #D7E6F2;
-      border-radius: 8px;
-      padding: 0.4rem 0.75rem;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
-
-    .btn-modal:hover,
-    .btn-modal:focus {
-      border-color: #53B7E8;
-      outline: none;
-    }
-
-    .btn-modal-primary {
-      border-color: #0EA5C6;
-      background: linear-gradient(135deg, #149FC9, #1577B0);
-      color: #EAF7FF;
-    }
-
-    .btn-modal-primary:hover,
-    .btn-modal-primary:focus {
-      border-color: #6AD4F1;
-      filter: brightness(1.05);
-    }
-
-    @media (max-width: 1100px) {
-      .notes-grid {
-        grid-template-columns: 240px 1fr;
-      }
-    }
-
-    @media (max-width: 900px) {
-          .main { padding: 1rem 0.9rem 5.4rem; }
-          body.nav-position-top .main { padding-bottom: 1rem; }
-      .notes-grid {
-        grid-template-columns: 1fr;
-      }
-      .editor-body { min-height: 300px; }
-      .editor-actions {
-        flex-wrap: wrap;
-      }
     }
   </style>
 </head>
-    <body class="nav-position-{{ nav_layout|default:'top' }}">
+<body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
     <aside class="sidebar">
       <div>
@@ -709,165 +979,253 @@
     </aside>
 
     <main class="main">
-      <h1 class="title-inline">Notes <span class="title-blurb">Apple Notes style structure: categories, note list, and focused writing space.</span></h1>
+      <div class="notes-topbar">
+        <h1 class="notes-title">Notes <span style="font-size:0.86rem;color:#9EB0C2;font-weight:500;">Categories, list, and focused editor</span></h1>
+        <div class="notes-mobile-tools">
+          <button type="button" class="mobile-icon-btn" id="open-categories-btn" aria-label="Open categories">Categories</button>
+          <button type="button" class="mobile-icon-btn" id="open-new-note-btn" aria-label="Create note">New</button>
+        </div>
+      </div>
 
-      <section class="notes-grid">
-        <aside class="panel left-panel">
-          <div>
-            <h2 class="panel-label">Categories</h2>
-            <div class="mini-form" style="margin-top:0.45rem;">
-              <form method="post" class="mini-form" action="{% url 'notes' %}">
-                {% csrf_token %}
-                <input type="hidden" name="notes_action" value="create_category">
-                <input type="text" name="category_name" maxlength="40" placeholder="New category" aria-label="New category name">
-                <button type="submit" class="mini-btn">Add</button>
-              </form>
+      <section class="notes-shell">
+        <aside class="section-pane categories-pane" id="categories-pane">
+          <header class="pane-head">
+            <div class="pane-title-row">
+              <h2 class="pane-title"><span class="category-icon" aria-hidden="true">F</span> Categories</h2>
+              <button type="button" class="pill-btn" id="category-add-btn">+ Category</button>
             </div>
-          </div>
-
-          <div>
-            <h2 class="panel-label">Search</h2>
-            <form method="get" class="search-form" style="margin-top:0.45rem;">
-              {% if selected_category_id %}
-                <input type="hidden" name="category" value="{{ selected_category_id }}">
+            <form method="get" style="display:grid;gap:0.45rem;">
+              {% if selected_note %}
+                <input type="hidden" name="note" value="{{ selected_note.id }}">
               {% endif %}
-              <input class="search-input" type="search" name="q" value="{{ search_query }}" placeholder="Search title or content" aria-label="Search notes">
-              <button type="submit" class="mini-btn">Go</button>
+              <input class="ios-search" type="search" name="q" value="{{ search_query }}" placeholder="Search categories and notes" aria-label="Search notes">
             </form>
-          </div>
+          </header>
 
-          <div class="filter-list scroll" aria-label="Category filters">
-            <a class="filter-link {% if not selected_category_id %}active{% endif %}" href="{% url 'notes' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}">All notes</a>
-            {% for category in categories %}
-              <a class="filter-link {% if selected_category_id == category.id|stringformat:'s' %}active{% endif %}" href="{% url 'notes' %}?category={{ category.id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">{{ category.name }}</a>
-            {% endfor %}
-          </div>
-
-          <div>
-            <h2 class="panel-label">New note</h2>
-            <form method="post" class="mini-form" action="{% url 'notes' %}" style="margin-top:0.45rem; display:grid; gap:0.45rem;">
-              {% csrf_token %}
-              <input type="hidden" name="notes_action" value="create_note">
-              <input type="text" name="new_note_title" maxlength="140" placeholder="Untitled note" aria-label="New note title">
-              <select name="category_id" aria-label="Assign category">
-                <option value="">No category</option>
-                {% for category in categories %}
-                  <option value="{{ category.id }}" {% if selected_category_id == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="mini-btn">Create</button>
-            </form>
-          </div>
-
-          <div>
-            <h2 class="panel-label">Notes</h2>
-            <div class="note-list scroll" style="margin-top:0.45rem; max-height:32vh;">
-              {% for note in notes %}
-                <div class="note-row">
-                  <a class="note-link {% if selected_note and selected_note.id == note.id %}active{% endif %}" href="{% url 'notes' %}?note={{ note.id }}{% if selected_category_id %}&category={{ selected_category_id }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
-                    <strong>{% if note.is_pinned %}Pinned: {% endif %}{{ note.title }}</strong><br>
-                    <small style="color:#9eb0c2;">{{ note.updated_at|date:"M d, Y H:i" }}</small>
-                  </a>
-                  <form method="post" action="{% url 'notes' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="notes_action" value="toggle_pin">
-                    <input type="hidden" name="note_id" value="{{ note.id }}">
-                    <button type="submit" class="pin-btn" aria-label="{% if note.is_pinned %}Unpin{% else %}Pin{% endif %} {{ note.title }}">{% if note.is_pinned %}★{% else %}☆{% endif %}</button>
-                  </form>
-                </div>
-              {% empty %}
-                <div class="note-link">No notes yet.</div>
-              {% endfor %}
+          <div class="pane-scroll">
+            <div class="category-block-label">System</div>
+            <div class="category-list">
+              <article class="category-item {% if not selected_category_id %}active{% endif %}">
+                <a class="category-link" href="{% url 'notes' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}">
+                  <span class="category-icon" aria-hidden="true">A</span>
+                  <strong>All Notes</strong>
+                </a>
+              </article>
             </div>
+
+            {% if categories %}
+              <div class="category-block-label">My Categories</div>
+              <div class="category-list">
+                {% for category in categories %}
+                  <article class="category-item {% if selected_category_id == category.id|stringformat:'s' %}active{% endif %}">
+                    <a class="category-link" href="{% url 'notes' %}?category={{ category.id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
+                      <span class="category-icon" aria-hidden="true">{% cycle 'T' 'S' 'F' 'K' %}</span>
+                      <strong>{{ category.name }}</strong>
+                    </a>
+                    <div class="category-delete-row">
+                      <form method="post" action="{% url 'notes' %}" onsubmit="return window.confirm('Delete this category and unassign its notes?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="notes_action" value="delete_category">
+                        <input type="hidden" name="category_id" value="{{ category.id }}">
+                        <button class="tiny-icon-btn" type="submit" aria-label="Delete {{ category.name }}" title="Delete category">x</button>
+                      </form>
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
         </aside>
 
-        <section class="panel editor-panel">
-          {% if selected_note %}
-            <form id="note-editor-form" method="post" action="{% url 'notes' %}" style="display:flex; flex-direction:column; gap:0.8rem; flex:1; min-height:0;">
-              {% csrf_token %}
-              <input type="hidden" name="notes_action" value="save_note">
-              <input type="hidden" name="note_id" value="{{ selected_note.id }}">
-
-              <div class="editor-top">
-                <input class="editor-field editor-title" type="text" name="title" maxlength="140" value="{{ selected_note.title }}" aria-label="Note title">
-                <select class="editor-field" name="category_id" style="max-width:240px;">
-                  <option value="">No category</option>
-                  {% for category in categories %}
-                    <option value="{{ category.id }}" {% if selected_note.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
-                  {% endfor %}
-                </select>
+        <section class="section-pane notes-pane">
+          <header class="pane-head">
+            <div class="pane-title-row">
+              <h2 class="pane-title"><span class="category-icon" aria-hidden="true">N</span> Notes</h2>
+              <div class="new-note-actions">
+                <button type="button" class="pill-btn" id="new-note-btn">+ New Note</button>
               </div>
-
-              <div class="rich-toolbar" aria-label="Rich text controls">
-                <button type="button" class="rich-btn" data-cmd="bold" title="Bold">B</button>
-                <button type="button" class="rich-btn" data-cmd="italic" title="Italic">I</button>
-                <button type="button" class="rich-btn" data-cmd="underline" title="Underline">U</button>
-                <button type="button" class="rich-btn" data-cmd="insertUnorderedList" title="Bulleted list">List</button>
-                <button type="button" class="rich-btn" data-cmd="formatBlock" data-value="<h3>" title="Heading">H3</button>
-                <button type="button" class="rich-btn" data-cmd="createLink" title="Insert link">Link</button>
-                <button type="button" class="rich-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
-              </div>
-
-              <div id="rich-editor" class="editor-field editor-body" contenteditable="true" aria-label="Note content editor"></div>
-              <input type="hidden" name="body" id="id_body_html">
-            </form>
-
-            <div class="editor-actions">
-              <button type="submit" class="mini-btn" form="note-editor-form">Save note</button>
-              <form method="post" action="{% url 'notes' %}">
-                {% csrf_token %}
-                <input type="hidden" name="notes_action" value="toggle_pin">
-                <input type="hidden" name="note_id" value="{{ selected_note.id }}">
-                <button type="submit" class="mini-btn">{% if selected_note.is_pinned %}Unpin{% else %}Pin{% endif %} note</button>
-              </form>
-              <form method="post" action="{% url 'notes' %}" onsubmit="return confirm('Delete this note?');">
-                {% csrf_token %}
-                <input type="hidden" name="notes_action" value="delete_note">
-                <input type="hidden" name="note_id" value="{{ selected_note.id }}">
-                <button type="submit" class="mini-btn danger-btn">Delete note</button>
-              </form>
-              {% if selected_note.category_id %}
-                <form method="post" action="{% url 'notes' %}" onsubmit="return confirm('Delete category and unassign all its notes?');">
-                  {% csrf_token %}
-                  <input type="hidden" name="notes_action" value="delete_category">
-                  <input type="hidden" name="category_id" value="{{ selected_note.category_id }}">
-                  <button type="submit" class="mini-btn danger-btn">Delete category</button>
-                </form>
-              {% endif %}
             </div>
-          {% else %}
-            <div class="editor-empty">
-              <p>
-                {% if search_query %}
-                  No notes matched your search. Try a different query or create a new note.
-                {% else %}
-                  Select a note from the left or create a new one.
-                {% endif %}
-              </p>
-              <form method="post" action="{% url 'notes' %}" class="mini-form">
-                {% csrf_token %}
-                <input type="hidden" name="notes_action" value="create_note">
-                <input type="text" name="new_note_title" maxlength="140" placeholder="Untitled note" aria-label="New note title">
-                <input type="hidden" name="category_id" value="{{ selected_category_id }}">
-                <button type="submit" class="mini-btn">Create note</button>
-              </form>
+            <div style="color:#92A6B9;font-size:0.76rem;line-height:1.35;">Select a note to open the editor panel.</div>
+          </header>
+
+          <div class="pane-scroll">
+            <div class="note-list">
+              {% for note in notes %}
+                <article class="note-item {% if selected_note and selected_note.id == note.id %}active{% endif %}">
+                  <a class="note-link" href="{% url 'notes' %}?note={{ note.id }}{% if selected_category_id %}&category={{ selected_category_id }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
+                    <div class="note-head">
+                      <span class="note-title">{{ note.title }}</span>
+                      <span class="note-pin" aria-hidden="true">{% if note.is_pinned %}★{% else %}☆{% endif %}</span>
+                    </div>
+                    <p class="note-preview">{{ note.body|striptags|default:'No content yet.'|truncatechars:140 }}</p>
+                    <span class="note-meta">{{ note.updated_at|date:"M d, Y H:i" }}</span>
+                  </a>
+                </article>
+              {% empty %}
+                <article class="note-item">
+                  <div class="note-link">
+                    <div class="note-title">No notes yet</div>
+                    <p class="note-preview">Use New Note to get started.</p>
+                  </div>
+                </article>
+              {% endfor %}
             </div>
-          {% endif %}
+          </div>
         </section>
       </section>
     </main>
   </div>
 
-  <div class="app-modal" id="link-modal" hidden>
-    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="link-modal-title" aria-describedby="link-modal-message">
-      <h2 class="app-modal-title" id="link-modal-title">Insert link</h2>
-      <p class="app-modal-message" id="link-modal-message">Enter a URL for the selected text.</p>
-      <form id="link-modal-form">
-        <input type="url" class="app-modal-input" id="link-modal-url-input" placeholder="https://example.com" aria-label="Link URL">
-        <div class="app-modal-actions">
-          <button type="button" class="btn-modal" id="link-modal-cancel-btn">Cancel</button>
-          <button type="submit" class="btn-modal btn-modal-primary" id="link-modal-confirm-btn">Insert</button>
+  <div class="drawer-backdrop" id="notes-backdrop"></div>
+
+  <aside class="editor-drawer {% if selected_note %}active{% endif %}" id="notes-editor-drawer" aria-modal="true" role="dialog" aria-label="Note editor">
+    <div class="editor-handle" id="editor-handle" aria-hidden="true"></div>
+    <header class="editor-head">
+      <div class="editor-head-top">
+        <p class="editor-label">Note Editor</p>
+        <button type="button" class="editor-close-btn" id="editor-close-btn" aria-label="Close editor">x</button>
+      </div>
+
+      <div class="editor-toolbar" aria-label="Rich text controls">
+        <button type="button" class="tool-btn" data-cmd="bold" title="Bold">B</button>
+        <button type="button" class="tool-btn" data-cmd="italic" title="Italic">I</button>
+        <button type="button" class="tool-btn" data-cmd="underline" title="Underline">U</button>
+        <button type="button" class="tool-btn" data-cmd="insertUnorderedList" title="Bulleted list">List</button>
+        <button type="button" class="tool-btn" data-cmd="formatBlock" data-value="<h3>" title="Heading">H3</button>
+        <button type="button" class="tool-btn" data-cmd="createLink" title="Insert link">Link</button>
+        <button type="button" class="tool-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+      </div>
+
+      <div class="editor-actions">
+        {% if selected_note %}
+          <button type="submit" class="pill-btn" form="note-editor-form">Save</button>
+          <form method="post" action="{% url 'notes' %}">
+            {% csrf_token %}
+            <input type="hidden" name="notes_action" value="toggle_pin">
+            <input type="hidden" name="note_id" value="{{ selected_note.id }}">
+            <button type="submit" class="pill-btn">{% if selected_note.is_pinned %}Unpin{% else %}Pin{% endif %}</button>
+          </form>
+          <form method="post" action="{% url 'notes' %}" onsubmit="return window.confirm('Delete this note?');">
+            {% csrf_token %}
+            <input type="hidden" name="notes_action" value="delete_note">
+            <input type="hidden" name="note_id" value="{{ selected_note.id }}">
+            <button type="submit" class="pill-btn warn">Delete</button>
+          </form>
+        {% endif %}
+      </div>
+    </header>
+
+    {% if selected_note %}
+      <form id="note-editor-form" class="editor-form" method="post" action="{% url 'notes' %}">
+        {% csrf_token %}
+        <input type="hidden" name="notes_action" value="save_note">
+        <input type="hidden" name="note_id" value="{{ selected_note.id }}">
+
+        <input class="editor-field editor-title" type="text" name="title" maxlength="140" value="{{ selected_note.title }}" aria-label="Note title">
+
+        <select class="editor-field" name="category_id" aria-label="Assign category">
+          <option value="">No category</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if selected_note.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+
+        <div id="rich-editor" class="editor-field editor-body" contenteditable="true" aria-label="Note body"></div>
+        <input type="hidden" name="body" id="id_body_html">
+      </form>
+    {% else %}
+      <div class="editor-form">
+        <div class="editor-empty">
+          <p>
+            {% if search_query %}
+              No note selected from your filtered list. Create one with New Note.
+            {% else %}
+              Select a note from the list to start writing.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    {% endif %}
+  </aside>
+
+  <aside class="editor-drawer" id="categories-drawer" aria-modal="true" role="dialog" aria-label="Categories drawer" style="right:auto;left:0;transform:translateX(-100%);border-left:none;border-right:1px solid rgba(53,84,109,0.95);width:min(86vw,360px);min-width:0;">
+    <div class="editor-handle" aria-hidden="true"></div>
+    <header class="editor-head">
+      <div class="editor-head-top">
+        <p class="editor-label">Categories</p>
+        <button type="button" class="editor-close-btn" id="categories-close-btn" aria-label="Close categories">x</button>
+      </div>
+      <button type="button" class="pill-btn" id="category-add-btn-mobile">+ Category</button>
+    </header>
+    <div class="editor-form" style="padding-top:0.6rem;">
+      <div class="pane-scroll" style="padding:0;">
+        <div class="category-list">
+          <article class="category-item {% if not selected_category_id %}active{% endif %}">
+            <a class="category-link" href="{% url 'notes' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}">
+              <span class="category-icon" aria-hidden="true">A</span>
+              <strong>All Notes</strong>
+            </a>
+          </article>
+          {% for category in categories %}
+            <article class="category-item {% if selected_category_id == category.id|stringformat:'s' %}active{% endif %}">
+              <a class="category-link" href="{% url 'notes' %}?category={{ category.id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
+                <span class="category-icon" aria-hidden="true">{% cycle 'T' 'S' 'F' 'K' %}</span>
+                <strong>{{ category.name }}</strong>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="dialog" id="new-category-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="new-category-title">
+      <h2 class="dialog-title" id="new-category-title">Create category</h2>
+      <p class="dialog-message">Add a category name to organize your notes.</p>
+      <form method="post" action="{% url 'notes' %}" id="new-category-form">
+        {% csrf_token %}
+        <input type="hidden" name="notes_action" value="create_category">
+        <input class="dialog-input" type="text" name="category_name" maxlength="40" placeholder="Category name" required>
+        <div class="dialog-actions">
+          <button type="button" class="dialog-btn" id="cancel-category-btn">Cancel</button>
+          <button type="submit" class="dialog-btn primary">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="dialog" id="new-note-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="new-note-title">
+      <h2 class="dialog-title" id="new-note-title">New note</h2>
+      <p class="dialog-message">Create a note and optionally assign a category.</p>
+      <form method="post" action="{% url 'notes' %}" id="new-note-form">
+        {% csrf_token %}
+        <input type="hidden" name="notes_action" value="create_note">
+        <input class="dialog-input" type="text" name="new_note_title" maxlength="140" placeholder="Untitled note">
+        <select class="dialog-input" name="category_id" style="margin-top:0.55rem;">
+          <option value="">No category</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if selected_category_id == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+        <div class="dialog-actions">
+          <button type="button" class="dialog-btn" id="cancel-note-btn">Cancel</button>
+          <button type="submit" class="dialog-btn primary">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="dialog" id="link-dialog" hidden>
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="link-title">
+      <h2 class="dialog-title" id="link-title">Insert link</h2>
+      <p class="dialog-message">Enter a URL for the selected text.</p>
+      <form id="link-form">
+        <input type="url" class="dialog-input" id="link-url-input" placeholder="https://example.com" aria-label="Link URL">
+        <div class="dialog-actions">
+          <button type="button" class="dialog-btn" id="link-cancel-btn">Cancel</button>
+          <button type="submit" class="dialog-btn primary">Insert</button>
         </div>
       </form>
     </div>
@@ -878,47 +1236,47 @@
       (function () {
         const editor = document.getElementById('rich-editor');
         const hiddenBodyInput = document.getElementById('id_body_html');
-        const saveForm = hiddenBodyInput ? hiddenBodyInput.closest('form') : null;
-        const toolbarButtons = Array.from(document.querySelectorAll('.rich-btn'));
+        const saveForm = document.getElementById('note-editor-form');
+        const toolbarButtons = Array.from(document.querySelectorAll('.tool-btn'));
         const initialBody = '{{ selected_note.body|escapejs }}';
-        const linkModal = document.getElementById('link-modal');
-        const linkModalForm = document.getElementById('link-modal-form');
-        const linkModalUrlInput = document.getElementById('link-modal-url-input');
-        const linkModalCancelBtn = document.getElementById('link-modal-cancel-btn');
+        const linkDialog = document.getElementById('link-dialog');
+        const linkForm = document.getElementById('link-form');
+        const linkInput = document.getElementById('link-url-input');
+        const linkCancelBtn = document.getElementById('link-cancel-btn');
         let savedRange = null;
 
-        function closeLinkModal() {
-          if (!linkModal) return;
-          linkModal.hidden = true;
+        function closeLinkDialog() {
+          if (!linkDialog) return;
+          linkDialog.hidden = true;
         }
 
-        function openLinkModal() {
-          if (!linkModal || !editor) return;
+        function openLinkDialog() {
+          if (!linkDialog || !editor) return;
           const selection = window.getSelection();
           if (selection && selection.rangeCount > 0) {
             savedRange = selection.getRangeAt(0).cloneRange();
           }
-          linkModal.hidden = false;
-          if (linkModalUrlInput) {
-            linkModalUrlInput.value = '';
-            linkModalUrlInput.focus();
+          linkDialog.hidden = false;
+          if (linkInput) {
+            linkInput.value = '';
+            linkInput.focus();
           }
         }
 
-        function applyLinkFromModal() {
-          if (!editor || !linkModalUrlInput) {
-            closeLinkModal();
+        function applyLink() {
+          if (!editor || !linkInput) {
+            closeLinkDialog();
             return;
           }
 
-          let enteredUrl = linkModalUrlInput.value.trim();
+          let enteredUrl = linkInput.value.trim();
           if (!enteredUrl) {
-            closeLinkModal();
+            closeLinkDialog();
             return;
           }
 
           if (!/^(https?:\/\/|mailto:|tel:)/i.test(enteredUrl)) {
-            enteredUrl = `https://${enteredUrl}`;
+            enteredUrl = 'https://' + enteredUrl;
           }
 
           editor.focus();
@@ -928,12 +1286,11 @@
             selection.addRange(savedRange);
           }
           document.execCommand('createLink', false, enteredUrl);
-          closeLinkModal();
+          closeLinkDialog();
         }
 
         if (editor) {
           editor.innerHTML = initialBody || '<p><br></p>';
-          editor.focus();
         }
 
         toolbarButtons.forEach(function (button) {
@@ -943,35 +1300,35 @@
             const cmd = button.getAttribute('data-cmd');
             const fixedValue = button.getAttribute('data-value') || null;
             if (cmd === 'createLink') {
-              openLinkModal();
+              openLinkDialog();
               return;
             }
             document.execCommand(cmd, false, fixedValue);
           });
         });
 
-        if (linkModalCancelBtn) {
-          linkModalCancelBtn.addEventListener('click', closeLinkModal);
+        if (linkCancelBtn) {
+          linkCancelBtn.addEventListener('click', closeLinkDialog);
         }
 
-        if (linkModalForm) {
-          linkModalForm.addEventListener('submit', function (event) {
+        if (linkForm) {
+          linkForm.addEventListener('submit', function (event) {
             event.preventDefault();
-            applyLinkFromModal();
+            applyLink();
           });
         }
 
-        if (linkModal) {
-          linkModal.addEventListener('click', function (event) {
-            if (event.target === linkModal) {
-              closeLinkModal();
+        if (linkDialog) {
+          linkDialog.addEventListener('click', function (event) {
+            if (event.target === linkDialog) {
+              closeLinkDialog();
             }
           });
         }
 
         document.addEventListener('keydown', function (event) {
-          if (event.key === 'Escape' && linkModal && !linkModal.hidden) {
-            closeLinkModal();
+          if (event.key === 'Escape' && linkDialog && !linkDialog.hidden) {
+            closeLinkDialog();
           }
         });
 
@@ -986,6 +1343,196 @@
 
   <script>
     (function () {
+      const editorDrawer = document.getElementById('notes-editor-drawer');
+      const categoriesDrawer = document.getElementById('categories-drawer');
+      const backdrop = document.getElementById('notes-backdrop');
+      const closeEditorBtn = document.getElementById('editor-close-btn');
+      const openCategoriesBtn = document.getElementById('open-categories-btn');
+      const closeCategoriesBtn = document.getElementById('categories-close-btn');
+      const categoryAddBtn = document.getElementById('category-add-btn');
+      const categoryAddBtnMobile = document.getElementById('category-add-btn-mobile');
+      const newNoteBtn = document.getElementById('new-note-btn');
+      const openNewNoteBtn = document.getElementById('open-new-note-btn');
+      const noteLinks = Array.from(document.querySelectorAll('.note-link'));
+      const newCategoryDialog = document.getElementById('new-category-dialog');
+      const newNoteDialog = document.getElementById('new-note-dialog');
+      const cancelCategoryBtn = document.getElementById('cancel-category-btn');
+      const cancelNoteBtn = document.getElementById('cancel-note-btn');
+      const editorHandle = document.getElementById('editor-handle');
+      let touchStartY = null;
+      let touchCurrentY = null;
+
+      function setBackdropVisible(visible) {
+        if (!backdrop) return;
+        if (visible) {
+          backdrop.classList.add('active');
+        } else {
+          backdrop.classList.remove('active');
+        }
+      }
+
+      function openEditor() {
+        if (!editorDrawer) return;
+        editorDrawer.classList.add('active');
+        setBackdropVisible(true);
+      }
+
+      function closeEditor() {
+        if (!editorDrawer) return;
+        editorDrawer.classList.remove('active');
+        if (!(categoriesDrawer && categoriesDrawer.classList.contains('active'))) {
+          setBackdropVisible(false);
+        }
+      }
+
+      function openCategories() {
+        if (!categoriesDrawer) return;
+        categoriesDrawer.classList.add('active');
+        categoriesDrawer.style.transform = 'translateX(0)';
+        setBackdropVisible(true);
+      }
+
+      function closeCategories() {
+        if (!categoriesDrawer) return;
+        categoriesDrawer.classList.remove('active');
+        categoriesDrawer.style.transform = 'translateX(-100%)';
+        if (!(editorDrawer && editorDrawer.classList.contains('active'))) {
+          setBackdropVisible(false);
+        }
+      }
+
+      function openDialog(el) {
+        if (!el) return;
+        el.hidden = false;
+        const input = el.querySelector('input, select');
+        if (input) input.focus();
+      }
+
+      function closeDialog(el) {
+        if (!el) return;
+        el.hidden = true;
+      }
+
+      if (closeEditorBtn) {
+        closeEditorBtn.addEventListener('click', closeEditor);
+      }
+
+      if (backdrop) {
+        backdrop.addEventListener('click', function () {
+          closeEditor();
+          closeCategories();
+        });
+      }
+
+      if (openCategoriesBtn) {
+        openCategoriesBtn.addEventListener('click', openCategories);
+      }
+
+      if (closeCategoriesBtn) {
+        closeCategoriesBtn.addEventListener('click', closeCategories);
+      }
+
+      if (categoryAddBtn) {
+        categoryAddBtn.addEventListener('click', function () {
+          openDialog(newCategoryDialog);
+        });
+      }
+
+      if (categoryAddBtnMobile) {
+        categoryAddBtnMobile.addEventListener('click', function () {
+          openDialog(newCategoryDialog);
+        });
+      }
+
+      if (newNoteBtn) {
+        newNoteBtn.addEventListener('click', function () {
+          openDialog(newNoteDialog);
+        });
+      }
+
+      if (openNewNoteBtn) {
+        openNewNoteBtn.addEventListener('click', function () {
+          openDialog(newNoteDialog);
+        });
+      }
+
+      if (cancelCategoryBtn) {
+        cancelCategoryBtn.addEventListener('click', function () {
+          closeDialog(newCategoryDialog);
+        });
+      }
+
+      if (cancelNoteBtn) {
+        cancelNoteBtn.addEventListener('click', function () {
+          closeDialog(newNoteDialog);
+        });
+      }
+
+      [newCategoryDialog, newNoteDialog].forEach(function (dialogEl) {
+        if (!dialogEl) return;
+        dialogEl.addEventListener('click', function (event) {
+          if (event.target === dialogEl) {
+            closeDialog(dialogEl);
+          }
+        });
+      });
+
+      noteLinks.forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (window.matchMedia('(max-width: 1250px)').matches) {
+            setBackdropVisible(true);
+          }
+        });
+      });
+
+      if (editorDrawer && editorDrawer.classList.contains('active')) {
+        setBackdropVisible(true);
+      }
+
+      if (editorHandle) {
+        editorHandle.addEventListener('touchstart', function (event) {
+          if (!event.touches || event.touches.length === 0) {
+            return;
+          }
+          touchStartY = event.touches[0].clientY;
+          touchCurrentY = touchStartY;
+        }, { passive: true });
+
+        editorHandle.addEventListener('touchmove', function (event) {
+          if (!event.touches || event.touches.length === 0 || touchStartY === null) {
+            return;
+          }
+          touchCurrentY = event.touches[0].clientY;
+        }, { passive: true });
+
+        editorHandle.addEventListener('touchend', function () {
+          if (touchStartY === null || touchCurrentY === null) {
+            touchStartY = null;
+            touchCurrentY = null;
+            return;
+          }
+
+          const deltaY = touchCurrentY - touchStartY;
+          if (deltaY > 70) {
+            closeEditor();
+          }
+
+          touchStartY = null;
+          touchCurrentY = null;
+        });
+      }
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          closeDialog(newCategoryDialog);
+          closeDialog(newNoteDialog);
+          closeEditor();
+          closeCategories();
+        }
+      });
+    })();
+
+    (function () {
       const el = document.querySelector('.js-sidebar-datetime');
       if (!el) return;
 
@@ -997,7 +1544,7 @@
         const timePart = now.toLocaleTimeString('en-GB', {
           hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
         });
-        el.textContent = `${datePart} | ${timePart}`;
+        el.textContent = datePart + ' | ' + timePart;
       }
 
       updateSidebarDateTime();

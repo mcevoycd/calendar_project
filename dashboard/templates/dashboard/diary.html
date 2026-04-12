@@ -827,6 +827,38 @@
       color: #F6C35C;
     }
 
+    .diary-event-trash-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 18px;
+      height: 18px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: rgba(6, 17, 30, 0.7);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s, color 0.15s;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .fc-event:hover .diary-event-trash-btn,
+    .fc-event:focus-within .diary-event-trash-btn {
+      opacity: 1;
+    }
+    .diary-event-trash-btn:hover,
+    .diary-event-trash-btn:focus {
+      background: rgba(251, 113, 133, 0.35);
+      color: #FB7185;
+      opacity: 1;
+      outline: none;
+    }
+
     .fc .fc-daygrid-day-frame {
       min-height: 118px;
     }
@@ -1311,6 +1343,8 @@
   <aside id="diary-panel" class="diary-panel" aria-modal="true" role="dialog">
     <button class="diary-panel-close" id="diary-panel-close" aria-label="Close">&times;</button>
     <form id="diary-entry-form" method="post" action="{% url 'add_diary_entry' %}">
+            <input type="hidden" name="redirect_date" id="diary-delete-redirect-date">
+          <input type="hidden" name="entry_id" id="entry-id-input">
         <input type="hidden" id="calendar-view-type" name="calendar_view" value="">
         <input type="hidden" id="calendar-view-date" name="calendar_date" value="">
       {% csrf_token %}
@@ -1351,6 +1385,32 @@
       </div>
       <!-- Optional: tags, colors, attachments hooks here -->
       <button type="submit" class="btn btn-primary w-100 mt-3">Save Entry</button>
+                <button
+                  type="submit"
+                  formmethod="post"
+                  formaction="{% url 'delete_diary_entry' %}"
+                  formnovalidate
+                  class="diary-delete-btn"
+                  id="diary-delete-btn"
+                  style="display:none; margin-top: 0.5rem;"
+                  aria-label="Delete diary entry"
+                  title="Delete diary entry"
+                >
+                  Delete
+                </button>
+      <button
+        type="submit"
+        formmethod="post"
+        formaction="{% url 'delete_diary_entry' %}"
+        formnovalidate
+        class="diary-delete-btn btn btn-danger w-100 mt-2"
+        id="diary-delete-btn"
+        style="display:none;"
+        aria-label="Delete diary entry"
+        title="Delete diary entry"
+      >
+        Delete
+      </button>
     </form>
   </aside>
 
@@ -1605,11 +1665,11 @@
       }
 
       function setEditMode(editing) {
-        if (!submitButton || !cancelEditButton || !selectionHint || !entryIdInput) return;
+        if (!submitButton || !entryIdInput) return;
         submitButton.textContent = editing ? 'Update Diary Entry' : 'Add Diary Entry';
         cancelEditButton.style.display = editing ? 'inline-flex' : 'none';
         if (deleteButton) {
-          deleteButton.style.display = editing ? 'inline-flex' : 'none';
+          deleteButton.style.display = editing ? 'block' : 'none';
         }
         selectionHint.textContent = editing
           ? 'Editing existing entry. Update fields and click Update Diary Entry.'
@@ -1880,6 +1940,31 @@
               dot.style.display = 'none';
             }
           }
+
+          // Trash bin button for quick deletion
+          const trashBtn = document.createElement('button');
+          trashBtn.type = 'button';
+          trashBtn.className = 'diary-event-trash-btn';
+          trashBtn.setAttribute('aria-label', 'Delete diary entry');
+          trashBtn.setAttribute('title', 'Delete diary entry');
+          trashBtn.innerHTML = '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v8h-2V9zm4 0h2v8h-2V9zM7 9h2v8H7V9z"/></svg>';
+          trashBtn.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const confirmed = await showConfirmModal('Delete this diary entry?', 'Delete Diary Entry');
+            if (!confirmed) return;
+            const quickDeleteForm = document.getElementById('diary-quick-delete-form');
+            if (!quickDeleteForm) return;
+            document.getElementById('diary-quick-delete-entry-id').value = info.event.id;
+            document.getElementById('diary-quick-delete-redirect-date').value = info.event.start ? info.event.start.toISOString().slice(0, 10) : '';
+            if (window.calendar) {
+              document.getElementById('diary-quick-delete-view').value = window.calendar.view.type;
+              document.getElementById('diary-quick-delete-calendar-date').value = window.calendar.getDate().toISOString().slice(0, 10);
+            }
+            quickDeleteForm.submit();
+          });
+          info.el.style.position = 'relative';
+          info.el.appendChild(trashBtn);
         },
         eventClick: function (info) {
           loadEntryIntoForm({
@@ -2036,5 +2121,12 @@
       setInterval(updateSidebarDateTime, 1000);
     })();
   </script>
+  <form id="diary-quick-delete-form" method="post" action="{% url 'delete_diary_entry' %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="entry_id" id="diary-quick-delete-entry-id" value="">
+    <input type="hidden" name="redirect_date" id="diary-quick-delete-redirect-date" value="">
+    <input type="hidden" name="calendar_view" id="diary-quick-delete-view" value="">
+    <input type="hidden" name="calendar_date" id="diary-quick-delete-calendar-date" value="">
+  </form>
 </body>
 </html>
