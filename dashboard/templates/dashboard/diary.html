@@ -485,39 +485,6 @@
       display: flex;
     }
 
-    .diary-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
-      margin-top: 0.85rem;
-    }
-
-    .diary-legend-chip {
-      --chip-color: #38BDF8;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.28rem 0.72rem;
-      border-radius: 999px;
-      font-size: 0.74rem;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      background: color-mix(in srgb, var(--chip-color) 24%, #08131F);
-      border: 1px solid color-mix(in srgb, var(--chip-color) 52%, #1F4F70);
-      color: #DCE7F0;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    }
-
-    .diary-legend-chip::before {
-      content: '';
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 999px;
-      background: var(--chip-color);
-      box-shadow: 0 0 6px color-mix(in srgb, var(--chip-color) 45%, transparent);
-    }
-
     #calendar {
       min-height: 0;
       height: 100%;
@@ -1331,11 +1298,6 @@
       </div>
       <div class="content-grid">
         <div class="panel week-panel" style="grid-column: 1 / -1; width: 100%;">
-          <div class="diary-legend" aria-label="Diary category legend">
-            {% for category in diary_category_options %}
-              <span class="diary-legend-chip" style="--chip-color: {{ category.color }};">{{ category.label }}</span>
-            {% endfor %}
-          </div>
           <div class="calendar-wrapper">
             <div id="calendar"></div>
           </div>
