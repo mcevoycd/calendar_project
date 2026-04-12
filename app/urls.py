@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 from dashboard import views as dashboard_views
 
 urlpatterns = [
@@ -23,6 +24,6 @@ urlpatterns = [
     path('accounts/login/', dashboard_views.auth_view, name='login'),
     path('accounts/signup/', dashboard_views.signup_view, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', dashboard_views.dashboard_view, name='home'),
+    path('', RedirectView.as_view(url='/dashboard/', permanent=False), name='home'),
     path('', include('dashboard.urls')),
 ]
