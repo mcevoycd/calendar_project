@@ -636,7 +636,7 @@
 
     /* Calendar styling: Apple-like glass treatment */
     .fc {
-      color: #E5E7EB;
+      color: rgba(255, 255, 255, 0.9);
       font-family: inherit;
       --fc-border-color: transparent;
       --fc-page-bg-color: transparent;
@@ -676,10 +676,11 @@
     }
 
     .fc .fc-toolbar-title {
-      font-size: clamp(1.25rem, 1.2vw + 0.9rem, 1.38rem);
-      font-weight: 600;
+      font-size: clamp(1.25rem, 1vw + 1rem, 1.375rem);
+      font-weight: 650;
       letter-spacing: 0.01em;
-      color: #F4FBFF;
+      color: rgba(255, 255, 255, 0.98);
+      text-shadow: 0 2px 8px rgba(6, 12, 20, 0.45);
     }
 
     .fc .fc-toolbar-chunk {
@@ -692,12 +693,13 @@
     .fc .fc-button-primary {
       background: rgba(255, 255, 255, 0.1) !important;
       border: none !important;
-      color: #E7F1FB !important;
+      color: rgba(255, 255, 255, 0.86) !important;
       border-radius: 12px !important;
       padding: 0.52rem 0.92rem !important;
-      font-size: 0.88rem !important;
+      font-size: 0.92rem !important;
       font-weight: 600 !important;
       line-height: 1.2 !important;
+      text-shadow: 0 1px 3px rgba(6, 12, 20, 0.45);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
       transition: transform 0.18s ease, background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
     }
@@ -756,23 +758,32 @@
     .fc .fc-col-header-cell-cushion,
     .fc .fc-timegrid-axis-cushion,
     .fc .fc-timegrid-slot-label-cushion {
-      color: #BFD1E0;
+      color: rgba(255, 255, 255, 0.74);
       font-weight: 600;
       letter-spacing: 0.03em;
-      font-size: 0.76rem;
+      font-size: 0.8rem;
       text-transform: uppercase;
       text-decoration: none;
       padding: 0.28rem 0.2rem;
+      text-shadow: 0 1px 2px rgba(6, 12, 20, 0.35);
     }
 
     .fc .fc-daygrid-day-number {
-      color: #E9F2FA;
-      font-weight: 600;
-      font-size: 0.96rem;
+      color: rgba(255, 255, 255, 0.93);
+      font-weight: 550;
+      font-size: 1.04rem;
       text-decoration: none;
       border-radius: 999px;
       padding: 0.28rem 0.46rem;
       transition: background 0.2s ease, color 0.2s ease;
+      text-shadow: 0 1px 3px rgba(6, 12, 20, 0.45);
+    }
+
+    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number,
+    .fc .fc-timegrid-col.fc-day-today .fc-daygrid-day-number {
+      color: rgba(255, 255, 255, 1) !important;
+      font-weight: 650;
+      text-shadow: 0 0 10px rgba(173, 226, 255, 0.55), 0 1px 3px rgba(6, 12, 20, 0.45);
     }
 
     .fc .fc-daygrid-day:hover .fc-daygrid-day-number {
@@ -780,7 +791,8 @@
     }
 
     .fc .fc-day-other .fc-daygrid-day-number {
-      color: rgba(195, 212, 229, 0.68);
+      color: rgba(255, 255, 255, 0.36);
+      text-shadow: none;
     }
 
     .fc .fc-event,
@@ -808,12 +820,14 @@
     .fc .fc-event .fc-event-main,
     .fc .fc-event-title,
     .fc .fc-event-time {
-      color: var(--fc-event-text-color, #06111E);
-      font-size: 0.79rem;
+      color: rgba(255, 255, 255, 0.94) !important;
+      font-size: 0.86rem;
+      font-weight: 600;
       line-height: 1.25;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-shadow: 0 1px 3px rgba(6, 12, 20, 0.55);
     }
 
     .fc .fc-daygrid-dot-event {
@@ -821,8 +835,9 @@
       border-radius: 999px !important;
       padding: 0.14rem 0.52rem !important;
       background: var(--fc-event-bg-color, rgba(56, 189, 248, 0.88)) !important;
-      color: var(--fc-event-text-color, #06111E) !important;
+      color: rgba(255, 255, 255, 0.94) !important;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-shadow: 0 1px 3px rgba(6, 12, 20, 0.55);
     }
 
     .fc .fc-daygrid-dot-event .fc-event-dot,
@@ -953,18 +968,24 @@
       }
 
       .fc .fc-toolbar-title {
-        font-size: 1.34rem;
+        font-size: 1.4rem;
       }
 
       .fc .fc-button,
       .fc .fc-button-primary {
         min-height: 2.55rem;
-        font-size: 0.96rem !important;
+        font-size: 1rem !important;
         padding: 0.6rem 0.96rem !important;
       }
 
       .fc .fc-daygrid-day-number {
-        font-size: 1.02rem;
+        font-size: 1.08rem;
+      }
+
+      .fc .fc-event .fc-event-main,
+      .fc .fc-event-title,
+      .fc .fc-event-time {
+        font-size: 0.9rem;
       }
 
       .fc .fc-daygrid-day-frame {
@@ -992,14 +1013,18 @@
       }
 
       .fc .fc-toolbar-title {
-        font-size: 1.25rem;
+        font-size: 1.3rem;
       }
 
       .fc .fc-button,
       .fc .fc-button-primary {
         min-height: 2.65rem;
         min-width: 2.65rem;
-        font-size: 0.98rem !important;
+        font-size: 1rem !important;
+      }
+
+      .fc .fc-daygrid-day-number {
+        font-size: 1.02rem;
       }
 
       .fc .fc-daygrid-day-frame {
@@ -1015,7 +1040,7 @@
       .fc .fc-event .fc-event-main,
       .fc .fc-event-title,
       .fc .fc-event-time {
-        font-size: 0.83rem;
+        font-size: 0.88rem;
       }
     }
 
