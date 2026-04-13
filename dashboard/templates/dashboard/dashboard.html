@@ -2501,7 +2501,7 @@
             <h2 class="title-inline">Notes Hub <span class="title-blurb"><a href="{% url 'notes' %}">Open notes</a></span></h2>
             <div class="dashboard-notes-list" role="list" aria-label="Recent notes">
               {% for note in recent_notes %}
-                <a class="dashboard-notes-row" role="listitem" href="{% url 'notes' %}?note_id={{ note.id }}" aria-label="Open note {{ note.title }}">
+                <a class="dashboard-notes-row" role="listitem" href="{% url 'notes' %}?note={{ note.id }}" aria-label="Open note {{ note.title }}">
                   <span class="dashboard-notes-cat">{{ note.category.name|default:"Uncategorised" }}</span>
                   <span class="dashboard-notes-title">{{ note.title }}</span>
                 </a>
