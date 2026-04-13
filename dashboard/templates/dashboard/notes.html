@@ -18,6 +18,7 @@
       --border: rgba(24, 73, 108, 0.9);
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
       --page-bottom-gap: 16px;
+      --top-nav-height: 82px;
     }
 
     .section-topbar {
@@ -919,7 +920,7 @@
       }
     }
 
-    /* Unified responsive navigation: top bar on wider screens, bottom bar on smaller screens */
+    /* ── Unified top-bar navigation ─────────────────────────────── */
     body .app-shell {
       grid-template-columns: 1fr !important;
       height: 100vh;
@@ -931,106 +932,64 @@
       top: 0;
       z-index: 1000;
       width: 100%;
-      padding: 0.8rem 1.25rem !important;
-      border-right: none !important;
-      border-bottom: 1px solid rgba(0, 194, 255, 0.3);
-      background: rgba(10, 26, 42, 0.95);
-      backdrop-filter: blur(8px);
+      min-height: var(--top-nav-height);
+      padding: 0.7rem 1.15rem !important;
+      border: none !important;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px) saturate(145%);
+      -webkit-backdrop-filter: blur(14px) saturate(145%);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24), inset 0 -1px 0 rgba(255, 255, 255, 0.12);
       flex-direction: row;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.9rem;
+      justify-content: center;
+      gap: 0;
     }
 
     body .sidebar > div:first-child {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      min-width: 0;
-    }
-
-    body .brand-logo {
-      width: auto;
-      height: 46px;
-      max-width: none;
-      margin: 0;
-      border-radius: 10px;
-    }
-
-    body .brand-subtitle {
-      margin: 0;
-      font-size: 0.8rem;
-      white-space: nowrap;
-      color: #c9dae7;
+      display: none !important;
     }
 
     body .nav-group {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      gap: 0.55rem;
+      justify-content: space-between;
+      width: min(1240px, 100%);
+      gap: 0.7rem;
       margin: 0;
+      padding: 0;
     }
 
     body .nav-link {
-      padding: 0.58rem 0.95rem;
-      font-size: 0.92rem;
-      font-weight: 700;
-      border-radius: 11px;
-      min-width: 86px;
+      flex: 1 1 0;
+      padding: 0.92rem 1.15rem;
+      font-size: 1.05rem;
+      font-weight: 650;
+      border-radius: 999px;
+      min-width: 0;
       text-align: center;
       letter-spacing: 0.01em;
-    }
-
-    body.nav-position-top .brand-logo {
-      height: 64px;
-      border-radius: 10px;
-    }
-
-    body.nav-position-top .sidebar > div:first-child {
-      order: 2;
-      margin-left: auto;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    body.nav-position-top .nav-group {
-      order: 1;
-      margin-right: auto;
-      justify-content: flex-start;
-      gap: 0.35rem;
-      padding: 0;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-    }
-
-    body.nav-position-top .nav-link {
-      min-width: 92px;
-      padding: 0.52rem 0.9rem;
-      border-radius: 10px;
+      color: #E3EEF9;
       border: 1px solid transparent;
-      background: transparent;
-      color: #C9DAE7;
-      font-weight: 760;
-      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      background: rgba(255, 255, 255, 0.04);
+      transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease, transform 0.24s ease, box-shadow 0.24s ease;
     }
 
-    body.nav-position-top .nav-link:hover,
-    body.nav-position-top .nav-link:focus {
-      background: rgba(58, 96, 126, 0.28);
-      border-color: rgba(120, 154, 181, 0.5);
-      color: #EAF4FF;
-      transform: none;
+    body .nav-link:hover,
+    body .nav-link:focus {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.24);
+      color: #F8FBFF;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+      outline: none;
     }
 
-    body.nav-position-top .nav-link.active {
-      background: rgba(40, 84, 118, 0.42);
-      border-color: rgba(246, 195, 92, 0.55);
-      color: #F6C35C;
-      box-shadow: inset 0 -2px 0 #F6C35C;
-      transform: none;
+    body .nav-link.active {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(114, 199, 255, 0.22));
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #FFFFFF;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), inset 0 -2px 0 rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
     }
 
     body .sidebar-footer {
@@ -1038,143 +997,65 @@
     }
 
     body .main {
-      height: calc(100vh - 66px - var(--page-bottom-gap));
+      height: calc(100vh - var(--top-nav-height) - var(--page-bottom-gap));
       min-height: 0;
     }
 
     @media (max-width: 1180px) {
+      :root {
+        --top-nav-height: 88px;
+      }
+
       body {
-        padding-bottom: 80px;
+        padding-bottom: 0 !important;
       }
 
       body .sidebar {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: auto;
-        border-bottom: none;
-        border-top: 1px solid rgba(0, 194, 255, 0.3);
-        padding: 0.5rem 0.55rem !important;
-        justify-content: flex-start;
-      }
-
-      body .sidebar > div:first-child {
-        flex: 0 0 auto;
-        max-width: 40%;
-      }
-
-      body .brand-logo {
-        height: 30px;
-      }
-
-      body .brand-subtitle {
-        font-size: 0.68rem;
-        max-width: 110px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        position: sticky !important;
+        top: 0 !important;
+        bottom: auto !important;
+        justify-content: center !important;
+        padding: 0.65rem 0.85rem !important;
       }
 
       body .nav-group {
-        flex: 1;
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 0.32rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.55rem;
       }
 
       body .nav-link {
-        text-align: center;
-        padding: 0.42rem 0.2rem;
-        font-size: 0.74rem;
-        line-height: 1.15;
+        font-size: 1.14rem;
+        padding: 0.85rem 0.82rem;
       }
 
       body .main {
-        height: calc(100vh - 80px - var(--page-bottom-gap));
-      }
-
-      /* Force bottom navigation on smaller screens regardless of saved layout */
-      body.nav-position-top {
-        padding-bottom: 66px !important;
-      }
-
-      body.nav-position-top .sidebar {
-        position: fixed !important;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: auto !important;
-        border-bottom: none !important;
-        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
-        justify-content: space-between !important;
-      }
-
-      body.nav-position-top .main {
-        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+        height: calc(100vh - var(--top-nav-height) - var(--page-bottom-gap)) !important;
       }
     }
 
-    body.nav-position-top {
-      padding-bottom: 0 !important;
-    }
-
-    body.nav-position-top .sidebar {
-      position: sticky !important;
-      top: 0 !important;
-      bottom: auto !important;
-      border-top: none !important;
-      border-bottom: 1px solid rgba(0, 194, 255, 0.3) !important;
-      justify-content: space-between !important;
-    }
-
-    body.nav-position-top .main {
-      height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
-    }
-
-    body.nav-position-bottom {
-      padding-bottom: 66px !important;
-    }
-
-    body.nav-position-bottom .sidebar {
-      position: fixed !important;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      top: auto !important;
-      border-bottom: none !important;
-      border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
-      justify-content: space-between !important;
-    }
-
-    body.nav-position-bottom .sidebar > div:first-child {
-      position: static;
-      transform: none;
-      max-width: 40%;
-    }
-
-    body.nav-position-bottom .main {
-      height: calc(100vh - 66px - var(--page-bottom-gap)) !important;
-    }
-
-    @media (max-width: 1180px) {
-      /* Final override: always keep nav at the bottom on small screens */
-      body.nav-position-top {
-        padding-bottom: 66px !important;
+    @media (max-width: 600px) {
+      :root {
+        --top-nav-height: 140px;
       }
 
-      body.nav-position-top .sidebar {
-        position: fixed !important;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: auto !important;
-        border-bottom: none !important;
-        border-top: 1px solid rgba(0, 194, 255, 0.3) !important;
-        justify-content: space-between !important;
+      body .sidebar {
+        padding: 0.6rem 0.55rem !important;
       }
 
-      body.nav-position-top .main {
-        height: calc(100vh - 80px - var(--page-bottom-gap)) !important;
+      body .nav-group {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+
+      body .nav-link {
+        font-size: 1.16rem;
+        padding: 0.82rem 0.45rem;
+      }
+
+      body .main {
+        height: calc(100vh - var(--top-nav-height) - var(--page-bottom-gap)) !important;
       }
     }
   </style>
@@ -1182,11 +1063,6 @@
 <body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
     <aside class="sidebar">
-      <div>
-        <p class="brand-subtitle js-sidebar-datetime">Loading date and time...</p>
-        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
-      </div>
-
       <nav class="nav-group" aria-label="Main navigation">
         <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
@@ -2643,18 +2519,10 @@
     (function () {
       const bodyEl = document.body;
       if (!bodyEl) return;
-      const preferredLayout = bodyEl.classList.contains('nav-position-bottom') ? 'bottom' : 'top';
 
       function applyResponsiveNavLayout() {
-        const useBottomNav = window.matchMedia('(max-width: 1180px)').matches;
-        if (useBottomNav) {
-          bodyEl.classList.remove('nav-position-top');
-          bodyEl.classList.add('nav-position-bottom');
-          return;
-        }
-
         bodyEl.classList.remove('nav-position-top', 'nav-position-bottom');
-        bodyEl.classList.add(preferredLayout === 'bottom' ? 'nav-position-bottom' : 'nav-position-top');
+        bodyEl.classList.add('nav-position-top');
       }
 
       applyResponsiveNavLayout();
