@@ -1091,10 +1091,6 @@
     </aside>
 
     <main class="main">
-      <div class="section-topbar">
-        <h1 class="section-title">Canvas <span class="section-subtitle">Drop text boxes and connect related ideas for this week</span></h1>
-        <div class="week-chip">Current Week: {{ week_range_label }}</div>
-      </div>
       <section class="notes-panel">
         <form method="post" action="{% url 'canvas' %}" class="notes-form" id="notes-form">
           {% csrf_token %}
