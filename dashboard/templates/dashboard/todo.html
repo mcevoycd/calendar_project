@@ -401,7 +401,7 @@
       background: #1A3145;
       color: #D9E4EE;
       border-radius: 10px;
-      padding: 0.65rem 2rem 0.65rem 2rem;
+      padding: 0.65rem 3.8rem 0.65rem 2rem;
       font-size: 0.82rem;
       line-height: 1.35;
       cursor: pointer;
@@ -516,6 +516,31 @@
       box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.4);
     }
 
+    .todo-edit-btn {
+      position: absolute;
+      top: 0.35rem;
+      right: 1.95rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #8EA0B1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .todo-edit-btn:hover,
+    .todo-edit-btn:focus {
+      background: rgba(0, 194, 255, 0.18);
+      color: #00C2FF;
+      outline: none;
+    }
+
     .todo-delete-form {
       position: absolute;
       top: 0.35rem;
@@ -558,8 +583,29 @@
       outline: none;
     }
 
-    .todo-form-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .todo-form { margin-top: 0.9rem; display: grid; gap: 0.7rem; }
+    .todo-form-actions {
+      display: flex;
+      gap: 0.55rem;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 0.72rem;
+      flex-wrap: wrap;
+    }
+
+    .todo-form-actions .btn {
+      min-height: 42px;
+    }
+
+    #todo-submit-btn {
+      flex: 1;
+    }
+
+    .todo-form {
+      margin-top: 0.2rem;
+      display: grid;
+      gap: 0.72rem;
+      position: relative;
+    }
 
     .todo-form label {
       font-size: 0.8rem;
@@ -573,14 +619,14 @@
     .todo-form select,
     .todo-form textarea,
     .todo-settings-form input {
-      border: 1px solid #35546D;
-      background: #0A1A2A;
+      border: 1px solid rgba(44, 91, 124, 0.82);
+      background: #091624;
       color: #E5E7EB;
-      border-radius: 8px;
-      padding: 0.5rem 0.6rem;
+      border-radius: 10px;
+      padding: 0.6rem 0.68rem;
     }
 
-    .todo-form textarea { min-height: 100px; resize: vertical; }
+    .todo-form textarea { min-height: 120px; resize: vertical; }
 
     .todo-notes-tools {
       display: flex;
@@ -727,7 +773,9 @@
     .todo-panel-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(10, 20, 30, 0.65);
+      background: rgba(6, 17, 30, 0.62);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       z-index: 1200;
       opacity: 0;
       pointer-events: none;
@@ -741,36 +789,45 @@
 
     .todo-panel {
       position: fixed;
-      top: 0;
-      right: 0;
-      width: min(460px, 100vw);
-      height: 100vh;
-      background: var(--surface);
-      border-left: 1.5px solid var(--border);
-      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.32);
+      left: 50%;
+      top: 50%;
+      right: auto;
+      width: min(560px, calc(100vw - 2rem));
+      max-height: min(88vh, 740px);
+      height: auto;
+      background: rgba(14, 27, 42, 0.96);
+      border: 1px solid rgba(24, 73, 108, 0.9);
+      border-radius: 18px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
       z-index: 1300;
-      transform: translateX(100%);
-      transition: transform 0.35s cubic-bezier(.77, 0, .18, 1);
+      transform: translate(-50%, -46%) scale(0.98);
+      transition: transform 0.22s ease, opacity 0.22s ease;
+      opacity: 0;
+      pointer-events: none;
       display: flex;
       flex-direction: column;
-      padding: 1.25rem 1.25rem 1rem;
+      padding: 1.1rem 1.1rem 1rem;
       overflow-y: auto;
     }
 
     .todo-panel.active {
-      transform: translateX(0);
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .todo-panel-close {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
+      top: 0.78rem;
+      right: 0.92rem;
       background: none;
       border: none;
       color: var(--muted);
-      font-size: 2rem;
+      font-size: 1.7rem;
+      line-height: 1;
       cursor: pointer;
       transition: color 0.15s ease;
+      z-index: 1;
     }
 
     .todo-panel-close:hover,
@@ -780,44 +837,17 @@
     }
 
     .todo-panel-heading {
-      margin: 0.25rem 0 0;
+      margin: 0.1rem 0 0.2rem;
       color: var(--accent);
-      font-size: 1.55rem;
+      font-size: 1.3rem;
+      font-weight: 700;
     }
 
     .todo-panel-subtitle {
-      margin: 0.35rem 0 0.9rem;
+      margin: 0 0 0.85rem;
       color: #AFC0CF;
       font-size: 0.88rem;
-      line-height: 1.5;
-    }
-
-    .open-todo-panel-fab {
-      position: fixed;
-      right: 2rem;
-      bottom: 2rem;
-      z-index: 1100;
-      width: 60px;
-      height: 60px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(135deg, #00C2FF, #F6C35C);
-      color: #06111E;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.4rem;
-      font-weight: 700;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .open-todo-panel-fab:hover,
-    .open-todo-panel-fab:focus {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 34px rgba(0, 194, 255, 0.2);
-      outline: none;
+      line-height: 1.45;
     }
 
     @media (max-width: 1080px) {
@@ -826,7 +856,9 @@
       .content-grid { grid-template-columns: 1fr; }
       .todo-sections-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .todo-panel {
-        width: min(100vw, 460px);
+        width: min(92vw, 560px);
+        max-height: 90vh;
+        padding: 1rem;
       }
     }
 
@@ -835,15 +867,20 @@
       .topbar { flex-direction: column; align-items: stretch; }
       .todo-sections-grid { grid-template-columns: 1fr; }
       .todo-panel {
-        width: 100vw;
-        padding: 1rem 0.8rem 0.9rem;
+        width: calc(100vw - 1rem);
+        max-height: 92vh;
+        padding: 0.85rem;
+        border-radius: 14px;
       }
-      .open-todo-panel-fab {
-        width: 52px;
-        height: 52px;
-        right: 1rem;
-        bottom: 1rem;
-        font-size: 2rem;
+
+      .todo-form-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #todo-submit-btn,
+      #todo-cancel-edit {
+        width: 100%;
       }
     }
 
@@ -1283,6 +1320,11 @@
                               {% endfor %}
                             </div>
                           {% endif %}
+                          <button type="button" class="todo-edit-btn" aria-label="Edit task" title="Edit task">
+                            <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false">
+                              <path fill="currentColor" d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1.003 1.003 0 000-1.42l-2.5-2.5a1.003 1.003 0 00-1.42 0l-1.96 1.96 3.75 3.75 2.13-1.79z"/>
+                            </svg>
+                          </button>
                           <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
                             {% csrf_token %}
                             <input type="hidden" name="form_type" value="delete_todo_entry">
@@ -1306,10 +1348,6 @@
         </section>
       </div>
     </main>
-
-    <button id="open-todo-panel-fab" class="open-todo-panel-fab" title="Add To Do Entry" aria-label="Add To Do Entry">
-      <span>+</span>
-    </button>
 
     <div id="todo-panel-backdrop" class="todo-panel-backdrop" tabindex="-1"></div>
     <aside id="todo-panel" class="todo-panel" aria-modal="true" role="dialog" aria-labelledby="todo-panel-heading">
@@ -1472,6 +1510,7 @@
       const completeCheckboxes = Array.from(document.querySelectorAll('.todo-complete-checkbox'));
       const inlineChecklistCheckboxes = Array.from(document.querySelectorAll('.todo-inline-checklist-checkbox'));
       const deleteButtons = Array.from(document.querySelectorAll('.todo-delete-btn'));
+      const editButtons = Array.from(document.querySelectorAll('.todo-edit-btn'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
       const defaultStartDateValue = startDateInput ? startDateInput.value : '';
@@ -1732,8 +1771,22 @@
               taskItem.classList.add('is-checklist-open');
               btn.setAttribute('aria-expanded', 'true');
             }
+            return;
           }
+
           openEditMode(btn);
+        });
+      });
+
+      editButtons.forEach(function (editBtn) {
+        editBtn.addEventListener('click', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          const taskItem = editBtn.closest('.todo-task');
+          const taskBtn = taskItem ? taskItem.querySelector('.todo-task-hit') : null;
+          if (taskBtn) {
+            openEditMode(taskBtn);
+          }
         });
       });
 
