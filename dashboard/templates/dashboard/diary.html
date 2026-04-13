@@ -1277,6 +1277,10 @@
         gap: 0.55rem;
       }
 
+      body .nav-link-canvas {
+        display: none;
+      }
+
       body .nav-link {
         font-size: 1.14rem;
         padding: 0.85rem 0.82rem;
@@ -1331,7 +1335,7 @@
         <a class="nav-link active" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
         <a class="nav-link" href="{% url 'notes' %}">Notes</a>
-        <a class="nav-link" href="{% url 'canvas' %}">Canvas</a>
+        <a class="nav-link nav-link-canvas" href="{% url 'canvas' %}">Canvas</a>
         <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 
@@ -1456,20 +1460,7 @@
         <textarea id="entry-content" name="content" class="form-control" rows="5"></textarea>
       </div>
       <!-- Optional: tags, colors, attachments hooks here -->
-      <button type="submit" class="btn btn-primary w-100 mt-3">Save Entry</button>
-                <button
-                  type="submit"
-                  formmethod="post"
-                  formaction="{% url 'delete_diary_entry' %}"
-                  formnovalidate
-                  class="diary-delete-btn"
-                  id="diary-delete-btn"
-                  style="display:none; margin-top: 0.5rem;"
-                  aria-label="Delete diary entry"
-                  title="Delete diary entry"
-                >
-                  Delete
-                </button>
+      <button type="submit" class="btn btn-primary w-100 mt-3" id="diary-submit-btn">Add Diary Entry</button>
       <button
         type="submit"
         formmethod="post"
@@ -1481,7 +1472,7 @@
         aria-label="Delete diary entry"
         title="Delete diary entry"
       >
-        Delete
+        Delete Entry
       </button>
     </form>
   </aside>
@@ -1650,7 +1641,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
       const calendarEl = document.getElementById('calendar');
-      const diaryForm = document.querySelector('.diary-form');
+      const diaryForm = document.getElementById('diary-entry-form');
       const titleInput = diaryForm ? diaryForm.querySelector('input[name="title"]') : null;
       const categoryInput = diaryForm ? diaryForm.querySelector('select[name="category"]') : null;
       const categoryBadge = document.getElementById('diary-category-badge');
@@ -1752,13 +1743,17 @@
       function setEditMode(editing) {
         if (!submitButton || !entryIdInput) return;
         submitButton.textContent = editing ? 'Update Diary Entry' : 'Add Diary Entry';
-        cancelEditButton.style.display = editing ? 'inline-flex' : 'none';
+        if (cancelEditButton) {
+          cancelEditButton.style.display = editing ? 'inline-flex' : 'none';
+        }
         if (deleteButton) {
           deleteButton.style.display = editing ? 'block' : 'none';
         }
-        selectionHint.textContent = editing
-          ? 'Editing existing entry. Update fields and click Update Diary Entry.'
-          : 'Tip: only title is required. Date defaults to today if left blank.';
+        if (selectionHint) {
+          selectionHint.textContent = editing
+            ? 'Editing existing entry. Update fields and click Update Diary Entry.'
+            : 'Tip: only title is required. Date defaults to today if left blank.';
+        }
 
         if (!editing) {
           entryIdInput.value = '';

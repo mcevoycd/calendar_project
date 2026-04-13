@@ -474,6 +474,10 @@
         gap: 0.55rem;
       }
 
+      body .nav-link-canvas {
+        display: none;
+      }
+
       body .nav-link {
         font-size: 1.14rem;
         padding: 0.85rem 0.82rem;
@@ -520,7 +524,7 @@
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
         <a class="nav-link" href="{% url 'notes' %}">Notes</a>
-        <a class="nav-link" href="{% url 'canvas' %}">Canvas</a>
+        <a class="nav-link nav-link-canvas" href="{% url 'canvas' %}">Canvas</a>
         <a class="nav-link active" href="{% url 'settings' %}">Settings</a>
       </nav>
     </aside>

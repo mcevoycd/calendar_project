@@ -1010,6 +1010,10 @@
         padding-bottom: var(--top-nav-height) !important;
       }
 
+      body .nav-link-canvas {
+        display: none;
+      }
+
       body .sidebar {
         position: fixed !important;
         bottom: 0 !important;
@@ -1034,6 +1038,10 @@
 
       body .main {
         height: calc(100vh - var(--top-nav-height) - var(--page-bottom-gap)) !important;
+      }
+
+      .notes-panel {
+        display: none;
       }
     }
 
@@ -1081,7 +1089,7 @@
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
         <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
         <a class="nav-link" href="{% url 'notes' %}">Notes</a>
-        <a class="nav-link active" href="{% url 'canvas' %}">Canvas</a>
+        <a class="nav-link nav-link-canvas active" href="{% url 'canvas' %}">Canvas</a>
         <a class="nav-link" href="{% url 'settings' %}">Settings</a>
       </nav>
 
