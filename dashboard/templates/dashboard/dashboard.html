@@ -933,6 +933,8 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1rem;
       margin-top: 1rem;
+      min-height: 0;
+      align-items: stretch;
     }
 
     .todo-list {
@@ -940,7 +942,8 @@
       border: 1px solid #1F4F70;
       border-radius: 14px;
       padding: 0.62rem 0.68rem;
-      min-height: 260px;
+      min-height: 0;
+      height: 100%;
       display: grid;
       grid-template-rows: auto 1fr;
       gap: 0.45rem;
@@ -1658,7 +1661,8 @@
 
     #todo-panel .todo-board {
       flex: 1;
-      align-content: start;
+      min-height: 0;
+      align-content: stretch;
     }
 
     #notes-placeholder-panel {
