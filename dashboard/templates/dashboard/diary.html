@@ -272,15 +272,17 @@
       align-items: stretch;
       flex: 1;
       min-height: 0;
+      overflow: hidden;
     }
 
     .week-panel {
       min-width: 0;
       border-color: rgba(24, 73, 108, 0.4);
       min-height: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      padding: 1.1rem;
+      padding: 0;
     }
 
     /* Match Notes-style shell: no heavy outer host card */
@@ -378,11 +380,13 @@
       color: #9EB0C2;
       font-weight: 700;
       letter-spacing: 0.02em;
+      border: 1px solid rgba(44, 91, 124, 0.34);
+      background: rgba(9, 22, 36, 0.28);
     }
 
     .mini-month-cell {
       color: #D5E2EC;
-      border: 1px solid transparent;
+      border: 1px solid rgba(44, 91, 124, 0.32);
       min-height: 1.75rem;
       display: grid;
       place-items: center;
@@ -513,8 +517,10 @@
 
     .calendar-glass-shell {
       width: 100%;
+      min-height: 0;
+      height: 100%;
       border-radius: 16px;
-      padding: clamp(1.25rem, 1.3vw + 0.9rem, 2rem);
+      padding: 0;
       background: linear-gradient(155deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05));
       border: 1px solid rgba(255, 255, 255, 0.14);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -528,9 +534,16 @@
       width: 100%;
       background: rgba(8, 18, 30, 0.52);
       border: none;
-      padding: clamp(1rem, 1vw + 0.7rem, 1.6rem);
+      padding: 0;
       border-radius: 14px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    #calendar .fc-view-harness,
+    #calendar .fc-scroller-liquid-absolute,
+    #calendar .fc-scroller {
+      min-height: 0 !important;
+      height: 100% !important;
     }
 
     /* Add Diary Entry Form */
@@ -1379,15 +1392,13 @@
         justify-content: center;
       }
 
-      #calendar .fc-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.55rem;
+      #calendar .fc-header-toolbar {
+        grid-template-columns: auto 1fr auto;
+        gap: 0.35rem;
       }
 
       #calendar .fc-toolbar-chunk {
-        justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
       }
 
       #calendar .fc-daygrid-day-frame {
@@ -1480,7 +1491,7 @@
         position: fixed;
         inset: 0;
         z-index: 2205;
-        background: rgba(2, 10, 18, 0.5);
+        background: transparent; /* Changed background to transparent */
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.25s ease;
@@ -1533,6 +1544,215 @@
       }
     }
 
+    /* Clean PanelBoss-like calendar layout with Fluid Notes colours */
+    #calendar .fc-header-toolbar {
+      margin-bottom: 0.55rem !important;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    #calendar .fc-toolbar-chunk:nth-child(1) {
+      justify-self: start;
+    }
+
+    #calendar .fc-toolbar-chunk:nth-child(2) {
+      justify-self: center;
+    }
+
+    #calendar .fc-toolbar-chunk:nth-child(3) {
+      justify-self: end;
+    }
+
+    #calendar .fc-toolbar-title {
+      color: #EAF4FF;
+      font-size: 1.03rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: none;
+      text-shadow: none;
+    }
+
+    #calendar .fc-button,
+    #calendar .fc-button-primary {
+      border: 1px solid rgba(44, 91, 124, 0.82) !important;
+      background: rgba(14, 27, 42, 0.9) !important;
+      color: #D9E7F2 !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      padding: 0.34rem 0.62rem !important;
+      min-height: 32px;
+      line-height: 1;
+      transform: none !important;
+    }
+
+    #calendar .fc-button:hover,
+    #calendar .fc-button:focus,
+    #calendar .fc-button:active,
+    #calendar .fc-button.fc-button-active,
+    #calendar .fc-button-primary:hover,
+    #calendar .fc-button-primary:focus,
+    #calendar .fc-button-primary:active,
+    #calendar .fc-button-primary.fc-button-active {
+      background: rgba(31, 58, 83, 0.95) !important;
+      border-color: rgba(44, 91, 124, 0.86) !important;
+      color: #F0F7FF !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+
+    #calendar .fc-scrollgrid,
+    #calendar .fc-scrollgrid-section,
+    #calendar .fc-daygrid-day,
+    #calendar .fc-col-header-cell {
+      border-color: rgba(44, 91, 124, 0.5) !important;
+    }
+
+    #calendar .fc-scrollgrid {
+      border: 1px solid rgba(44, 91, 124, 0.54) !important;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    #calendar .fc-col-header-cell,
+    #calendar .fc-daygrid-day {
+      background: transparent !important;
+    }
+
+    #calendar .fc-daygrid-day-frame {
+      border-top: 1px solid rgba(44, 91, 124, 0.36);
+      border-left: 1px solid rgba(44, 91, 124, 0.36);
+    }
+
+    #calendar .fc-col-header-cell-cushion {
+      color: #9EB0C2;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.2rem 0;
+      text-shadow: none;
+    }
+
+    #calendar .fc-daygrid-day-frame {
+      padding: 0.48rem;
+      border-radius: 0;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+
+    #calendar.is-month-view .fc-view-harness,
+    #calendar.is-month-view .fc-scroller-harness,
+    #calendar.is-month-view .fc-scroller-liquid-absolute,
+    #calendar.is-month-view .fc-scroller {
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+
+    #calendar.is-month-view .fc-scroller {
+      overflow: hidden !important;
+    }
+
+    #calendar.is-month-view .fc-daygrid-body,
+    #calendar.is-month-view .fc-daygrid-body table,
+    #calendar.is-month-view .fc-daygrid-body tbody,
+    #calendar.is-month-view .fc-daygrid-body tr,
+    #calendar.is-month-view .fc-daygrid-body td {
+      height: 100% !important;
+    }
+
+    #calendar.is-month-view .fc-daygrid-day-frame {
+      min-height: 0 !important;
+      height: 100% !important;
+      padding: clamp(0.32rem, 0.56vw, 0.56rem);
+    }
+
+    #calendar .fc-daygrid-day:hover .fc-daygrid-day-frame {
+      background: rgba(255, 255, 255, 0.03) !important;
+      box-shadow: none !important;
+    }
+
+    #calendar .fc-daygrid-day-number {
+      color: #DDE7F1;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 0;
+      padding: 0;
+      text-shadow: none;
+    }
+
+    #calendar .fc-daygrid-day.fc-day-today {
+      background: rgba(0, 194, 255, 0.1) !important;
+    }
+
+    #calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+      color: var(--accent) !important;
+    }
+
+    #calendar .fc-daygrid-day-events {
+      margin-top: 0.45rem;
+    }
+
+    #calendar .fc-event,
+    #calendar .fc-daygrid-event,
+    #calendar .fc-timegrid-event {
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      padding: 0.16rem 0.45rem !important;
+      transform: none !important;
+    }
+
+    /* Restore clear month grid lines over earlier borderless overrides */
+    #calendar .fc-theme-standard td,
+    #calendar .fc-theme-standard th,
+    #calendar .fc-scrollgrid,
+    #calendar .fc-daygrid-day,
+    #calendar .fc-col-header-cell {
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    }
+
+    #calendar .fc-daygrid-day {
+      border-right: 1px solid rgba(255, 255, 255, 0.18) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    }
+
+    #calendar .fc-col-header-cell {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+    }
+
+    #calendar .fc-daygrid-day.fc-day-today {
+      border: 2px solid rgba(255, 255, 255, 0.55) !important;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    #calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+      border-top-color: transparent;
+      border-left-color: transparent;
+    }
+
+    @media (max-width: 900px), (max-height: 860px) {
+      #calendar.is-month-view .fc-daygrid-day-frame {
+        padding: clamp(0.26rem, 0.46vw, 0.46rem);
+      }
+    }
+
+    @media (max-width: 600px), (max-height: 740px) {
+      #calendar .fc-toolbar-title {
+        font-size: 0.94rem;
+      }
+
+      #calendar.is-month-view .fc-daygrid-day-frame {
+        padding: 0.24rem;
+      }
+    }
+
     @media (min-width: 600px) and (max-width: 1199px) {
       body {
         padding-bottom: 0 !important;
@@ -1570,10 +1790,6 @@
         padding: 1rem 1rem 0.9rem !important;
       }
 
-      #calendar .fc-daygrid-day-frame {
-        min-height: 122px;
-      }
-
       #calendar .fc-daygrid-day-number {
         font-size: 1rem;
       }
@@ -1609,10 +1825,8 @@
     <main class="main">
       <div class="diary-right-head">
         <div class="diary-view-switch" role="group" aria-label="Diary view switcher">
-          <button type="button" class="diary-view-btn" data-diary-view="multiMonthYear">Year</button>
           <button type="button" class="diary-view-btn" data-diary-view="dayGridMonth">Month</button>
           <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
-          <button type="button" class="diary-view-btn" data-diary-view="timeGridDay">Day</button>
         </div>
       </div>
       <div class="content-grid">
@@ -1624,62 +1838,9 @@
       </div>
     </main>
 
-    <!-- Floating Action Button for New Diary Entry -->
-    <button id="open-diary-panel-fab" class="open-diary-panel-fab" title="Add Diary Entry" aria-label="Add Diary Entry">
-      <span>+</span>
-    </button>
-
-    <style>
-    .open-diary-panel-fab {
-      position: fixed;
-      bottom: 2.2rem;
-      right: 2.2rem;
-      z-index: 1400;
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-strong), var(--accent));
-      color: #06111E;
-      border: none;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.22);
-      font-size: 2.6rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.18s, box-shadow 0.18s;
-    }
-    .open-diary-panel-fab:hover, .open-diary-panel-fab:focus {
-      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      box-shadow: 0 10px 32px rgba(0,194,255,0.18);
-      outline: none;
-    }
-    @media (max-width: 900px) {
-      .open-diary-panel-fab { right: 1.1rem; bottom: 1.1rem; width: 54px; height: 54px; font-size: 2.1rem; }
-    }
-    @media (max-width: 600px) {
-      .open-diary-panel-fab { right: 0.5rem; bottom: 0.5rem; width: 46px; height: 46px; font-size: 1.7rem; }
-    }
-    </style>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const fab = document.getElementById('open-diary-panel-fab');
-      if (fab) {
-        fab.addEventListener('click', function() {
-          if (typeof openDiaryPanel === 'function') {
-            openDiaryPanel({mode: 'new'});
-          }
-        });
-      }
-    });
-    </script>
-
-  <!-- Slide-In Diary Entry Panel and Backdrop -->
-  <div id="diary-panel-backdrop" class="diary-panel-backdrop" tabindex="-1"></div>
-  <aside id="diary-panel" class="diary-panel" aria-modal="true" role="dialog">
-    <button class="diary-panel-close" id="diary-panel-close" aria-label="Close">&times;</button>
+  <div id="event-modal" class="event-modal" aria-hidden="true">
+    <div id="event-modal-content" class="event-modal-content" aria-modal="true" role="dialog" aria-labelledby="diary-panel-title">
+      <button class="event-modal-close" id="diary-panel-close" aria-label="Close">&times;</button>
     <form id="diary-entry-form" method="post" action="{% url 'add_diary_entry' %}">
             <input type="hidden" name="redirect_date" id="diary-delete-redirect-date">
           <input type="hidden" name="entry_id" id="entry-id-input">
@@ -1699,110 +1860,189 @@
           {% endfor %}
         </select>
       </div>
-      <div class="form-group">
-        <label for="entry-date">Date</label>
-        <input type="date" id="entry-date" name="date" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label for="entry-end-date">End Date</label>
-        <input type="date" id="entry-end-date" name="end_date" class="form-control" placeholder="End date (optional for all-day multi-day)">
-      </div>
-      <div class="form-group" style="display: flex; gap: 0.5rem;">
-        <div style="flex:1;">
+      <div class="event-row-pair">
+        <div class="form-group">
+          <label for="entry-date">Start Date</label>
+          <input type="date" id="entry-date" name="date" class="form-control" required>
+        </div>
+        <div class="form-group">
           <label for="entry-start-time">Start Time</label>
           <input type="time" id="entry-start-time" name="start_time" class="form-control" step="900" placeholder="Start time">
         </div>
-        <div style="flex:1;">
+      </div>
+      <div class="event-row-pair">
+        <div class="form-group">
+          <label for="entry-end-date">End Date</label>
+          <input type="date" id="entry-end-date" name="end_date" class="form-control" placeholder="Optional end date">
+        </div>
+        <div class="form-group">
           <label for="entry-end-time">End Time</label>
           <input type="time" id="entry-end-time" name="end_time" class="form-control" step="900" placeholder="End time">
         </div>
       </div>
       <div class="form-group">
-        <label for="entry-content">Content</label>
+        <label for="entry-content">Notes</label>
         <textarea id="entry-content" name="content" class="form-control" rows="5"></textarea>
       </div>
-      <!-- Optional: tags, colors, attachments hooks here -->
-      <button type="submit" class="btn btn-primary w-100 mt-3" id="diary-submit-btn">Add Diary Entry</button>
-      <button
-        type="submit"
-        formmethod="post"
-        formaction="{% url 'delete_diary_entry' %}"
-        formnovalidate
-        class="diary-delete-btn btn btn-danger w-100 mt-2"
-        id="diary-delete-btn"
-        style="display:none;"
-        aria-label="Delete diary entry"
-        title="Delete diary entry"
-      >
-        Delete Entry
-      </button>
+      <div class="event-modal-actions">
+        <button type="button" class="btn btn-outline-secondary" id="diary-modal-close-btn">Close</button>
+        <button
+          type="submit"
+          formmethod="post"
+          formaction="{% url 'delete_diary_entry' %}"
+          formnovalidate
+          class="diary-delete-btn btn btn-danger"
+          id="diary-delete-btn"
+          style="display:none;"
+          aria-label="Delete diary entry"
+          title="Delete diary entry"
+        >
+          Delete Entry
+        </button>
+        <button type="submit" class="btn btn-primary" id="diary-submit-btn">Add Diary Entry</button>
+      </div>
     </form>
-  </aside>
+    </div>
+  </div>
 
   <style>
-  .diary-panel-backdrop {
+  .event-modal {
     position: fixed;
     inset: 0;
-    background: rgba(10, 20, 30, 0.65);
-    z-index: 1200;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-  }
-  .diary-panel-backdrop.active {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .diary-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    width: 440px;
-    max-width: 100vw;
-    background: var(--surface);
-    box-shadow: -8px 0 32px rgba(0,0,0,0.32);
-    border-left: 1.5px solid var(--border);
+    background: rgba(6, 17, 30, 0.62);
+    backdrop-filter: blur(2px);
     z-index: 1300;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(.77,0,.18,1);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .event-modal.active {
+    display: flex;
+  }
+
+  .event-modal-content {
+    width: min(560px, 100%);
+    max-height: min(88vh, 740px);
+    background: rgba(14, 27, 42, 0.96);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 1.1rem 1.1rem 1rem;
     display: flex;
     flex-direction: column;
-    padding: 2rem 2rem 1.5rem 2rem;
     overflow-y: auto;
   }
-  .diary-panel.active {
-    transform: translateX(0);
-  }
-  .diary-panel-close {
+
+  .event-modal-close {
     position: absolute;
-    top: 1.1rem;
-    right: 1.1rem;
+    top: 0.78rem;
+    right: 0.92rem;
     background: none;
     border: none;
     color: var(--muted);
-    font-size: 2rem;
+    font-size: 1.7rem;
+    line-height: 1;
     cursor: pointer;
     z-index: 1;
     transition: color 0.15s;
   }
-  .diary-panel-close:hover { color: var(--accent); }
-  #diary-panel-title { margin-top: 0.5rem; margin-bottom: 1.5rem; color: var(--accent); }
-  .form-group { margin-bottom: 1.2rem; }
-  .form-control { width: 100%; background: var(--surface-strong); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; }
-  .form-control:focus { border-color: var(--accent); outline: none; }
-  @media (max-width: 900px) {
-    .diary-panel { width: 100vw; max-width: 100vw; border-radius: 0; padding: 1.2rem 1rem; }
+  .event-modal-close:hover { color: var(--accent); }
+  #diary-panel-title { margin: 0.1rem 0 0.85rem; color: var(--accent); }
+
+  #diary-entry-form {
+    position: relative;
   }
+
+  #diary-entry-form .form-group {
+    margin-bottom: 0.72rem;
+  }
+
+  .event-row-pair {
+    display: flex;
+    gap: 0.55rem;
+  }
+
+  .event-row-pair .form-group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .event-modal-actions {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 0.72rem;
+  }
+
+  .event-modal-actions .btn {
+    min-height: 42px;
+  }
+
+  #diary-submit-btn {
+    flex: 1;
+  }
+
+  .form-control {
+    width: 100%;
+    background: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid rgba(44, 91, 124, 0.82);
+    border-radius: 10px;
+    padding: 0.6rem 0.68rem;
+  }
+  .form-control:focus { border-color: var(--accent); outline: none; }
+
+  #diary-entry-form textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  @media (max-width: 900px) {
+    .event-modal-content {
+      width: min(92vw, 560px);
+      max-height: 90vh;
+      padding: 1rem;
+    }
+  }
+
   @media (max-width: 600px) {
-    .diary-panel { padding: 0.7rem 0.3rem; }
+    .event-modal {
+      align-items: flex-end;
+      padding: 0.4rem;
+    }
+
+    .event-modal-content {
+      width: 100%;
+      max-height: 92vh;
+      border-radius: 14px;
+      padding: 0.85rem;
+    }
+
+    .event-row-pair {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .event-modal-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    #diary-submit-btn,
+    #diary-delete-btn,
+    #diary-modal-close-btn {
+      width: 100%;
+    }
   }
   </style>
 
   <script>
-  const diaryPanel = document.getElementById('diary-panel');
-  const diaryBackdrop = document.getElementById('diary-panel-backdrop');
+  const diaryModal = document.getElementById('event-modal');
+  const diaryPanel = document.getElementById('event-modal-content');
   const diaryClose = document.getElementById('diary-panel-close');
+  const diaryModalCloseBtn = document.getElementById('diary-modal-close-btn');
   const diaryForm = document.getElementById('diary-entry-form');
   const diaryTitle = document.getElementById('diary-panel-title');
   const entryTitle = document.getElementById('entry-title');
@@ -1820,8 +2060,8 @@
           if (calendarViewType) calendarViewType.value = window.calendar.view.type;
           if (calendarViewDate) calendarViewDate.value = window.calendar.getDate().toISOString().slice(0,10);
         }
-    diaryPanel.classList.add('active');
-    diaryBackdrop.classList.add('active');
+    diaryModal.classList.add('active');
+    diaryModal.setAttribute('aria-hidden', 'false');
     diaryTitle.textContent = mode === 'edit' ? 'Edit Diary Entry' : 'New Diary Entry';
     if (typeof title === 'string' && title !== '') entryTitle.value = title;
     if (typeof date === 'string' && date !== '') entryDate.value = date;
@@ -1830,12 +2070,19 @@
   }
 
   function closeDiaryPanel() {
-    diaryPanel.classList.remove('active');
-    diaryBackdrop.classList.remove('active');
+    diaryModal.classList.remove('active');
+    diaryModal.setAttribute('aria-hidden', 'true');
   }
 
-  diaryBackdrop.addEventListener('click', closeDiaryPanel);
+  diaryModal.addEventListener('click', function (event) {
+    if (event.target === diaryModal) {
+      closeDiaryPanel();
+    }
+  });
   diaryClose.addEventListener('click', closeDiaryPanel);
+  if (diaryModalCloseBtn) {
+    diaryModalCloseBtn.addEventListener('click', closeDiaryPanel);
+  }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDiaryPanel(); });
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -1937,10 +2184,10 @@
       let allowDeleteSubmit = false;
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
-        year: 'multiMonthYear',
+        year: 'dayGridMonth',
         month: 'dayGridMonth',
         week: 'timeGridWeek',
-        day: 'timeGridDay'
+        day: 'timeGridWeek'
       };
       const initialDiaryView = defaultViewMap['{{ default_diary_view|default:"week" }}'] || 'timeGridWeek';
 
@@ -2226,10 +2473,13 @@
         firstDay: 1,
         selectable: true,
         selectMirror: true,
+        height: '100%',
+        expandRows: true,
+        handleWindowResize: true,
         headerToolbar: {
-          left: 'prev,next today',
+          left: 'prev',
           center: 'title',
-          right: ''
+          right: 'next'
         },
         buttonText: {
           year: 'Year',
