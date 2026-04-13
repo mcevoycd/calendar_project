@@ -876,9 +876,19 @@ def dashboard_view(request):
             }
         )
 
+    try:
+        recent_notes = (
+            NoteEntry.objects.filter(user=request.user)
+            .select_related('category')
+            .order_by('-updated_at')[:8]
+        )
+    except (OperationalError, ProgrammingError):
+        recent_notes = []
+
     context = {
         'diary_entries': diary_entries,
         'todo_columns': todo_columns,
+        'recent_notes': recent_notes,
         'nav_layout': preferences.nav_layout,
         'app_version': getattr(settings, 'FLUID_NOTES_VERSION', 'Fluid Notes v2.0.0'),
     }
