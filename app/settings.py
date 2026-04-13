@@ -23,17 +23,50 @@ def env_list(name, default=""):
     return [item.strip() for item in str(raw).split(",") if item.strip()]
 
 
+def normalize_host(value):
+    host = str(value).strip()
+    if not host:
+        return ""
+    host = host.replace("https://", "").replace("http://", "")
+    host = host.split("/")[0]
+    return host.strip()
+
+
 # SECURITY WARNING: keep the secret key used in production secret.
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-only-change-me")
 
 # SECURITY WARNING: don't run with debug turned on in production.
 DEBUG = env_bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost,www.fluidnotes.co.uk,fluidnotes.co.uk,web-production-c6c41.up.railway.app")
-CSRF_TRUSTED_ORIGINS = env_list(
-    "CSRF_TRUSTED_ORIGINS",
-    "https://www.fluidnotes.co.uk,https://fluidnotes.co.uk,https://web-production-c6c41.up.railway.app",
-)
+DEFAULT_ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "www.fluidnotes.co.uk",
+    "fluidnotes.co.uk",
+    "web-production-c6c41.up.railway.app",
+]
+
+railway_public_domain = normalize_host(os.getenv("RAILWAY_PUBLIC_DOMAIN", ""))
+
+allowed_hosts_env = [normalize_host(item) for item in env_list("ALLOWED_HOSTS")]
+ALLOWED_HOSTS = sorted({
+    *DEFAULT_ALLOWED_HOSTS,
+    *[item for item in allowed_hosts_env if item],
+    *([railway_public_domain] if railway_public_domain else []),
+})
+
+DEFAULT_CSRF_TRUSTED_ORIGINS = [
+    "https://www.fluidnotes.co.uk",
+    "https://fluidnotes.co.uk",
+    "https://web-production-c6c41.up.railway.app",
+]
+
+csrf_trusted_origins_env = [item.strip() for item in env_list("CSRF_TRUSTED_ORIGINS") if item.strip()]
+CSRF_TRUSTED_ORIGINS = sorted({
+    *DEFAULT_CSRF_TRUSTED_ORIGINS,
+    *csrf_trusted_origins_env,
+    *([f"https://{railway_public_domain}"] if railway_public_domain else []),
+})
 
 
 # Application definition
