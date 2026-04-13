@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Fluid Notes</title>
   {% load static %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,6 +18,31 @@
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
       --page-bottom-gap: 16px;
       --top-nav-height: 82px;
+    }
+
+    html {
+      font-size: clamp(15px, 0.18vw + 14.8px, 16.8px);
+    }
+
+    body {
+      font-size: clamp(0.96rem, 0.08vw + 0.94rem, 1.02rem);
+    }
+
+    h1, .section-title, .utility-title, .diary-right-title, .notes-title {
+      font-size: clamp(1.18rem, 0.55vw + 1.05rem, 1.46rem);
+      line-height: 1.2;
+    }
+
+    h2, .title-inline, .pane-title {
+      font-size: clamp(1rem, 0.3vw + 0.94rem, 1.16rem);
+    }
+
+    .nav-link, .mobile-menu-link, .mobile-bottom-btn {
+      font-size: clamp(0.9rem, 0.2vw + 0.86rem, 0.98rem);
+    }
+
+    input, select, textarea, button, .btn {
+      font-size: clamp(0.94rem, 0.14vw + 0.91rem, 1rem);
     }
 
     * { box-sizing: border-box; }
@@ -514,6 +540,148 @@
         padding: 0.82rem 0.45rem;
       }
     }
+
+    .mobile-bottom-bar,
+    .mobile-menu-backdrop,
+    .mobile-menu-sheet {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      body .sidebar {
+        display: none !important;
+      }
+
+      body {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+      }
+
+      body .main {
+        padding: 1rem 1rem calc(1.25rem + env(safe-area-inset-bottom)) !important;
+        overflow: auto;
+      }
+
+      .settings-shell,
+      .settings-section,
+      .settings-panel,
+      .settings-card {
+        border-radius: 14px;
+      }
+
+      .form-control,
+      select,
+      input,
+      textarea,
+      .btn,
+      .btn-save,
+      .btn-modal,
+      .btn-primary {
+        min-height: 46px;
+        font-size: 1rem;
+      }
+
+      .mobile-bottom-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: center;
+        gap: 0.5rem;
+        position: fixed;
+        left: 0.6rem;
+        right: 0.6rem;
+        bottom: calc(0.45rem + env(safe-area-inset-bottom));
+        z-index: 2200;
+        padding: 0.55rem;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .mobile-bottom-btn {
+        min-height: 52px;
+        border: none;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #F2F8FF;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.1rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .mobile-bottom-btn-primary {
+        background: linear-gradient(180deg, rgba(0, 194, 255, 0.92), rgba(0, 156, 214, 0.9));
+        color: #04111C;
+      }
+
+      .mobile-bottom-icon {
+        font-size: 1.05rem;
+        line-height: 1;
+      }
+
+      .mobile-menu-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 2205;
+        background: rgba(2, 10, 18, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+
+      .mobile-menu-sheet {
+        display: block;
+        position: fixed;
+        left: 0.65rem;
+        right: 0.65rem;
+        bottom: calc(82px + env(safe-area-inset-bottom));
+        z-index: 2210;
+        padding: 0.5rem;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px) saturate(140%);
+        -webkit-backdrop-filter: blur(12px) saturate(140%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        transform: translateY(120%);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.26s ease, opacity 0.26s ease;
+      }
+
+      .mobile-menu-link {
+        display: block;
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.96);
+        font-size: 1.08rem;
+        font-weight: 600;
+        padding: 0.8rem 0.9rem;
+        border-radius: 12px;
+      }
+
+      .mobile-menu-link:active,
+      .mobile-menu-link:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      body.mobile-menu-open .mobile-menu-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.mobile-menu-open .mobile-menu-sheet {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -810,6 +978,57 @@
         });
       }
     });
+  </script>
+
+  <div class="mobile-bottom-bar" aria-label="Mobile actions">
+    <button type="button" class="mobile-bottom-btn" id="mobile-menu-toggle"><span class="mobile-bottom-icon">≡</span><span>Menu</span></button>
+    <a class="mobile-bottom-btn mobile-bottom-btn-primary" href="{% url 'settings' %}"><span class="mobile-bottom-icon">⚙</span><span>Prefs</span></a>
+    <a class="mobile-bottom-btn" href="{% url 'dashboard' %}"><span class="mobile-bottom-icon">◎</span><span>Home</span></a>
+  </div>
+  <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
+  <nav class="mobile-menu-sheet" id="mobile-menu-sheet" aria-label="Mobile menu">
+    <a class="mobile-menu-link" href="{% url 'dashboard' %}">Dashboard</a>
+    <a class="mobile-menu-link" href="{% url 'diary' %}">Diary</a>
+    <a class="mobile-menu-link" href="{% url 'todo' %}">To Do List</a>
+    <a class="mobile-menu-link" href="{% url 'notes' %}">Notes</a>
+    <a class="mobile-menu-link" href="{% url 'settings' %}">Settings</a>
+  </nav>
+  <script>
+    (function () {
+      document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('mobile-menu-toggle');
+        const backdrop = document.getElementById('mobile-menu-backdrop');
+        const sheet = document.getElementById('mobile-menu-sheet');
+        if (!toggle || !backdrop || !sheet) return;
+
+        function closeMenu() {
+          document.body.classList.remove('mobile-menu-open');
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        function openMenu() {
+          document.body.classList.add('mobile-menu-open');
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.addEventListener('click', function () {
+          if (document.body.classList.contains('mobile-menu-open')) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        });
+
+        backdrop.addEventListener('click', closeMenu);
+        sheet.querySelectorAll('a').forEach(function (link) {
+          link.addEventListener('click', closeMenu);
+        });
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') closeMenu();
+        });
+      });
+    })();
   </script>
 </body>
 </html>
