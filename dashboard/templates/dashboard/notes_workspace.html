@@ -188,13 +188,16 @@
       }
 
       body {
-        padding-bottom: 0 !important;
+        padding-bottom: var(--top-nav-height) !important;
       }
 
       body .sidebar {
-        position: sticky !important;
-        top: 0 !important;
-        bottom: auto !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        top: auto !important;
+        left: 0;
+        right: 0;
+        width: 100%;
         justify-content: center !important;
         padding: 0.65rem 0.85rem !important;
       }
@@ -220,7 +223,17 @@
         --top-nav-height: 140px;
       }
 
+      body {
+        padding-bottom: var(--top-nav-height) !important;
+      }
+
       body .sidebar {
+        position: fixed !important;
+        bottom: 0 !important;
+        top: auto !important;
+        left: 0;
+        right: 0;
+        width: 100%;
         padding: 0.6rem 0.55rem !important;
       }
 
