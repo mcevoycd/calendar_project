@@ -896,11 +896,17 @@ def dashboard_view(request):
     except (OperationalError, ProgrammingError):
         recent_notes = []
 
+    try:
+        note_categories = list(NoteCategory.objects.filter(user=request.user).order_by('name'))
+    except (OperationalError, ProgrammingError):
+        note_categories = []
+
     context = {
         'diary_entries': diary_entries,
         'todo_columns': todo_columns,
         'todo_sections': todo_sections,
         'recent_notes': recent_notes,
+        'note_categories': note_categories,
         'nav_layout': preferences.nav_layout,
         'app_version': getattr(settings, 'FLUID_NOTES_VERSION', 'Fluid Notes v2.0.0'),
     }

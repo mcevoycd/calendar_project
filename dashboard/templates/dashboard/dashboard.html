@@ -3196,10 +3196,21 @@
               {% csrf_token %}
               <input type="hidden" name="notes_action" value="create_note">
               <input type="hidden" name="redirect_to" value="{% url 'dashboard' %}">
-              <label class="quick-add-label">
-                Note title
-                <input class="quick-add-input" type="text" name="new_note_title" placeholder="Add note title" required>
-              </label>
+              <div class="quick-add-form-grid">
+                <label class="quick-add-label">
+                  Note title
+                  <input class="quick-add-input" type="text" name="new_note_title" placeholder="Add note title" required>
+                </label>
+                <label class="quick-add-label">
+                  Category
+                  <select class="quick-add-select" name="category_id">
+                    <option value="">Uncategorised</option>
+                    {% for category in note_categories %}
+                      <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+              </div>
               <label class="quick-add-label">
                 Quick note
                 <textarea class="quick-add-textarea" name="new_note_body" placeholder="Capture the idea while it's fresh"></textarea>
