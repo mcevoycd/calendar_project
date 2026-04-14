@@ -1,0 +1,55 @@
+{% load static %}
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fluid Notes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
+<style>
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #000;
+  }
+
+  @media (display-mode: standalone) {
+    html,
+    body {
+      overscroll-behavior: none;
+    }
+  }
+
+  body.pwa-standalone {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    background: #000 !important;
+  }
+
+  body.pwa-standalone .app-shell,
+  body.pwa-standalone .main {
+    min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  body.pwa-standalone .sidebar {
+    padding-top: calc(env(safe-area-inset-top) + 0.7rem) !important;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.7rem) !important;
+  }
+
+  body.pwa-standalone .mobile-bottom-bar {
+    bottom: calc(0.45rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.pwa-standalone .mobile-menu-sheet {
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+</style>
+<script defer src="{% static 'dashboard/js/pwa-standalone.js' %}?v=20260414pwa"></script>

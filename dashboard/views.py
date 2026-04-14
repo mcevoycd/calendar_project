@@ -1,8 +1,9 @@
 # dashboard/views.py
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, Http404
 from datetime import datetime, timedelta, time
+from pathlib import Path
 from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek, NoteCategory, NoteEntry
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -68,6 +69,36 @@ DIARY_CATEGORY_CONFIG = [
 DIARY_CATEGORY_LABELS = {key: label for key, label, _ in DIARY_CATEGORY_CONFIG}
 DIARY_CATEGORY_COLORS = {key: color for key, _, color in DIARY_CATEGORY_CONFIG}
 DIARY_DEFAULT_CATEGORY = "general"
+
+
+def pwa_manifest(request):
+    manifest_path = Path(settings.BASE_DIR) / 'dashboard' / 'static' / 'manifest.json'
+    if not manifest_path.exists():
+        raise Http404('manifest.json not found')
+    return FileResponse(open(manifest_path, 'rb'), content_type='application/manifest+json')
+
+
+def pwa_service_worker(request):
+    service_worker_path = Path(settings.BASE_DIR) / 'dashboard' / 'static' / 'service-worker.js'
+    if not service_worker_path.exists():
+        raise Http404('service-worker.js not found')
+    response = FileResponse(open(service_worker_path, 'rb'), content_type='application/javascript')
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache'
+    return response
+
+
+def pwa_icon(request, filename):
+    safe_name = Path(str(filename)).name
+    allowed_icons = {'icon-192.png', 'icon-512.png'}
+    if safe_name not in allowed_icons:
+        raise Http404('icon not found')
+
+    icon_path = Path(settings.BASE_DIR) / 'dashboard' / 'static' / 'icons' / safe_name
+    if not icon_path.exists():
+        raise Http404('icon not found')
+
+    return FileResponse(open(icon_path, 'rb'), content_type='image/png')
 
 
 def normalize_nav_layout(value):

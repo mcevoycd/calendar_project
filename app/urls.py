@@ -21,6 +21,9 @@ from dashboard import views as dashboard_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('manifest.json', dashboard_views.pwa_manifest, name='pwa-manifest'),
+    path('service-worker.js', dashboard_views.pwa_service_worker, name='pwa-service-worker'),
+    path('icons/<str:filename>', dashboard_views.pwa_icon, name='pwa-icon'),
     path('accounts/login/', dashboard_views.auth_view, name='login'),
     path('accounts/signup/', dashboard_views.signup_view, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
