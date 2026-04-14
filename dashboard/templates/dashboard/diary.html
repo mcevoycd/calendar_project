@@ -992,6 +992,22 @@
       border-color: #6EE7B7 !important;
     }
 
+    .fc .fc-event.uk-bank-holiday-event,
+    .fc .fc-daygrid-event.uk-bank-holiday-event,
+    .fc .fc-timegrid-event.uk-bank-holiday-event {
+      background: linear-gradient(135deg, #F6C35C, #F59E0B) !important;
+      border-color: #F6C35C !important;
+      box-shadow: 0 6px 14px rgba(245, 158, 11, 0.25) !important;
+    }
+
+    .fc .fc-event.uk-bank-holiday-event .fc-event-main,
+    .fc .fc-event.uk-bank-holiday-event .fc-event-title,
+    .fc .fc-event.uk-bank-holiday-event .fc-event-time {
+      color: #06111E !important;
+      text-shadow: none !important;
+      font-weight: 700;
+    }
+
     .fc .fc-timegrid-now-indicator-line {
       border-color: #F6C35C;
     }
@@ -2525,6 +2541,153 @@
         requestedEntryLoaded = true;
       }
 
+      const BANK_HOLIDAY_CACHE_KEY = 'fluid-notes-uk-bank-holidays-v1';
+      let ukBankHolidayEventsCache = null;
+      let ukBankHolidayFetchPromise = null;
+
+      function filterBankHolidayEventsByRange(events, fetchInfo) {
+        if (!Array.isArray(events) || !fetchInfo || !fetchInfo.start || !fetchInfo.end) {
+          return Array.isArray(events) ? events : [];
+        }
+
+        const rangeStart = new Date(fetchInfo.start);
+        const rangeEnd = new Date(fetchInfo.end);
+        rangeStart.setMonth(rangeStart.getMonth() - 2);
+        rangeEnd.setMonth(rangeEnd.getMonth() + 2);
+
+        return events.filter(function (eventObj) {
+          const eventDate = new Date(eventObj.start);
+          return eventDate >= rangeStart && eventDate < rangeEnd;
+        });
+      }
+
+      function getCachedBankHolidayEvents() {
+        try {
+          const cachedValue = window.localStorage.getItem(BANK_HOLIDAY_CACHE_KEY);
+          if (!cachedValue) {
+            return null;
+          }
+
+          const parsed = JSON.parse(cachedValue);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+
+          if (parsed && Array.isArray(parsed.events)) {
+            return parsed.events;
+          }
+        } catch (error) {
+          console.warn('Unable to read cached UK bank holidays.', error);
+        }
+
+        return null;
+      }
+
+      function setCachedBankHolidayEvents(events) {
+        try {
+          window.localStorage.setItem(BANK_HOLIDAY_CACHE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            events: events
+          }));
+        } catch (error) {
+          console.warn('Unable to cache UK bank holidays.', error);
+        }
+      }
+
+      function buildUkBankHolidayEvents(data) {
+        const regionMap = [
+          ['england-and-wales', 'England & Wales'],
+          ['scotland', 'Scotland'],
+          ['northern-ireland', 'Northern Ireland']
+        ];
+        const mergedEvents = new Map();
+
+        regionMap.forEach(function ([divisionKey, divisionLabel]) {
+          const divisionEvents = data && data[divisionKey] && Array.isArray(data[divisionKey].events)
+            ? data[divisionKey].events
+            : [];
+
+          divisionEvents.forEach(function (holiday) {
+            const holidayKey = `${holiday.date}__${holiday.title}`;
+            if (!mergedEvents.has(holidayKey)) {
+              mergedEvents.set(holidayKey, {
+                id: `uk-bank-holiday-${holidayKey}`,
+                title: holiday.title,
+                start: holiday.date,
+                allDay: true,
+                display: 'block',
+                classNames: ['uk-bank-holiday-event'],
+                extendedProps: {
+                  source: 'uk-bank-holiday',
+                  holidayDivisions: [divisionLabel],
+                  holidayNotes: holiday.notes || ''
+                }
+              });
+              return;
+            }
+
+            const existing = mergedEvents.get(holidayKey);
+            if (!existing.extendedProps.holidayDivisions.includes(divisionLabel)) {
+              existing.extendedProps.holidayDivisions.push(divisionLabel);
+            }
+            if (!existing.extendedProps.holidayNotes && holiday.notes) {
+              existing.extendedProps.holidayNotes = holiday.notes;
+            }
+          });
+        });
+
+        return Array.from(mergedEvents.values()).map(function (holidayEvent) {
+          const divisionText = holidayEvent.extendedProps.holidayDivisions.join(', ');
+          const notesText = holidayEvent.extendedProps.holidayNotes
+            ? ` — ${holidayEvent.extendedProps.holidayNotes}`
+            : '';
+
+          holidayEvent.extendedProps.description = `${divisionText}${notesText}`;
+          holidayEvent.title = `Bank Holiday · ${holidayEvent.title}`;
+          return holidayEvent;
+        });
+      }
+
+      function getUkBankHolidayEvents() {
+        if (Array.isArray(ukBankHolidayEventsCache)) {
+          return Promise.resolve(ukBankHolidayEventsCache);
+        }
+
+        const cachedEvents = getCachedBankHolidayEvents();
+        if (Array.isArray(cachedEvents) && cachedEvents.length) {
+          ukBankHolidayEventsCache = cachedEvents;
+          return Promise.resolve(ukBankHolidayEventsCache);
+        }
+
+        if (ukBankHolidayFetchPromise) {
+          return ukBankHolidayFetchPromise;
+        }
+
+        ukBankHolidayFetchPromise = fetch('https://www.gov.uk/bank-holidays.json')
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error(`Bank holiday request failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(function (data) {
+            const holidays = buildUkBankHolidayEvents(data);
+            ukBankHolidayEventsCache = holidays;
+            setCachedBankHolidayEvents(holidays);
+            return holidays;
+          })
+          .catch(function (error) {
+            console.warn('Unable to load UK bank holidays.', error);
+            ukBankHolidayEventsCache = Array.isArray(cachedEvents) ? cachedEvents : [];
+            return ukBankHolidayEventsCache;
+          })
+          .finally(function () {
+            ukBankHolidayFetchPromise = null;
+          });
+
+        return ukBankHolidayFetchPromise;
+      }
+
       function setActiveDiaryViewButton(viewType) {
         viewSwitchButtons.forEach(function (button) {
           const isActive = button.dataset.diaryView === viewType;
@@ -2711,7 +2874,24 @@
             eventDisplay: 'block'
           }
         },
-        events: '/api/diary/',
+        eventSources: [
+          {
+            url: '/api/diary/'
+          },
+          {
+            id: 'uk-bank-holidays',
+            events: function (fetchInfo, successCallback, failureCallback) {
+              getUkBankHolidayEvents()
+                .then(function (holidayEvents) {
+                  successCallback(filterBankHolidayEventsByRange(holidayEvents, fetchInfo));
+                })
+                .catch(function (error) {
+                  console.warn('Unable to render UK bank holidays.', error);
+                  failureCallback(error);
+                });
+            }
+          }
+        ],
         eventsSet: function (events) {
           tryLoadRequestedEntry(events);
         },
@@ -2724,6 +2904,12 @@
         eventDidMount: function (info) {
           if (info.view.type === 'multiMonthYear') {
             info.el.style.display = 'none';
+            return;
+          }
+
+          const eventSource = info.event.extendedProps.source || '';
+          if (eventSource === 'uk-bank-holiday') {
+            info.el.classList.add('uk-bank-holiday-event');
             return;
           }
 
@@ -2763,6 +2949,14 @@
           info.el.appendChild(trashBtn);
         },
         eventClick: function (info) {
+          if ((info.event.extendedProps.source || '') === 'uk-bank-holiday') {
+            info.jsEvent.preventDefault();
+            if (selectionHint) {
+              selectionHint.textContent = `${info.event.title} is a read-only UK bank holiday.`;
+            }
+            return;
+          }
+
           loadEntryIntoForm({
             id: String(info.event.id || ''),
             title: info.event.title || '',
