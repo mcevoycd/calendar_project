@@ -685,17 +685,18 @@
 
     @media (min-width: 600px) and (max-width: 1199px) {
       body {
-        padding-bottom: 0 !important;
+        padding-bottom: var(--top-nav-height) !important;
       }
 
       body .sidebar {
         display: flex !important;
-        position: sticky !important;
-        top: 0 !important;
-        bottom: auto !important;
-        left: auto !important;
-        right: auto !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
         width: 100%;
+        justify-content: center !important;
         padding: 0.72rem 0.95rem !important;
       }
 
@@ -719,11 +720,184 @@
         padding: 1rem 1rem 0.9rem !important;
       }
     }
+    /* Shared left-rail sidebar override for desktop and tablet */
+    body .app-shell {
+      grid-template-columns: clamp(232px, 19vw, 252px) minmax(0, 1fr) !important;
+      min-height: 100vh;
+      height: 100vh;
+      width: 100%;
+    }
+
+    body .sidebar {
+      position: relative !important;
+      top: auto !important;
+      bottom: auto !important;
+      left: auto !important;
+      right: auto !important;
+      width: auto !important;
+      min-height: 100vh;
+      padding: 1rem 0.9rem 1.1rem !important;
+      gap: 1rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      justify-content: flex-start !important;
+      background: rgba(14, 27, 42, 0.82) !important;
+      border: none !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: auto !important;
+      overflow: hidden;
+    }
+
+    body .sidebar-brand,
+    body .sidebar > div:first-child {
+      display: grid !important;
+      gap: 0.25rem;
+      padding: 0.25rem 0.35rem 0.75rem;
+      margin: 0 0 0.15rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    body .brand {
+      margin: 0;
+      font-size: 1.16rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+
+    body .brand-subtitle {
+      margin: 0;
+      color: var(--muted) !important;
+      line-height: 1.45;
+      font-size: 0.84rem;
+      font-weight: 500;
+      white-space: normal;
+    }
+
+    body .nav-group {
+      display: grid !important;
+      width: 100% !important;
+      gap: 0.35rem !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      align-items: stretch !important;
+    }
+
+    body .nav-link {
+      display: flex !important;
+      align-items: center;
+      justify-content: flex-start;
+      flex: none !important;
+      text-align: left !important;
+      padding: 0.72rem 0.8rem !important;
+      border-radius: 12px !important;
+      border: 1px solid transparent !important;
+      background: transparent !important;
+      color: #D9E7F2 !important;
+      font-size: 0.95rem !important;
+      font-weight: 600 !important;
+      letter-spacing: 0 !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    body .nav-link:hover,
+    body .nav-link:focus {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #FFFFFF !important;
+      outline: none;
+    }
+
+    body .nav-link.active {
+      background: rgba(0, 194, 255, 0.14) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: var(--accent) !important;
+    }
+
+    body .nav-link-canvas {
+      display: flex !important;
+    }
+
+    body .sidebar-footer {
+      display: block !important;
+      margin-top: auto;
+      padding: 0.85rem 0.35rem 0 !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.82rem;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    body .sidebar-footer p {
+      margin: 0;
+    }
+
+    body .main {
+      height: 100vh !important;
+      min-height: 0;
+    }
+
+    @media (min-width: 600px) and (max-width: 1199px) {
+      body {
+        padding-bottom: 0 !important;
+      }
+
+      body .app-shell {
+        grid-template-columns: 220px minmax(0, 1fr) !important;
+      }
+
+      body .sidebar {
+        min-height: 100vh;
+        padding: 0.9rem 0.75rem 1rem !important;
+      }
+
+      body .nav-link {
+        font-size: 0.92rem !important;
+        padding: 0.68rem 0.72rem !important;
+      }
+
+      .mobile-bottom-bar,
+      .mobile-menu-backdrop,
+      .mobile-menu-sheet {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 599px) {
+      body .sidebar {
+        display: none !important;
+      }
+
+      body .app-shell {
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        min-height: 100vh;
+      }
+
+      body {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+      }
+
+      body .main {
+        height: auto !important;
+        min-height: calc(100vh - 78px - env(safe-area-inset-bottom));
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
     <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1 class="brand">Fluid Notes</h1>
+        <p class="brand-subtitle">Settings</p>
+      </div>
+
       <nav class="nav-group" aria-label="Main navigation">
         <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
         <a class="nav-link" href="{% url 'diary' %}">Diary</a>
@@ -732,6 +906,10 @@
         <a class="nav-link nav-link-canvas" href="{% url 'canvas' %}">Canvas</a>
         <a class="nav-link active" href="{% url 'settings' %}">Settings</a>
       </nav>
+
+      <div class="sidebar-footer">
+        <p>Manage your layout and planning preferences.</p>
+      </div>
     </aside>
 
     <main class="main">
