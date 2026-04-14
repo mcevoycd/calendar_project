@@ -457,6 +457,17 @@ def get_todo_week_dates(request):
 
 
 def get_todo_return_url(request):
+    direct_return = (
+        request.POST.get("return_to", "").strip()
+        or request.POST.get("next", "").strip()
+    )
+    if direct_return and url_has_allowed_host_and_scheme(
+        direct_return,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return direct_return
+
     return_date = request.POST.get("return_date", "").strip()
     return_task_id = request.POST.get("return_task_id", "").strip()
 
@@ -888,6 +899,7 @@ def dashboard_view(request):
     context = {
         'diary_entries': diary_entries,
         'todo_columns': todo_columns,
+        'todo_sections': todo_sections,
         'recent_notes': recent_notes,
         'nav_layout': preferences.nav_layout,
         'app_version': getattr(settings, 'FLUID_NOTES_VERSION', 'Fluid Notes v2.0.0'),
@@ -1485,12 +1497,22 @@ def notes_view(request):
             if category_id.isdigit():
                 category = NoteCategory.objects.filter(user=request.user, id=int(category_id)).first()
 
+            note_body = sanitize_note_html(request.POST.get('new_note_body', ''))
             note = NoteEntry.objects.create(
                 user=request.user,
                 category=category,
                 title=note_title,
-                body='',
+                body=note_body,
             )
+
+            redirect_to = str(request.POST.get('redirect_to', '')).strip()
+            if redirect_to and url_has_allowed_host_and_scheme(
+                redirect_to,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return HttpResponseRedirect(redirect_to)
+
             return HttpResponseRedirect(f"{reverse('notes')}?note={note.id}")
 
         if notes_action == 'save_note':
@@ -1928,6 +1950,23 @@ def add_diary_entry(request):
         end_time = request.POST.get('end_time')
         content = request.POST.get('content')
         redirect_date = datetime.today().date().isoformat()
+
+        safe_redirect = ''
+        for key in ('redirect_to', 'next'):
+            candidate = str(request.POST.get(key, '')).strip()
+            if candidate and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                safe_redirect = candidate
+                break
+
+        def diary_redirect_url():
+            if safe_redirect:
+                return safe_redirect
+            return f"{reverse('diary')}?date={redirect_date}"
+
         if date:
             try:
                 redirect_date = datetime.strptime(date, '%Y-%m-%d').date().isoformat()
@@ -1953,11 +1992,11 @@ def add_diary_entry(request):
                     parsed_start = time(0, 0)
             except ValueError:
                 messages.error(request, 'Invalid date/time format. Please check your values.')
-                return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+                return HttpResponseRedirect(diary_redirect_url())
 
             if parsed_end_date and parsed_end_date < parsed_date:
                 messages.error(request, 'End date must be on or after start date.')
-                return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+                return HttpResponseRedirect(diary_redirect_url())
 
             # Multi-day range applies to all-day entries only.
             # If end date is blank, default to the same day (single-day all-day entry).
@@ -1967,7 +2006,7 @@ def add_diary_entry(request):
                 diary_entry = DiaryEntry.objects.filter(id=entry_id, user=request.user).first()
                 if not diary_entry:
                     messages.error(request, 'Diary entry not found.')
-                    return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+                    return HttpResponseRedirect(diary_redirect_url())
 
                 diary_entry.title = title
                 diary_entry.category = category
@@ -1978,7 +2017,7 @@ def add_diary_entry(request):
                 diary_entry.content = content or ''
                 diary_entry.save()
                 messages.success(request, 'Diary entry updated successfully!')
-                return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+                return HttpResponseRedirect(diary_redirect_url())
             else:
                 # For timed entries with a date range, create one entry per day in the range.
                 if (parsed_start or parsed_end) and parsed_end_date and parsed_end_date > parsed_date:
@@ -1999,7 +2038,7 @@ def add_diary_entry(request):
                         current_date = current_date + timedelta(days=1)
 
                     messages.success(request, f'{created_count} diary entries added successfully!')
-                    return HttpResponseRedirect(reverse('diary'))
+                    return HttpResponseRedirect(diary_redirect_url())
                 else:
                     DiaryEntry.objects.create(
                         user=request.user,
@@ -2012,10 +2051,10 @@ def add_diary_entry(request):
                         content=content or ''
                     )
                     messages.success(request, 'Diary entry added successfully!')
-                    return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+                    return HttpResponseRedirect(diary_redirect_url())
         else:
             messages.error(request, 'Please provide a diary entry title.')
-        return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+        return HttpResponseRedirect(diary_redirect_url())
 
     return HttpResponseRedirect(reverse('diary'))
 

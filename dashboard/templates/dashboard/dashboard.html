@@ -1962,27 +1962,129 @@
       letter-spacing: 0.02em;
     }
 
-    .quick-add-links {
-      display: grid;
-      gap: 0.5rem;
+    #quick-add-modal .app-modal-dialog {
+      width: min(720px, 100%);
+      max-height: min(86vh, 820px);
+      overflow-y: auto;
+    }
+
+    .quick-add-shell {
       margin-top: 0.75rem;
     }
 
-    .quick-add-link {
-      border: 1px solid rgba(6, 182, 212, 0.4);
-      border-radius: 10px;
-      padding: 0.5rem 0.7rem;
-      color: #d6e8f7;
-      text-decoration: none;
-      font-size: 0.86rem;
-      background: rgba(10, 31, 46, 0.8);
+    .quick-add-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
     }
 
-    .quick-add-link:hover,
-    .quick-add-link:focus {
+    .quick-add-tab {
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 999px;
+      padding: 0.45rem 0.8rem;
+      color: #d6e8f7;
+      background: rgba(10, 31, 46, 0.8);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .quick-add-tab:hover,
+    .quick-add-tab:focus {
       color: #f4fbff;
       border-color: rgba(59, 130, 246, 0.62);
       background: rgba(24, 49, 73, 0.9);
+      outline: none;
+    }
+
+    .quick-add-tab.is-active {
+      border-color: rgba(34, 211, 238, 0.72);
+      background: linear-gradient(135deg, rgba(21, 119, 176, 0.96), rgba(20, 159, 201, 0.92));
+      color: #f7fbff;
+      box-shadow: 0 10px 24px rgba(20, 159, 201, 0.22);
+    }
+
+    .quick-add-panels {
+      margin-top: 0.8rem;
+    }
+
+    .quick-add-panel {
+      display: none;
+    }
+
+    .quick-add-panel.is-active {
+      display: block;
+    }
+
+    .quick-add-form {
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .quick-add-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .quick-add-label {
+      display: grid;
+      gap: 0.34rem;
+      color: #a9bfd2;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .quick-add-input,
+    .quick-add-select,
+    .quick-add-textarea {
+      width: 100%;
+      border: 1px solid rgba(42, 94, 130, 0.85);
+      border-radius: 10px;
+      background: rgba(6, 18, 30, 0.92);
+      color: #eaf4ff;
+      padding: 0.58rem 0.72rem;
+      font: inherit;
+    }
+
+    .quick-add-textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .quick-add-input:focus,
+    .quick-add-select:focus,
+    .quick-add-textarea:focus {
+      outline: none;
+      border-color: rgba(34, 211, 238, 0.8);
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.14);
+    }
+
+    .quick-add-submit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-add-helper {
+      margin: 0;
+      color: #9eb7ca;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .quick-add-secondary-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .quick-add-secondary-link:hover,
+    .quick-add-secondary-link:focus {
+      color: #fff2ce;
       outline: none;
     }
 
@@ -2181,9 +2283,15 @@
       .btn-canvas,
       .btn-quick-add,
       .placeholder-cta,
-      .quick-add-link {
+      .quick-add-tab,
+      .quick-add-secondary-link,
+      .quick-add-submit-row .btn-modal {
         min-height: 46px;
         border-radius: 14px;
+      }
+
+      .quick-add-form-grid {
+        grid-template-columns: 1fr;
       }
 
       .mobile-bottom-bar {
@@ -2981,12 +3089,129 @@
   <div class="app-modal" id="quick-add-modal" hidden>
     <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-add-title" aria-describedby="quick-add-message">
       <h2 class="app-modal-title" id="quick-add-title">Quick Add</h2>
-      <p class="app-modal-message" id="quick-add-message">Choose what you want to create next.</p>
-      <div class="quick-add-links">
-        <a class="quick-add-link" href="{% url 'diary' %}">+ Diary entry</a>
-        <a class="quick-add-link" href="{% url 'todo' %}">+ To Do task</a>
-        <a class="quick-add-link" href="{% url 'notes' %}">+ Note</a>
-        <a class="quick-add-link" href="{% url 'canvas' %}">+ Canvas card</a>
+      <p class="app-modal-message" id="quick-add-message">Create diary entries, tasks, and notes directly from the dashboard.</p>
+      <div class="quick-add-shell">
+        <div class="quick-add-tabs" role="tablist" aria-label="Quick add options">
+          <button type="button" class="quick-add-tab is-active" data-quick-tab="diary">Diary</button>
+          <button type="button" class="quick-add-tab" data-quick-tab="todo">To Do</button>
+          <button type="button" class="quick-add-tab" data-quick-tab="note">Note</button>
+        </div>
+
+        <div class="quick-add-panels">
+          <section class="quick-add-panel is-active" data-quick-panel="diary">
+            <form class="quick-add-form" method="post" action="{% url 'add_diary_entry' %}">
+              {% csrf_token %}
+              <input type="hidden" name="redirect_to" value="{% url 'dashboard' %}">
+              <div class="quick-add-form-grid">
+                <label class="quick-add-label">
+                  Title
+                  <input class="quick-add-input" type="text" name="title" placeholder="Add diary title" required>
+                </label>
+                <label class="quick-add-label">
+                  Date
+                  <input class="quick-add-input js-quick-date" type="date" name="date" required>
+                </label>
+              </div>
+              <div class="quick-add-form-grid">
+                <label class="quick-add-label">
+                  Category
+                  <select class="quick-add-select" name="category">
+                    <option value="general">General</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="health">Health</option>
+                    <option value="travel">Travel</option>
+                  </select>
+                </label>
+                <label class="quick-add-label">
+                  Start time
+                  <input class="quick-add-input" type="time" name="start_time">
+                </label>
+              </div>
+              <label class="quick-add-label">
+                Notes
+                <textarea class="quick-add-textarea" name="content" placeholder="Add a short diary note"></textarea>
+              </label>
+              <div class="quick-add-submit-row">
+                <button type="submit" class="btn-modal btn-modal-primary">Save Diary Entry</button>
+                <a class="quick-add-secondary-link" href="{% url 'diary' %}">Open full diary</a>
+              </div>
+            </form>
+          </section>
+
+          <section class="quick-add-panel" data-quick-panel="todo">
+            <form class="quick-add-form" method="post" action="{% url 'todo' %}">
+              {% csrf_token %}
+              <input type="hidden" name="form_type" value="add_todo_entry">
+              <input type="hidden" name="task_checklist_json" value="[]">
+              <input type="hidden" name="return_to" value="{% url 'dashboard' %}">
+              <div class="quick-add-form-grid">
+                <label class="quick-add-label">
+                  Task title
+                  <input class="quick-add-input" type="text" name="task_title" placeholder="Add task title" required>
+                </label>
+                <label class="quick-add-label">
+                  Section
+                  <select class="quick-add-select" name="task_section">
+                    {% for section in todo_sections %}
+                      <option value="{{ section.key }}">{{ section.title }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+              </div>
+              <div class="quick-add-form-grid">
+                <label class="quick-add-label">
+                  Start date
+                  <input class="quick-add-input js-quick-date" type="date" name="task_start_date">
+                </label>
+                <label class="quick-add-label">
+                  End date
+                  <input class="quick-add-input js-quick-date" type="date" name="task_end_date">
+                </label>
+              </div>
+              <div class="quick-add-form-grid">
+                <label class="quick-add-label">
+                  Priority
+                  <select class="quick-add-select" name="task_priority">
+                    <option value="high">High</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </label>
+                <label class="quick-add-label">
+                  Notes
+                  <input class="quick-add-input" type="text" name="task_notes" placeholder="Optional task notes">
+                </label>
+              </div>
+              <p class="quick-add-helper">Tasks are added immediately to your board and routed back here.</p>
+              <div class="quick-add-submit-row">
+                <button type="submit" class="btn-modal btn-modal-primary">Add Task</button>
+                <a class="quick-add-secondary-link" href="{% url 'todo' %}">Open full board</a>
+              </div>
+            </form>
+          </section>
+
+          <section class="quick-add-panel" data-quick-panel="note">
+            <form class="quick-add-form" method="post" action="{% url 'notes' %}">
+              {% csrf_token %}
+              <input type="hidden" name="notes_action" value="create_note">
+              <input type="hidden" name="redirect_to" value="{% url 'dashboard' %}">
+              <label class="quick-add-label">
+                Note title
+                <input class="quick-add-input" type="text" name="new_note_title" placeholder="Add note title" required>
+              </label>
+              <label class="quick-add-label">
+                Quick note
+                <textarea class="quick-add-textarea" name="new_note_body" placeholder="Capture the idea while it's fresh"></textarea>
+              </label>
+              <p class="quick-add-helper">This creates a new note instantly without leaving the dashboard flow.</p>
+              <div class="quick-add-submit-row">
+                <button type="submit" class="btn-modal btn-modal-primary">Create Note</button>
+                <a class="quick-add-secondary-link" href="{% url 'notes' %}">Open notes workspace</a>
+              </div>
+            </form>
+          </section>
+        </div>
       </div>
       <div class="app-modal-actions">
         <button type="button" class="btn-modal" id="quick-add-close-btn">Close</button>
@@ -3127,12 +3352,43 @@
         return;
       }
 
+      const tabs = Array.from(modal.querySelectorAll('[data-quick-tab]'));
+      const panels = Array.from(modal.querySelectorAll('[data-quick-panel]'));
+      const dateInputs = Array.from(modal.querySelectorAll('.js-quick-date'));
+
+      function activateQuickPanel(panelName) {
+        tabs.forEach(function (tab) {
+          tab.classList.toggle('is-active', tab.dataset.quickTab === panelName);
+        });
+
+        panels.forEach(function (panel) {
+          panel.classList.toggle('is-active', panel.dataset.quickPanel === panelName);
+        });
+      }
+
+      function applyDefaultDates() {
+        const today = new Date().toISOString().slice(0, 10);
+        dateInputs.forEach(function (input) {
+          if (!input.value) {
+            input.value = today;
+          }
+        });
+      }
+
       function closeModal() {
         modal.hidden = true;
       }
 
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          activateQuickPanel(tab.dataset.quickTab);
+        });
+      });
+
       openBtn.addEventListener('click', function () {
         modal.hidden = false;
+        activateQuickPanel('diary');
+        applyDefaultDates();
       });
 
       closeBtn.addEventListener('click', closeModal);
