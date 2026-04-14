@@ -1280,6 +1280,19 @@
       color: var(--accent);
     }
 
+    body .brand-logo {
+      width: auto !important;
+      max-width: 170px;
+      height: auto !important;
+      max-height: none !important;
+      display: block;
+      margin: 0 0 0.15rem;
+      border-radius: 0;
+      object-fit: contain;
+      mix-blend-mode: screen;
+      opacity: 0.98;
+    }
+
     body .brand-subtitle {
       margin: 0;
       color: var(--muted) !important;
@@ -1399,14 +1412,167 @@
         min-height: calc(100vh - 78px - env(safe-area-inset-bottom));
       }
     }
+    /* Dashboard sidebar parity override */
+    body .sidebar,
+    body.nav-position-top .sidebar,
+    body.nav-position-bottom .sidebar {
+      position: relative !important;
+      top: auto !important;
+      bottom: auto !important;
+      left: auto !important;
+      right: auto !important;
+      width: auto !important;
+      min-height: 100vh;
+      padding: 1rem 0.9rem 1.1rem !important;
+      gap: 1rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      justify-content: flex-start !important;
+      align-content: flex-start !important;
+      background: rgba(14, 27, 42, 0.82) !important;
+      border: none !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: auto !important;
+      overflow: hidden;
+    }
+
+    body .sidebar-brand,
+    body.nav-position-top .sidebar-brand,
+    body.nav-position-bottom .sidebar-brand,
+    body .sidebar > div:first-child,
+    body.nav-position-top .sidebar > div:first-child,
+    body.nav-position-bottom .sidebar > div:first-child {
+      display: grid !important;
+      gap: 0.25rem;
+      padding: 0.25rem 0.35rem 0.75rem;
+      margin: 0 0 0.15rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    body .brand-logo,
+    body.nav-position-top .brand-logo,
+    body.nav-position-bottom .brand-logo {
+      width: auto !important;
+      max-width: 170px !important;
+      height: auto !important;
+      max-height: none !important;
+      display: block;
+      margin: 0 0 0.15rem;
+      border-radius: 0;
+      object-fit: contain;
+      mix-blend-mode: screen;
+      opacity: 0.98;
+    }
+
+    body .brand-subtitle,
+    body.nav-position-top .brand-subtitle,
+    body.nav-position-bottom .brand-subtitle {
+      margin: 0;
+      color: var(--muted) !important;
+      line-height: 1.45;
+      font-size: 0.84rem;
+      font-weight: 500;
+      white-space: normal;
+    }
+
+    body .nav-group,
+    body.nav-position-top .nav-group,
+    body.nav-position-bottom .nav-group {
+      display: grid !important;
+      width: 100% !important;
+      gap: 0.35rem !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      align-items: stretch !important;
+      justify-content: initial !important;
+      order: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    body .nav-link,
+    body.nav-position-top .nav-link,
+    body.nav-position-bottom .nav-link {
+      display: flex !important;
+      align-items: center;
+      justify-content: flex-start;
+      flex: none !important;
+      text-align: left !important;
+      padding: 0.72rem 0.8rem !important;
+      border-radius: 12px !important;
+      border: 1px solid transparent !important;
+      background: transparent !important;
+      color: #D9E7F2 !important;
+      font-size: 0.95rem !important;
+      font-weight: 600 !important;
+      letter-spacing: 0 !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    body .nav-link:hover,
+    body .nav-link:focus,
+    body.nav-position-top .nav-link:hover,
+    body.nav-position-top .nav-link:focus,
+    body.nav-position-bottom .nav-link:hover,
+    body.nav-position-bottom .nav-link:focus {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #FFFFFF !important;
+      outline: none;
+    }
+
+    body .nav-link.active,
+    body.nav-position-top .nav-link.active,
+    body.nav-position-bottom .nav-link.active {
+      background: rgba(0, 194, 255, 0.14) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: var(--accent) !important;
+    }
+
+    body .nav-link-canvas {
+      display: flex !important;
+    }
+
+    body .sidebar-footer,
+    body.nav-position-top .sidebar-footer,
+    body.nav-position-bottom .sidebar-footer {
+      display: block !important;
+      margin-top: auto;
+      padding: 0.85rem 0.35rem 0 !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.82rem;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    @media (min-width: 600px) and (max-width: 1199px) {
+      body .sidebar,
+      body.nav-position-top .sidebar,
+      body.nav-position-bottom .sidebar {
+        padding: 0.9rem 0.75rem 1rem !important;
+      }
+
+      body .nav-link,
+      body.nav-position-top .nav-link,
+      body.nav-position-bottom .nav-link {
+        font-size: 0.92rem !important;
+        padding: 0.68rem 0.72rem !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <h1 class="brand">Fluid Notes</h1>
-        <p class="brand-subtitle">To Do board</p>
+        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
+        <!-- <p class="brand-subtitle">To Do board</p> -->
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">

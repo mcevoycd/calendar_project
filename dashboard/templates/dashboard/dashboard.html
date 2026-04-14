@@ -1301,10 +1301,11 @@
 
     body .brand-logo {
       width: auto;
-      height: 46px;
+      height: auto;
       max-width: none;
       margin: 0;
-      border-radius: 10px;
+      border-radius: 0;
+      object-fit: contain;
     }
 
     body .brand-subtitle {
@@ -1340,8 +1341,10 @@
     }
 
     body.nav-position-top .brand-logo {
-      height: 64px;
-      border-radius: 10px;
+      width: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      border-radius: 0;
     }
 
     body.nav-position-top .sidebar > div:first-child {
@@ -2030,17 +2033,48 @@
        Show only the To Do Board (70%) and Diary Entries (30%) side-by-side.
     ─────────────────────────────────────────────────────────────────────────── */
     @media (max-width: 1180px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto 1fr !important;
+        overflow: hidden !important;
+      }
+
       .dashboard-secondary {
+        display: block !important;
+        grid-column: 1 / -1;
+        grid-row: 1;
+        padding-right: 0;
+        min-height: 0;
+      }
+
+      #calendar-hub,
+      #notes-placeholder-panel {
         display: none !important;
       }
 
-      .dashboard-layout {
-        grid-template-columns: 1fr !important;
-        overflow: hidden !important;
+      #worldclocks-panel {
+        display: flex !important;
+        width: 100%;
+        margin: 0;
+      }
+
+      #worldclocks-panel #worldclock-container {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        width: 100%;
+      }
+
+      #worldclocks-panel .clock-item {
+        width: 100%;
+        min-height: 56px;
+        justify-content: space-between;
       }
 
       .dashboard-primary {
         display: grid !important;
+        grid-column: 1 / -1;
+        grid-row: 2;
         grid-template-columns: 7fr 3fr !important;
         grid-template-rows: 1fr !important;
         gap: 1rem !important;
@@ -2087,6 +2121,10 @@
 
     /* ── Phone portrait (≤600px): stack todo above diary ──────────────────── */
     @media (max-width: 600px) {
+      .dashboard-secondary {
+        display: none !important;
+      }
+
       .dashboard-primary {
         grid-template-columns: 1fr !important;
         grid-template-rows: auto auto !important;
@@ -2448,6 +2486,19 @@
       color: var(--accent);
     }
 
+    body .brand-logo {
+      width: auto !important;
+      max-width: 170px;
+      height: auto !important;
+      max-height: none !important;
+      display: block;
+      margin: 0 0 0.15rem;
+      border-radius: 0;
+      object-fit: contain;
+      mix-blend-mode: screen;
+      opacity: 0.98;
+    }
+
     body .brand-subtitle {
       margin: 0;
       color: var(--muted) !important;
@@ -2536,6 +2587,151 @@
       min-height: 0;
     }
 
+    @media (min-width: 1200px) {
+      .dashboard-workspace-row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.85rem;
+      }
+
+      .dashboard-workspace-row > div:first-child {
+        min-width: 0;
+      }
+
+      .dashboard-workspace-row .utility-title,
+      .dashboard-workspace-row .utility-subtitle {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dashboard-workspace-row .utility-actions {
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+      }
+
+      .content-grid.dashboard-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr) !important;
+        grid-template-areas:
+          'clocks clocks'
+          'todo diary'
+          'notes notes';
+        gap: 1rem;
+        row-gap: 1rem;
+        align-items: start;
+        align-content: start;
+        overflow: hidden;
+        padding-bottom: 0.35rem;
+      }
+
+      .dashboard-main-grid,
+      .dashboard-secondary {
+        display: contents;
+      }
+
+      .dashboard-panel {
+        min-width: 0;
+      }
+
+      .dashboard-clock-row {
+        grid-area: clocks;
+        width: 100%;
+        margin-top: 0;
+      }
+
+      .dashboard-todo-panel {
+        grid-area: todo;
+        min-width: 0;
+      }
+
+      .dashboard-diary-panel {
+        grid-area: diary;
+        min-width: 0;
+      }
+
+      .dashboard-notes-row-panel {
+        grid-area: notes;
+        width: 100%;
+      }
+
+      #calendar-hub {
+        display: none !important;
+      }
+
+      #worldclocks-panel {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #worldclocks-panel .title-inline {
+        margin-bottom: 0.65rem;
+      }
+
+      #worldclocks-panel #worldclock-container {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      #worldclocks-panel .clock-item {
+        width: 100%;
+        min-width: 0;
+        min-height: 58px;
+        justify-content: space-between;
+        padding: 0.58rem 0.72rem;
+      }
+
+      #todo-panel {
+        overflow: hidden;
+      }
+
+      #todo-panel .todo-board {
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      #diary {
+        overflow: hidden;
+      }
+
+      #diary .dashboard-diary-list {
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      #diary .dashboard-diary-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0.45rem;
+        align-items: center;
+      }
+
+      #diary .dashboard-diary-title,
+      .dashboard-notes-title {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .dashboard-notes-row {
+        display: grid;
+        grid-template-columns: 8rem minmax(0, 1fr);
+        align-items: center;
+      }
+
+      .dashboard-notes-list {
+        min-height: 0;
+        overflow-y: auto;
+      }
+    }
+
     @media (min-width: 600px) and (max-width: 1199px) {
       body {
         padding-bottom: 0 !important;
@@ -2574,6 +2770,47 @@
         padding: 0.68rem 0.72rem !important;
       }
 
+      .dashboard-layout {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto 1fr !important;
+      }
+
+      .dashboard-secondary {
+        display: block !important;
+        grid-column: 1 / -1;
+        grid-row: 1;
+        padding-right: 0;
+      }
+
+      #calendar-hub,
+      #notes-placeholder-panel {
+        display: none !important;
+      }
+
+      #worldclocks-panel {
+        display: flex !important;
+        width: 100%;
+        margin: 0;
+      }
+
+      #worldclocks-panel #worldclock-container {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        width: 100%;
+      }
+
+      #worldclocks-panel .clock-item {
+        width: 100%;
+        min-height: 56px;
+        justify-content: space-between;
+      }
+
+      .dashboard-primary {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
       .mobile-bottom-bar,
       .mobile-menu-backdrop,
       .mobile-menu-sheet {
@@ -2607,8 +2844,8 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <h1 class="brand">Fluid Notes</h1>
-        <p class="brand-subtitle">Dashboard workspace</p>
+        <img class="brand-logo" src="{% static 'dashboard/images/fluid_notes_logo_1_transparent.png' %}" alt="Fluid Notes logo">
+        <!-- <p class="brand-subtitle">Dashboard workspace</p> -->
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">
@@ -2626,10 +2863,10 @@
     </aside>
 
     <main class="main">
-      <header class="utility-bar">
+      <header class="utility-bar dashboard-workspace-row">
         <div>
           <h1 class="utility-title">Dashboard Workspace</h1>
-          <p class="utility-subtitle">Premium command center for scheduling, planning, and daily flow.</p>
+          <!-- <p class="utility-subtitle">Premium command center for scheduling, planning, and daily flow.</p> -->
         </div>
         <div class="utility-actions">
           <span class="date-chip js-utility-datetime">Loading date and time...</span>
@@ -2640,9 +2877,9 @@
 
 
       <div class="content-grid dashboard-layout">
-        <section class="dashboard-primary">
-          <section class="panel" id="todo-panel">
-            <h2 class="title-inline">To Do Board <span class="title-blurb">Primary workspace for planning and tracking task flow.</span></h2>
+        <section class="dashboard-primary dashboard-main-grid">
+          <section class="panel dashboard-panel dashboard-todo-panel" id="todo-panel">
+            <h2 class="title-inline">To Do Board</h2>
             <div class="todo-board" aria-label="To Do board">
               {% for column in todo_columns %}
                 <section class="todo-list {{ column.list_class }}" aria-label="{{ column.title }} list">
@@ -2666,8 +2903,8 @@
             </div>
           </section>
 
-          <section class="panel" id="diary">
-            <h2 class="title-inline">Up & Coming Diary Entries <span class="title-blurb"><a href="{% url 'diary' %}">Open full diary</a></span></h2>
+          <section class="panel dashboard-panel dashboard-diary-panel" id="diary">
+            <h2 class="title-inline">Diary Entries</h2>
             <div class="dashboard-diary-list" role="list" aria-label="Upcoming diary entries">
               {% for entry in diary_entries %}
                 <a class="dashboard-diary-row" role="listitem" href="{% url 'diary' %}?date={{ entry.date|date:'Y-m-d' }}&entry_id={{ entry.id }}" aria-label="Open diary entry {{ entry.title }}">
@@ -2692,13 +2929,14 @@
         </section>
 
         <aside class="dashboard-secondary">
-          <section class="panel" id="worldclocks-panel">
+          <section class="panel dashboard-panel dashboard-clock-row" id="worldclocks-panel">
+            <h2 class="title-inline">World Clocks</h2>
             <div id="worldclock-container" data-timezones='["Europe/London","Asia/Manila","America/Chicago"]'>
               <span class="title-blurb">Loading clocks...</span>
             </div>
           </section>
 
-          <section class="panel" id="calendar-hub">
+          <section class="panel dashboard-panel dashboard-calendar-row" id="calendar-hub">
             <h2 class="title-inline">Calendar Overview <span class="title-blurb">Your primary timeline surface.</span></h2>
             <div class="mini-month" aria-label="Calendar month overview">
               <div class="mini-month-head">
@@ -2715,8 +2953,8 @@
             </div>
           </section>
 
-          <section class="panel" id="notes-placeholder-panel">
-            <h2 class="title-inline">Notes Hub <span class="title-blurb"><a href="{% url 'notes' %}">Open notes</a></span></h2>
+          <section class="panel dashboard-panel dashboard-notes-row-panel" id="notes-placeholder-panel">
+            <h2 class="title-inline">Notes Hub</h2>
             <div class="dashboard-notes-list" role="list" aria-label="Recent notes">
               {% for note in recent_notes %}
                 <a class="dashboard-notes-row" role="listitem" href="{% url 'notes' %}?note={{ note.id }}" aria-label="Open note {{ note.title }}">
