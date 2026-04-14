@@ -18,6 +18,14 @@
     }
   }
 
+  function notifyPageReady() {
+    try {
+      window.dispatchEvent(new Event('fluidnotes:page-ready'));
+    } catch (error) {
+      console.warn('Fluid Notes page-ready dispatch failed.', error);
+    }
+  }
+
   async function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) {
       return;
@@ -119,12 +127,19 @@
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyStandaloneClass, { once: true });
+    document.addEventListener('DOMContentLoaded', function () {
+      applyStandaloneClass();
+      notifyPageReady();
+    }, { once: true });
   } else {
     applyStandaloneClass();
+    notifyPageReady();
   }
 
-  window.addEventListener('pageshow', applyStandaloneClass);
+  window.addEventListener('pageshow', function () {
+    applyStandaloneClass();
+    notifyPageReady();
+  });
   window.addEventListener('resize', applyStandaloneClass);
   registerServiceWorker();
 })();

@@ -224,9 +224,13 @@ function renderWorldClock() {
   const popupOkBtn = document.getElementById('app-popup-ok-btn');
   console.log('renderWorldClock init', { container, toggle, addButton, timezoneInput });
   if (!container) {
-    console.error('World clock container not found');
     return;
   }
+
+  if (container.dataset.worldclockInitialized === 'true') {
+    return;
+  }
+  container.dataset.worldclockInitialized = 'true';
   const renderMode = container.getAttribute('data-render-mode') || 'cards';
   if (renderMode !== 'compact-header') {
     if (!toggle) {
@@ -487,7 +491,29 @@ function renderWorldClock() {
   updateToggleText();
   buildItems();
   tick();
-  setInterval(tick, 1000);
+
+  if (window.__fluidWorldClockInterval) {
+    window.clearInterval(window.__fluidWorldClockInterval);
+  }
+  window.__fluidWorldClockInterval = window.setInterval(tick, 1000);
 }
 
-document.addEventListener('DOMContentLoaded', renderWorldClock);
+function initWorldClock() {
+  renderWorldClock();
+}
+
+window.renderWorldClock = initWorldClock;
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initWorldClock, { once: true });
+} else {
+  initWorldClock();
+}
+
+window.addEventListener('pageshow', initWorldClock);
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) {
+    initWorldClock();
+  }
+});
+window.addEventListener('fluidnotes:page-ready', initWorldClock);
