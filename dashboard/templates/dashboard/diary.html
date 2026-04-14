@@ -1116,6 +1116,7 @@
       padding: 0;
       cursor: pointer;
       opacity: 0;
+      pointer-events: none;
       transition: opacity 0.15s, background 0.15s, color 0.15s;
       z-index: 10;
       flex-shrink: 0;
@@ -1123,6 +1124,7 @@
     .fc-event:hover .diary-event-trash-btn,
     .fc-event:focus-within .diary-event-trash-btn {
       opacity: 1;
+      pointer-events: auto;
     }
     .diary-event-trash-btn:hover,
     .diary-event-trash-btn:focus {
@@ -1130,6 +1132,19 @@
       color: #FB7185;
       opacity: 1;
       outline: none;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      #calendar .fc-event,
+      #calendar .fc-daygrid-event,
+      #calendar .fc-timegrid-event {
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .diary-event-trash-btn {
+        display: none !important;
+      }
     }
 
     #calendar .fc-multimonth {
@@ -3408,6 +3423,8 @@
           }
 
           info.el.classList.add(`diary-event-${categoryKey}`);
+          info.el.style.cursor = 'pointer';
+          info.el.style.touchAction = 'manipulation';
 
           if (info.view.type === 'dayGridMonth') {
             const dot = info.el.querySelector('.fc-daygrid-event-dot, .fc-event-dot');

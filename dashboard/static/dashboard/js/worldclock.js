@@ -183,6 +183,35 @@ function resolveTimezone(value) {
   return null;
 }
 
+function getStoredItem(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (error) {
+    console.warn('World clock storage read failed for', key, error);
+    return null;
+  }
+}
+
+function setStoredItem(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (error) {
+    console.warn('World clock storage write failed for', key, error);
+  }
+}
+
+function parseStoredJson(value, fallback) {
+  if (!value) {
+    return fallback;
+  }
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    console.warn('World clock stored JSON was invalid', error);
+    return fallback;
+  }
+}
+
 function renderWorldClock() {
   const container = document.getElementById('worldclock-menu-clocks') || document.getElementById('worldclock-header-clocks') || document.getElementById('worldclock-container');
   const toggle = document.getElementById('toggle-time-format');
@@ -211,12 +240,24 @@ function renderWorldClock() {
     }
   }
 
-  const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const savedTimezones = JSON.parse(localStorage.getItem('worldclockTimezones') || 'null');
-  let hour12 = renderMode === 'compact-header' ? true : localStorage.getItem('worldclockHour12') !== 'false';
+  let localTimezone = 'UTC';
+  try {
+    localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch (error) {
+    console.warn('World clock local timezone detection failed', error);
+  }
+
+  const savedTimezones = parseStoredJson(getStoredItem('worldclockTimezones'), null);
+  let hour12 = renderMode === 'compact-header' ? true : getStoredItem('worldclockHour12') !== 'false';
+  const defaultTimezones = parseStoredJson(container.getAttribute('data-timezones') || '[]', []);
   let timezones = Array.isArray(savedTimezones) && savedTimezones.length
     ? savedTimezones.slice(0, 3)
-    : JSON.parse(container.getAttribute('data-timezones') || '[]').slice(0, 3);
+    : defaultTimezones.slice(0, 3);
+
+  timezones = timezones.filter(isValidTimezone);
+  if (!timezones.length) {
+    timezones = ['Europe/London', 'Asia/Manila', 'America/Chicago'].filter(isValidTimezone);
+  }
 
   function showPopup(message, options) {
     const config = options || {};
@@ -285,7 +326,7 @@ function renderWorldClock() {
     const normalized = Array.isArray(timezones) ? timezones.slice(0, 3) : [];
     timezones = normalized;
     container.setAttribute('data-timezones', JSON.stringify(normalized));
-    localStorage.setItem('worldclockTimezones', JSON.stringify(normalized));
+    setStoredItem('worldclockTimezones', JSON.stringify(normalized));
   }
 
   function updateToggleText() {
@@ -392,7 +433,7 @@ function renderWorldClock() {
   if (toggle) {
     toggle.addEventListener('click', function () {
       hour12 = !hour12;
-      localStorage.setItem('worldclockHour12', String(hour12));
+      setStoredItem('worldclockHour12', String(hour12));
       updateToggleText();
       buildItems();
     });
