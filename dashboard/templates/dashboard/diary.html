@@ -566,6 +566,7 @@
     .calendar-wrapper {
       margin-top: 0;
       flex: 1;
+      min-width: 0;
       min-height: 0;
       display: flex;
       flex-direction: column;
@@ -573,8 +574,11 @@
 
     .calendar-glass-shell {
       width: 100%;
+      min-width: 0;
       min-height: 0;
       height: 100%;
+      display: flex;
+      flex-direction: column;
       border-radius: 18px;
       padding: 0.6rem;
       background: rgba(8, 18, 30, 0.46);
@@ -585,7 +589,11 @@
     }
 
     .calendar-scroll-wrapper {
-      height: calc(100vh - 170px);
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      height: clamp(560px, calc(100vh - 132px), 980px);
+      min-width: 0;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
@@ -594,6 +602,11 @@
 
     .calendar-scroll-wrapper.month-scroll-active {
       overscroll-behavior-y: contain;
+    }
+
+    .calendar-scroll-wrapper.week-scroll-active {
+      overflow-x: auto;
+      overflow-y: auto;
     }
 
     .calendar-scroll-wrapper::-webkit-scrollbar {
@@ -606,9 +619,13 @@
     }
 
     #calendar {
-      min-height: 0;
-      height: auto;
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 100%;
+      height: 100%;
       width: 100%;
+      display: flex;
+      flex-direction: column;
       background: transparent;
       border: none;
       padding: 0;
@@ -616,8 +633,16 @@
       box-shadow: none;
     }
 
-    #calendar .fc-prev-button,
-    #calendar .fc-next-button {
+    #calendar .fc,
+    #calendar .fc-media-screen,
+    #calendar .fc-view-harness {
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 100%;
+    }
+
+    #calendar.is-month-view .fc-prev-button,
+    #calendar.is-month-view .fc-next-button {
       display: none !important;
     }
 
@@ -625,7 +650,6 @@
     #calendar .fc-scroller-liquid-absolute,
     #calendar .fc-scroller {
       min-height: 0 !important;
-      height: auto !important;
     }
 
     /* Add Diary Entry Form */
@@ -921,12 +945,15 @@
     .fc .fc-timegrid-event {
       border: none !important;
       border-radius: 999px !important;
-      padding: 0.2rem 0.62rem !important;
       box-shadow: 0 4px 10px rgba(6, 12, 20, 0.25);
       backdrop-filter: blur(2px);
       -webkit-backdrop-filter: blur(2px);
       font-weight: 600;
       transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .fc .fc-event-main-frame {
+      padding: 0.2rem 0.62rem;
     }
 
     .fc .fc-event:hover,
@@ -1101,7 +1128,7 @@
       }
 
       .calendar-scroll-wrapper {
-        height: calc(100vh - 165px);
+        height: clamp(520px, calc(100vh - 150px), 900px);
       }
 
       #calendar {
@@ -1145,7 +1172,7 @@
       }
 
       .calendar-scroll-wrapper {
-        height: calc(100vh - 155px);
+        height: clamp(460px, calc(100vh - 145px), 820px);
       }
 
       #calendar {
@@ -1663,9 +1690,82 @@
     }
 
     #calendar.is-month-view .fc-daygrid-day-frame {
-      min-height: 0 !important;
+      min-height: clamp(5.5rem, 9.5vh, 8.5rem) !important;
       height: 100% !important;
       padding: clamp(0.32rem, 0.56vw, 0.56rem);
+    }
+
+    #calendar.is-week-view .fc,
+    #calendar.is-week-view .fc-view-harness,
+    #calendar.is-week-view .fc-scroller-harness,
+    #calendar.is-week-view .fc-timegrid,
+    #calendar.is-week-view .fc-timegrid-body {
+      min-width: 0 !important;
+    }
+
+    #calendar.is-week-view .fc-view-harness,
+    #calendar.is-week-view .fc-scroller-harness,
+    #calendar.is-week-view .fc-scroller-liquid-absolute,
+    #calendar.is-week-view .fc-scroller {
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+
+    #calendar.is-week-view .fc-scroller {
+      overflow-y: auto !important;
+    }
+
+    #calendar.is-week-view .fc-scrollgrid,
+    #calendar.is-week-view .fc-timegrid-cols table,
+    #calendar.is-week-view .fc-timegrid-slots table,
+    #calendar.is-week-view .fc-col-header table {
+      width: 100% !important;
+      min-width: 0 !important;
+      table-layout: fixed;
+    }
+
+    #calendar.is-week-view .fc-timegrid-axis,
+    #calendar.is-week-view .fc-timegrid-slot-label {
+      width: 58px !important;
+      min-width: 58px !important;
+    }
+
+    #calendar.is-week-view .fc-timegrid-col-frame,
+    #calendar.is-week-view .fc-timegrid-col-events {
+      min-width: 0 !important;
+    }
+
+    #calendar.is-week-view .fc-timegrid-event-harness {
+      margin-inline: 2px;
+    }
+
+    #calendar.is-week-view .fc-timegrid-event-harness > .fc-timegrid-event {
+      position: absolute !important;
+      inset: 0 !important;
+      height: auto !important;
+      width: auto !important;
+    }
+
+    #calendar.is-week-view .fc-v-event,
+    #calendar.is-week-view .fc-timegrid-event {
+      border-radius: 10px !important;
+      overflow: hidden;
+    }
+
+    #calendar.is-week-view .fc-event-main,
+    #calendar.is-week-view .fc-event-main-frame,
+    #calendar.is-week-view .fc-event-title-container {
+      min-width: 0 !important;
+    }
+
+    #calendar.is-week-view .fc-event-main-frame {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      height: 100% !important;
+      min-height: 100% !important;
+      padding: 0.24rem 0.45rem;
     }
 
     #calendar .fc-daygrid-day:hover .fc-daygrid-day-frame {
@@ -2306,6 +2406,7 @@
       const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm-btn');
       const searchParams = new URLSearchParams(window.location.search);
       const queryDate = searchParams.get('date');
+      const queryView = (searchParams.get('view') || '').trim().toLowerCase();
       const selectedEntryId = (searchParams.get('entry_id') || '').trim();
       const miniMonthTitle = document.getElementById('mini-month-title');
       const miniMonthGrid = document.getElementById('mini-month-grid');
@@ -2322,6 +2423,7 @@
       let suppressCalendarScroll = false;
       let scrollUnlockTimer = null;
       let scrollResetTimer = null;
+      let lastAppliedCalendarHeight = null;
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
         year: 'dayGridMonth',
@@ -2329,7 +2431,36 @@
         week: 'timeGridWeek',
         day: 'timeGridWeek'
       };
-      const initialDiaryView = defaultViewMap['{{ default_diary_view|default:"week" }}'] || 'timeGridWeek';
+      const queryViewMap = {
+        month: 'dayGridMonth',
+        daygridmonth: 'dayGridMonth',
+        week: 'timeGridWeek',
+        timegridweek: 'timeGridWeek'
+      };
+      const initialDiaryView = queryViewMap[queryView] || defaultViewMap['{{ default_diary_view|default:"week" }}'] || 'timeGridWeek';
+
+      function getResponsiveCalendarHeight() {
+        if (!calendarScrollWrapper) {
+          return 'auto';
+        }
+
+        const availableHeight = calendarScrollWrapper.clientHeight || 0;
+        return availableHeight > 0 ? Math.max(480, availableHeight - 4) : 'auto';
+      }
+
+      function applyResponsiveCalendarHeight() {
+        if (!window.calendar) {
+          return;
+        }
+
+        const nextHeight = getResponsiveCalendarHeight();
+        if (nextHeight !== lastAppliedCalendarHeight) {
+          lastAppliedCalendarHeight = nextHeight;
+          window.calendar.setOption('height', nextHeight);
+        }
+
+        window.calendar.updateSize();
+      }
 
       if (!calendarEl) {
         console.error('calendar element not found');
@@ -2696,13 +2827,38 @@
         });
       }
 
+      function getDiaryViewQueryValue(viewType) {
+        return viewType === 'timeGridWeek' ? 'week' : 'month';
+      }
+
+      function syncDiaryUrlState() {
+        if (!window.history || !window.calendar) {
+          return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('date', formatDateForInput(window.calendar.getDate()));
+        url.searchParams.set('view', getDiaryViewQueryValue(window.calendar.view.type));
+        window.history.replaceState({}, '', url.toString());
+      }
+
       function syncMonthScrollMode(viewType) {
         const isMonthView = viewType === 'dayGridMonth';
+        const isWeekView = viewType === 'timeGridWeek';
+        if (calendarEl) {
+          calendarEl.classList.toggle('is-month-view', isMonthView);
+          calendarEl.classList.toggle('is-week-view', isWeekView);
+        }
         if (!calendarScrollWrapper) {
           return;
         }
 
         calendarScrollWrapper.classList.toggle('month-scroll-active', isMonthView);
+        calendarScrollWrapper.classList.toggle('week-scroll-active', isWeekView);
+
+        if (window.calendar) {
+          applyResponsiveCalendarHeight();
+        }
 
         if (isMonthView) {
           suppressCalendarScroll = true;
@@ -2845,15 +3001,16 @@
         firstDay: 1,
         selectable: true,
         selectMirror: true,
-        height: 'auto',
+        height: getResponsiveCalendarHeight(),
         contentHeight: 'auto',
         expandRows: true,
         handleWindowResize: true,
         fixedWeekCount: false,
+        slotEventOverlap: false,
         headerToolbar: {
-          left: '',
+          left: 'prev',
           center: 'title',
-          right: ''
+          right: 'next'
         },
         buttonText: {
           year: 'Year',
@@ -2900,6 +3057,7 @@
           setActiveDiaryViewButton(info.view.type);
           const activeDate = window.calendar.getDate();
           renderMiniMonth(activeDate, activeDate);
+          syncDiaryUrlState();
         },
         eventDidMount: function (info) {
           if (info.view.type === 'multiMonthYear') {
@@ -2997,6 +3155,11 @@
 
       window.calendar.render();
       syncMonthScrollMode(window.calendar.view.type);
+
+      window.addEventListener('resize', function () {
+        syncMonthScrollMode(window.calendar.view.type);
+        applyResponsiveCalendarHeight();
+      });
 
       if (calendarScrollWrapper) {
         calendarScrollWrapper.addEventListener('scroll', handleCalendarScrollNavigation, { passive: true });

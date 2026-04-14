@@ -82,6 +82,15 @@ def normalize_diary_category(value):
     return candidate if candidate in DIARY_CATEGORY_LABELS else DIARY_DEFAULT_CATEGORY
 
 
+def normalize_diary_view(value):
+    candidate = str(value or "").strip().lower()
+    if candidate in {"week", "timegridweek"}:
+        return "week"
+    if candidate in {"month", "daygridmonth", "multimonthyear", "year"}:
+        return "month"
+    return ""
+
+
 def get_diary_category_options():
     return [
         {
@@ -1956,6 +1965,13 @@ def add_diary_entry(request):
         end_time = request.POST.get('end_time')
         content = request.POST.get('content')
         redirect_date = datetime.today().date().isoformat()
+        redirect_view = normalize_diary_view(request.POST.get('calendar_view', ''))
+        redirect_calendar_date = str(request.POST.get('calendar_date', '')).strip()
+        if redirect_calendar_date:
+            try:
+                redirect_date = datetime.strptime(redirect_calendar_date, '%Y-%m-%d').date().isoformat()
+            except ValueError:
+                pass
 
         safe_redirect = ''
         for key in ('redirect_to', 'next'):
@@ -1971,7 +1987,16 @@ def add_diary_entry(request):
         def diary_redirect_url():
             if safe_redirect:
                 return safe_redirect
-            return f"{reverse('diary')}?date={redirect_date}"
+
+            query_parts = []
+            if redirect_date:
+                query_parts.append(f"date={redirect_date}")
+            if redirect_view:
+                query_parts.append(f"view={redirect_view}")
+
+            if query_parts:
+                return f"{reverse('diary')}?{'&'.join(query_parts)}"
+            return reverse('diary')
 
         if date:
             try:
@@ -2072,17 +2097,33 @@ def delete_diary_entry(request):
 
     entry_id = request.POST.get('entry_id', '').strip()
     redirect_date = request.POST.get('redirect_date', '').strip()
+    redirect_view = normalize_diary_view(request.POST.get('calendar_view', ''))
+    redirect_calendar_date = str(request.POST.get('calendar_date', '')).strip()
+
+    if redirect_calendar_date:
+        try:
+            redirect_date = datetime.strptime(redirect_calendar_date, '%Y-%m-%d').date().isoformat()
+        except ValueError:
+            pass
 
     if not redirect_date:
         redirect_date = datetime.today().date().isoformat()
 
     diary_entry = DiaryEntry.objects.filter(id=entry_id, user=request.user).first()
     if diary_entry:
-        if diary_entry.date:
+        if diary_entry.date and not redirect_calendar_date:
             redirect_date = diary_entry.date.isoformat()
         diary_entry.delete()
         messages.success(request, 'Diary entry deleted successfully!')
     else:
         messages.error(request, 'Diary entry not found.')
 
-    return HttpResponseRedirect(f"{reverse('diary')}?date={redirect_date}")
+    query_parts = []
+    if redirect_date:
+        query_parts.append(f"date={redirect_date}")
+    if redirect_view:
+        query_parts.append(f"view={redirect_view}")
+
+    if query_parts:
+        return HttpResponseRedirect(f"{reverse('diary')}?{'&'.join(query_parts)}")
+    return HttpResponseRedirect(reverse('diary'))
