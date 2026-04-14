@@ -2286,6 +2286,376 @@
         z-index: 2060 !important;
       }
     }
+
+    .iphone-diary-events-panel {
+      display: none;
+    }
+
+    .mobile-calendar-title-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .iphone-month-picker-head {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .iphone-month-picker-year {
+      margin-top: 0.65rem;
+      text-align: center;
+      color: #AFC0CF;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .iphone-month-picker-grid {
+      margin-top: 0.9rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.55rem;
+    }
+
+    .iphone-month-option {
+      border: 1px solid rgba(83, 183, 232, 0.24);
+      background: rgba(13, 33, 50, 0.72);
+      color: #EAF4FF;
+      border-radius: 12px;
+      padding: 0.55rem 0.45rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+      transition: background 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+    }
+
+    .iphone-month-option:hover,
+    .iphone-month-option:focus {
+      border-color: #53B7E8;
+      background: rgba(19, 159, 201, 0.22);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .iphone-month-option.is-active {
+      border-color: #0A84FF;
+      background: linear-gradient(180deg, rgba(10, 132, 255, 0.92), rgba(0, 122, 255, 0.88));
+      color: #FFFFFF;
+      box-shadow: 0 8px 18px rgba(10, 132, 255, 0.24);
+    }
+
+    @media (max-width: 599px) {
+      body {
+        padding-top: env(safe-area-inset-top) !important;
+        padding-bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+        overflow: hidden !important;
+      }
+
+      body .main {
+        height: auto !important;
+        min-height: calc(100vh - 78px - env(safe-area-inset-bottom)) !important;
+        padding: calc(0.45rem + env(safe-area-inset-top)) 0.75rem calc(1rem + env(safe-area-inset-bottom)) !important;
+        overflow: hidden !important;
+      }
+
+      .diary-right-head,
+      .diary-view-controls,
+      .diary-view-switch,
+      .diary-today-btn,
+      .diary-filter-select {
+        display: none !important;
+      }
+
+      .content-grid.iphone-diary-shell {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 0.75rem !important;
+        height: calc(100vh - 90px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        overflow: hidden !important;
+      }
+
+      .iphone-diary-month-panel,
+      .iphone-diary-month-panel.panel {
+        position: sticky;
+        top: env(safe-area-inset-top);
+        z-index: 30;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      .iphone-diary-month-panel .calendar-glass-shell {
+        padding: 0.56rem 0.58rem 0.34rem !important;
+        background: rgba(255, 255, 255, 0.12) !important;
+        border-radius: 14px !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        backdrop-filter: blur(20px) saturate(135%);
+        -webkit-backdrop-filter: blur(20px) saturate(135%);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+      }
+
+      .mobile-calendar-nav {
+        grid-template-columns: 1fr !important;
+        margin: 0 0 0.5rem !important;
+      }
+
+      .mobile-calendar-nav-btn {
+        display: none !important;
+      }
+
+      .mobile-calendar-title-btn,
+      .mobile-calendar-nav-label {
+        display: block !important;
+        width: 100%;
+        text-align: left;
+        border: none !important;
+        background: transparent !important;
+        color: #F7FBFF;
+        font-size: 1.02rem !important;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        padding: 0.06rem 0.08rem 0.28rem !important;
+      }
+
+      .mobile-calendar-title-btn::after {
+        content: 'Tap to change month';
+        display: block;
+        margin-top: 0.08rem;
+        color: rgba(234, 244, 255, 0.68);
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+
+      .calendar-scroll-wrapper {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        scroll-behavior: auto !important;
+      }
+
+      #calendar {
+        min-height: 0 !important;
+        height: auto !important;
+      }
+
+      #calendar .fc-header-toolbar,
+      #calendar .fc-toolbar {
+        display: none !important;
+      }
+
+      #calendar .fc-scrollgrid,
+      #calendar .fc-theme-standard td,
+      #calendar .fc-theme-standard th,
+      #calendar .fc-col-header-cell,
+      #calendar .fc-daygrid-day {
+        border: none !important;
+        background: transparent !important;
+      }
+
+      #calendar .fc-col-header-cell-cushion {
+        padding: 0 0 0.22rem !important;
+        color: rgba(234, 244, 255, 0.62) !important;
+        font-size: 0.66rem !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.01em;
+      }
+
+      #calendar .fc-daygrid-day-frame {
+        min-height: 2.3rem !important;
+        padding: 0.08rem 0.06rem !important;
+      }
+
+      #calendar .fc-daygrid-day-top {
+        justify-content: center;
+      }
+
+      #calendar .fc-daygrid-day-number {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.78rem;
+        min-height: 1.78rem;
+        border-radius: 999px;
+        color: #F5F9FF !important;
+        font-size: 0.84rem !important;
+        font-weight: 600 !important;
+        text-shadow: none !important;
+      }
+
+      #calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+        background: rgba(255, 255, 255, 0.12) !important;
+        color: #FFFFFF !important;
+      }
+
+      #calendar .fc-daygrid-day.ios-selected-day .fc-daygrid-day-number {
+        background: linear-gradient(180deg, #0A84FF 0%, #007AFF 100%) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 8px 18px rgba(10, 132, 255, 0.24);
+      }
+
+      #calendar .fc-daygrid-day-events {
+        min-height: 0.4rem !important;
+        margin-top: 0.08rem !important;
+      }
+
+      #calendar .fc-daygrid-event-harness {
+        margin-top: 0.06rem !important;
+        display: flex;
+        justify-content: center;
+      }
+
+      #calendar .fc-daygrid-event,
+      #calendar .fc-event {
+        min-height: 0.38rem !important;
+        height: 0.38rem !important;
+        min-width: 0.38rem !important;
+        width: 0.38rem !important;
+        padding: 0 !important;
+        border-radius: 999px !important;
+        background: rgba(10, 132, 255, 0.88) !important;
+        box-shadow: none !important;
+      }
+
+      #calendar .fc-daygrid-event .fc-event-main,
+      #calendar .fc-event-title,
+      #calendar .fc-event-time {
+        display: none !important;
+      }
+
+      #calendar .fc-daygrid-day.fc-day-other {
+        opacity: 0.42;
+      }
+
+      .iphone-diary-events-panel {
+        display: flex !important;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+        touch-action: pan-y;
+      }
+
+      .iphone-diary-events-header {
+        padding: 0 0.12rem 0.45rem;
+      }
+
+      .iphone-diary-events-kicker {
+        margin: 0 0 0.2rem;
+        color: rgba(234, 244, 255, 0.62);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .iphone-diary-events-title {
+        margin: 0;
+        color: #F7FBFF;
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .iphone-diary-events-subtitle {
+        margin: 0.18rem 0 0;
+        color: rgba(234, 244, 255, 0.68);
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+
+      .iphone-diary-events-list {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+        touch-action: pan-y;
+        padding: 0.08rem 0.08rem 1rem;
+        display: grid;
+        gap: 0.55rem;
+        scroll-behavior: smooth;
+      }
+
+      .iphone-event-day-group {
+        display: grid;
+        gap: 0.08rem;
+      }
+
+      .iphone-event-day-group.is-selected .iphone-event-card {
+        opacity: 1;
+      }
+
+      .iphone-event-day-heading {
+        display: none;
+      }
+
+      .iphone-event-card {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #F7FBFF;
+        border-radius: 0;
+        padding: 0.3rem 0.1rem 0.42rem;
+        box-shadow: none;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 0.55rem;
+        align-items: center;
+        text-align: left;
+        transition: opacity 0.2s ease;
+      }
+
+      .iphone-event-card:active,
+      .iphone-event-card:hover,
+      .iphone-event-card:focus {
+        background: transparent;
+        box-shadow: none;
+        transform: none;
+        opacity: 0.84;
+        outline: none;
+      }
+
+      .iphone-event-time {
+        color: rgba(159, 215, 255, 0.92);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        min-width: 6.2rem;
+        white-space: nowrap;
+      }
+
+      .iphone-event-title {
+        color: #FFFFFF;
+        font-size: 0.94rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .iphone-event-meta {
+        display: none;
+      }
+
+      .iphone-events-empty {
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(234, 244, 255, 0.76);
+        font-size: 0.85rem;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -2329,12 +2699,12 @@
           </select>
         </div>
       </div>
-      <div class="content-grid">
-        <div class="panel week-panel" style="grid-column: 1 / -1; width: 100%;">
+      <div class="content-grid iphone-diary-shell">
+        <div class="panel week-panel iphone-diary-month-panel" style="grid-column: 1 / -1; width: 100%;">
           <div class="calendar-wrapper calendar-glass-shell">
             <div class="mobile-calendar-nav" aria-label="Calendar navigation">
               <button type="button" class="mobile-calendar-nav-btn" id="mobile-calendar-prev" aria-label="Previous period">‹</button>
-              <div class="mobile-calendar-nav-label" id="mobile-calendar-nav-label">Calendar</div>
+              <button type="button" class="mobile-calendar-nav-label mobile-calendar-title-btn" id="mobile-calendar-nav-label" aria-label="Choose month">Calendar</button>
               <button type="button" class="mobile-calendar-nav-btn" id="mobile-calendar-next" aria-label="Next period">›</button>
             </div>
             <div class="calendar-scroll-wrapper" id="calendar-scroll-wrapper">
@@ -2342,6 +2712,33 @@
             </div>
           </div>
         </div>
+
+        <section class="iphone-diary-events-panel" id="iphone-diary-events-panel" aria-label="Diary events for the selected month">
+          <!-- <div class="iphone-diary-events-header">
+            <p class="iphone-diary-events-kicker">Monthly schedule</p>
+            <h2 class="iphone-diary-events-title" id="iphone-events-title">This Month</h2>
+            <p class="iphone-diary-events-subtitle" id="iphone-events-subtitle">Tap a day to jump to that day's events.</p>
+          </div> -->
+          <div class="iphone-diary-events-list" id="iphone-diary-events-list">
+            {% if iphone_month_entries %}
+              {% regroup iphone_month_entries by date as iphone_diary_groups %}
+              {% for day_group in iphone_diary_groups %}
+                <section class="iphone-event-day-group" data-group-date="{{ day_group.grouper|date:'Y-m-d' }}">
+                  {% for entry in day_group.list %}
+                    <button type="button" class="iphone-event-card" aria-label="{{ entry.title }} on {{ day_group.grouper|date:'j/n' }}">
+                      <div class="iphone-event-time">
+                        {{ day_group.grouper|date:'j/n' }} · {% if entry.start_time %}{{ entry.start_time|time:'g:i A' }}{% else %}All-day{% endif %}
+                      </div>
+                      <div class="iphone-event-title">{{ entry.title }}</div>
+                    </button>
+                  {% endfor %}
+                </section>
+              {% endfor %}
+            {% else %}
+              <div class="iphone-events-empty">No diary events for this month.</div>
+            {% endif %}
+          </div>
+        </section>
       </div>
     </main>
 
@@ -2641,6 +3038,21 @@
     </div>
   </div>
 
+  <div class="app-modal iphone-month-picker-modal" id="iphone-month-picker-modal" hidden>
+    <div class="app-modal-dialog iphone-month-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="iphone-month-picker-title">
+      <div class="iphone-month-picker-head">
+        <button type="button" class="btn-modal" id="iphone-month-picker-prev-year" aria-label="Previous year">‹</button>
+        <h2 class="app-modal-title" id="iphone-month-picker-title">Choose month</h2>
+        <button type="button" class="btn-modal" id="iphone-month-picker-next-year" aria-label="Next year">›</button>
+      </div>
+      <div class="iphone-month-picker-year" id="iphone-month-picker-year">2026</div>
+      <div class="iphone-month-picker-grid" id="iphone-month-picker-grid"></div>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="iphone-month-picker-close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const bodyEl = document.body;
@@ -2695,6 +3107,15 @@
       const calendarScrollWrapper = document.getElementById('calendar-scroll-wrapper');
       const rightTitle = document.getElementById('diary-right-title');
       const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
+      const iphoneEventsTitle = document.getElementById('iphone-events-title');
+      const iphoneEventsSubtitle = document.getElementById('iphone-events-subtitle');
+      const iphoneEventsList = document.getElementById('iphone-diary-events-list');
+      const iphoneMonthPickerModal = document.getElementById('iphone-month-picker-modal');
+      const iphoneMonthPickerGrid = document.getElementById('iphone-month-picker-grid');
+      const iphoneMonthPickerYear = document.getElementById('iphone-month-picker-year');
+      const iphoneMonthPickerClose = document.getElementById('iphone-month-picker-close');
+      const iphoneMonthPickerPrevYear = document.getElementById('iphone-month-picker-prev-year');
+      const iphoneMonthPickerNextYear = document.getElementById('iphone-month-picker-next-year');
       let requestedEntryLoaded = false;
       let allowDeleteSubmit = false;
       let lastCalendarScrollTop = 1;
@@ -2717,9 +3138,21 @@
         week: 'timeGridWeek',
         timegridweek: 'timeGridWeek'
       };
-      const initialDiaryView = queryViewMap[queryView] || defaultViewMap['{{ default_diary_view|default:"week" }}'] || 'timeGridWeek';
+      const initialDiaryView = isIphoneLayout()
+        ? 'dayGridMonth'
+        : (queryViewMap[queryView] || defaultViewMap['{{ default_diary_view|default:"week" }}'] || 'timeGridWeek');
+      let activePhoneSelectedDate = selectedDate || formatDateForInput(new Date());
+      let iphoneMonthPickerYearValue = new Date().getFullYear();
+
+      function isIphoneLayout() {
+        return window.matchMedia('(max-width: 599px)').matches;
+      }
 
       function getResponsiveCalendarHeight() {
+        if (isIphoneLayout()) {
+          return 'auto';
+        }
+
         if (!calendarScrollWrapper) {
           return 'auto';
         }
@@ -2877,6 +3310,303 @@
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+      }
+
+      function formatPhoneMonthTitle(dateObj) {
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'long',
+          year: 'numeric'
+        }).format(dateObj);
+      }
+
+      function formatPhoneDayLabel(dateObj) {
+        return new Intl.DateTimeFormat('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric'
+        }).format(dateObj);
+      }
+
+      function formatShortPhoneDate(dateObj) {
+        if (!dateObj) {
+          return '';
+        }
+        const day = dateObj.getDate();
+        const month = dateObj.getMonth() + 1;
+        return `${day}/${month}`;
+      }
+
+      function formatPhoneEventTime(eventObj) {
+        if (!eventObj || !eventObj.start || eventObj.allDay) {
+          return 'All-day';
+        }
+
+        const timeOptions = {
+          hour: 'numeric',
+          minute: '2-digit'
+        };
+        const startText = new Intl.DateTimeFormat('en-US', timeOptions).format(eventObj.start);
+
+        if (eventObj.end) {
+          const endText = new Intl.DateTimeFormat('en-US', timeOptions).format(eventObj.end);
+          return `${startText} – ${endText}`;
+        }
+
+        return startText;
+      }
+
+      function dateInCurrentVisibleMonth(dateObj, monthAnchor) {
+        if (!dateObj || !monthAnchor) {
+          return false;
+        }
+
+        const monthStart = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1);
+        const nextMonthStart = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
+        return dateObj >= monthStart && dateObj < nextMonthStart;
+      }
+
+      function getMonthRange(monthAnchor) {
+        return {
+          start: new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1),
+          end: new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1)
+        };
+      }
+
+      function getVisibleEventDateForMonth(eventObj, monthAnchor) {
+        if (!eventObj || !eventObj.start || !monthAnchor) {
+          return null;
+        }
+
+        const range = getMonthRange(monthAnchor);
+        const start = new Date(eventObj.start);
+        let end = eventObj.end ? new Date(eventObj.end) : new Date(start);
+
+        if (eventObj.allDay && end) {
+          end = new Date(end.getTime() - 1);
+        }
+
+        if (end < range.start || start >= range.end) {
+          return null;
+        }
+
+        return start < range.start ? new Date(range.start) : start;
+      }
+
+      function updateSelectedCalendarDay() {
+        if (!calendarEl) {
+          return;
+        }
+
+        const dayCells = calendarEl.querySelectorAll('.fc-daygrid-day');
+        dayCells.forEach(function (cell) {
+          const cellDate = cell.getAttribute('data-date') || '';
+          cell.classList.toggle('ios-selected-day', Boolean(activePhoneSelectedDate) && cellDate === activePhoneSelectedDate);
+        });
+      }
+
+      function scrollIphoneEventListToDate(dateKey) {
+        if (!iphoneEventsList || !dateKey) {
+          return;
+        }
+
+        const target = iphoneEventsList.querySelector(`[data-group-date="${dateKey}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      function renderIphoneEventList() {
+        if (!iphoneEventsList || !window.calendar || !isIphoneLayout()) {
+          return;
+        }
+
+        const monthAnchor = window.calendar.getDate();
+        const monthPrefix = formatDateForInput(monthAnchor).slice(0, 7);
+        if (!activePhoneSelectedDate || activePhoneSelectedDate.slice(0, 7) !== monthPrefix) {
+          activePhoneSelectedDate = formatDateForInput(monthAnchor);
+        }
+
+        if (iphoneEventsTitle) {
+          iphoneEventsTitle.textContent = formatPhoneMonthTitle(monthAnchor);
+        }
+        if (iphoneEventsSubtitle) {
+          iphoneEventsSubtitle.textContent = 'Tap a date above to jump to that day.';
+        }
+
+        const monthEvents = window.calendar.getEvents().filter(function (eventObj) {
+          return Boolean(getVisibleEventDateForMonth(eventObj, monthAnchor)) && eventMatchesActiveFilter(eventObj);
+        }).sort(function (left, right) {
+          const leftDate = getVisibleEventDateForMonth(left, monthAnchor);
+          const rightDate = getVisibleEventDateForMonth(right, monthAnchor);
+          return (leftDate ? leftDate.getTime() : 0) - (rightDate ? rightDate.getTime() : 0);
+        });
+
+        if (!monthEvents.length && !window.calendar.getEvents().length) {
+          if (!iphoneEventsList.children.length) {
+            iphoneEventsList.innerHTML = '<div class="iphone-events-empty">No diary events for this month.</div>';
+          }
+          return;
+        }
+
+        iphoneEventsList.innerHTML = '';
+        if (!monthEvents.length) {
+          iphoneEventsList.innerHTML = '<div class="iphone-events-empty">No diary events for this month.</div>';
+          return;
+        }
+
+        const eventsByDate = new Map();
+        monthEvents.forEach(function (eventObj) {
+          const visibleDate = getVisibleEventDateForMonth(eventObj, monthAnchor);
+          const dateKey = visibleDate ? formatDateForInput(visibleDate) : '';
+          if (!dateKey) {
+            return;
+          }
+          if (!eventsByDate.has(dateKey)) {
+            eventsByDate.set(dateKey, []);
+          }
+          eventsByDate.get(dateKey).push(eventObj);
+        });
+
+        Array.from(eventsByDate.keys()).sort().forEach(function (dateKey) {
+          const dateObj = new Date(`${dateKey}T12:00:00`);
+          const group = document.createElement('section');
+          group.className = 'iphone-event-day-group';
+          group.dataset.groupDate = dateKey;
+          if (dateKey === activePhoneSelectedDate) {
+            group.classList.add('is-selected');
+          }
+
+          const heading = document.createElement('div');
+          heading.className = 'iphone-event-day-heading';
+          heading.textContent = formatPhoneDayLabel(dateObj);
+          group.appendChild(heading);
+
+          eventsByDate.get(dateKey).forEach(function (eventObj) {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'iphone-event-card';
+
+            const timeLine = document.createElement('div');
+            timeLine.className = 'iphone-event-time';
+            timeLine.textContent = `${formatShortPhoneDate(dateObj)} · ${formatPhoneEventTime(eventObj)}`;
+
+            const titleLine = document.createElement('div');
+            titleLine.className = 'iphone-event-title';
+            titleLine.textContent = eventObj.title || 'Untitled event';
+
+            card.appendChild(timeLine);
+            card.appendChild(titleLine);
+
+
+            card.addEventListener('click', function () {
+              activePhoneSelectedDate = dateKey;
+              updateSelectedCalendarDay();
+              renderIphoneEventList();
+
+              if ((eventObj.extendedProps && eventObj.extendedProps.source) === 'uk-bank-holiday') {
+                if (selectionHint) {
+                  selectionHint.textContent = `${eventObj.title} is a read-only UK bank holiday.`;
+                }
+                return;
+              }
+
+              loadEntryIntoForm({
+                id: String(eventObj.id || ''),
+                title: eventObj.title || '',
+                category: eventObj.extendedProps.formCategory || 'general',
+                date: eventObj.start ? formatDateForInput(eventObj.start) : '',
+                endDate: eventObj.extendedProps.formEndDate || '',
+                startTime: eventObj.extendedProps.formStartTime || '',
+                endTime: eventObj.extendedProps.formEndTime || '',
+                content: eventObj.extendedProps.description || ''
+              });
+
+              if (typeof openDiaryPanel === 'function') {
+                openDiaryPanel({
+                  title: eventObj.title || '',
+                  date: eventObj.start ? formatDateForInput(eventObj.start) : '',
+                  content: eventObj.extendedProps.description || '',
+                  mode: 'edit'
+                });
+              }
+            });
+
+            group.appendChild(card);
+          });
+
+          iphoneEventsList.appendChild(group);
+        });
+      }
+
+      function buildIphoneMonthPicker() {
+        if (!iphoneMonthPickerGrid) {
+          return;
+        }
+
+        const currentDate = window.calendar ? window.calendar.getDate() : new Date();
+        iphoneMonthPickerGrid.innerHTML = '';
+        if (iphoneMonthPickerYear) {
+          iphoneMonthPickerYear.textContent = String(iphoneMonthPickerYearValue);
+        }
+
+        for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'iphone-month-option';
+          button.textContent = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(new Date(iphoneMonthPickerYearValue, monthIndex, 1));
+
+          if (currentDate.getFullYear() === iphoneMonthPickerYearValue && currentDate.getMonth() === monthIndex) {
+            button.classList.add('is-active');
+          }
+
+          button.addEventListener('click', function () {
+            const targetDate = new Date(iphoneMonthPickerYearValue, monthIndex, 1);
+            activePhoneSelectedDate = formatDateForInput(targetDate);
+            closeIphoneMonthPicker();
+            if (window.calendar) {
+              window.calendar.gotoDate(targetDate);
+              if (window.calendar.view.type !== 'dayGridMonth') {
+                window.calendar.changeView('dayGridMonth');
+              }
+            }
+          });
+
+          iphoneMonthPickerGrid.appendChild(button);
+        }
+      }
+
+      function openIphoneMonthPicker() {
+        if (!isIphoneLayout() || !iphoneMonthPickerModal) {
+          return;
+        }
+
+        iphoneMonthPickerYearValue = window.calendar ? window.calendar.getDate().getFullYear() : new Date().getFullYear();
+        buildIphoneMonthPicker();
+        iphoneMonthPickerModal.hidden = false;
+      }
+
+      function closeIphoneMonthPicker() {
+        if (iphoneMonthPickerModal) {
+          iphoneMonthPickerModal.hidden = true;
+        }
+      }
+
+      function syncIphoneDiaryLayout() {
+        if (!window.calendar || !isIphoneLayout()) {
+          return;
+        }
+
+        if (window.calendar.view.type !== 'dayGridMonth') {
+          window.calendar.changeView('dayGridMonth');
+          return;
+        }
+
+        if (diaryCategoryFilter) {
+          diaryCategoryFilter.value = 'all';
+        }
+        activeDiaryCategoryFilter = 'all';
+        updateSelectedCalendarDay();
+        renderIphoneEventList();
       }
 
       function prefillFromDate(dateObj, isAllDay, endDateObj) {
@@ -3150,6 +3880,9 @@
 
           eventEl.style.display = isVisible ? '' : 'none';
         });
+
+        updateSelectedCalendarDay();
+        renderIphoneEventList();
       }
 
       function getDiaryViewQueryValue(viewType) {
@@ -3172,7 +3905,9 @@
           return;
         }
 
-        mobileCalendarLabel.textContent = window.calendar.view.title || 'Calendar';
+        const viewTitle = window.calendar.view.title || 'Calendar';
+        mobileCalendarLabel.textContent = viewTitle;
+        mobileCalendarLabel.setAttribute('aria-label', `Choose month for ${viewTitle}`);
       }
 
       function useScrollMonthNavigation() {
@@ -3396,14 +4131,28 @@
         eventsSet: function (events) {
           tryLoadRequestedEntry(events);
           applyDiaryCategoryFilter();
+          updateSelectedCalendarDay();
+          renderIphoneEventList();
         },
         datesSet: function (info) {
+          if (isIphoneLayout() && info.view.type !== 'dayGridMonth') {
+            window.calendar.changeView('dayGridMonth');
+            return;
+          }
+
           syncMonthScrollMode(info.view.type);
           setActiveDiaryViewButton(info.view.type);
           const activeDate = window.calendar.getDate();
           renderMiniMonth(activeDate, activeDate);
           syncDiaryUrlState();
           syncMobileCalendarNav();
+
+          const monthPrefix = formatDateForInput(activeDate).slice(0, 7);
+          if (!activePhoneSelectedDate || activePhoneSelectedDate.slice(0, 7) !== monthPrefix) {
+            activePhoneSelectedDate = formatDateForInput(activeDate);
+          }
+
+          syncIphoneDiaryLayout();
         },
         eventDidMount: function (info) {
           if (info.view.type === 'multiMonthYear') {
@@ -3460,6 +4209,12 @@
           window.requestAnimationFrame(applyDiaryCategoryFilter);
         },
         eventClick: function (info) {
+          if (info.event.start) {
+            activePhoneSelectedDate = formatDateForInput(info.event.start);
+            updateSelectedCalendarDay();
+            renderIphoneEventList();
+          }
+
           if ((info.event.extendedProps.source || '') === 'uk-bank-holiday') {
             info.jsEvent.preventDefault();
             if (selectionHint) {
@@ -3488,6 +4243,14 @@
           }
         },
         dateClick: function (info) {
+          if (isIphoneLayout()) {
+            activePhoneSelectedDate = info.dateStr;
+            updateSelectedCalendarDay();
+            renderIphoneEventList();
+            scrollIphoneEventListToDate(info.dateStr);
+            return;
+          }
+
           if (typeof prefillFromDate === 'function') {
             prefillFromDate(info.date, info.allDay);
           }
@@ -3496,6 +4259,18 @@
           }
         },
         select: function (selectionInfo) {
+          if (isIphoneLayout()) {
+            const selectedStart = (selectionInfo.startStr || '').slice(0, 10);
+            if (selectedStart) {
+              activePhoneSelectedDate = selectedStart;
+              updateSelectedCalendarDay();
+              renderIphoneEventList();
+              scrollIphoneEventListToDate(selectedStart);
+            }
+            window.calendar.unselect();
+            return;
+          }
+
           if (typeof prefillFromDate === 'function') {
             prefillFromDate(selectionInfo.start, selectionInfo.allDay, selectionInfo.end);
           }
@@ -3509,11 +4284,53 @@
       window.calendar.render();
       syncMonthScrollMode(window.calendar.view.type);
       syncMobileCalendarNav();
+      syncIphoneDiaryLayout();
 
       window.addEventListener('resize', function () {
         syncMonthScrollMode(window.calendar.view.type);
         syncMobileCalendarNav();
         applyResponsiveCalendarHeight();
+        syncIphoneDiaryLayout();
+      });
+
+      if (mobileCalendarLabel) {
+        mobileCalendarLabel.addEventListener('click', function () {
+          if (isIphoneLayout()) {
+            openIphoneMonthPicker();
+          }
+        });
+      }
+
+      if (iphoneMonthPickerClose) {
+        iphoneMonthPickerClose.addEventListener('click', closeIphoneMonthPicker);
+      }
+
+      if (iphoneMonthPickerPrevYear) {
+        iphoneMonthPickerPrevYear.addEventListener('click', function () {
+          iphoneMonthPickerYearValue -= 1;
+          buildIphoneMonthPicker();
+        });
+      }
+
+      if (iphoneMonthPickerNextYear) {
+        iphoneMonthPickerNextYear.addEventListener('click', function () {
+          iphoneMonthPickerYearValue += 1;
+          buildIphoneMonthPicker();
+        });
+      }
+
+      if (iphoneMonthPickerModal) {
+        iphoneMonthPickerModal.addEventListener('click', function (event) {
+          if (event.target === iphoneMonthPickerModal) {
+            closeIphoneMonthPicker();
+          }
+        });
+      }
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          closeIphoneMonthPicker();
+        }
       });
 
       if (calendarScrollWrapper) {
@@ -3570,6 +4387,12 @@
 
       viewSwitchButtons.forEach(function (button) {
         button.addEventListener('click', function () {
+          if (isIphoneLayout()) {
+            window.calendar.changeView('dayGridMonth');
+            syncIphoneDiaryLayout();
+            return;
+          }
+
           const targetView = button.dataset.diaryView;
           if (!targetView) {
             return;

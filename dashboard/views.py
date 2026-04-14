@@ -1021,6 +1021,12 @@ def diary_api(request):
 def diary_view(request):
     # Diary page with week view
     diary_entries = DiaryEntry.objects.filter(user=request.user).order_by('-date', '-start_time', '-created_at')
+    today = datetime.now().date()
+    iphone_month_entries = DiaryEntry.objects.filter(
+        user=request.user,
+        date__year=today.year,
+        date__month=today.month,
+    ).order_by('date', 'start_time', 'created_at')
     preferences = get_user_preferences(request)
     try:
         note_categories = list(NoteCategory.objects.filter(user=request.user).order_by('name'))
@@ -1029,6 +1035,7 @@ def diary_view(request):
 
     context = {
         "diary_entries": diary_entries,
+        "iphone_month_entries": iphone_month_entries,
         "diary_category_options": get_diary_category_options(),
         "note_categories": note_categories,
         "default_diary_view": preferences.default_diary_view,
