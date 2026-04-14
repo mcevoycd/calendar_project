@@ -605,6 +605,45 @@
       -webkit-backdrop-filter: blur(10px);
     }
 
+    .mobile-calendar-nav {
+      display: none;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0 0 0.55rem;
+    }
+
+    .mobile-calendar-nav-btn {
+      border: 1px solid rgba(83, 183, 232, 0.48);
+      background: rgba(14, 27, 42, 0.96);
+      color: #F2F8FF;
+      border-radius: 12px;
+      min-width: 42px;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .mobile-calendar-nav-btn:hover,
+    .mobile-calendar-nav-btn:focus {
+      background: rgba(31, 58, 83, 0.95);
+      outline: none;
+    }
+
+    .mobile-calendar-nav-label {
+      text-align: center;
+      color: #EAF4FF;
+      font-size: 1.03rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
     .calendar-scroll-wrapper {
       flex: 1 1 auto;
       display: flex;
@@ -1410,6 +1449,16 @@
       display: none;
     }
 
+    @media (max-width: 767px) {
+      .mobile-calendar-nav {
+        display: grid !important;
+      }
+
+      #calendar .fc-header-toolbar {
+        display: none !important;
+      }
+    }
+
     @media (max-width: 599px) {
       body .sidebar {
         display: none !important;
@@ -1431,13 +1480,38 @@
         justify-content: center;
       }
 
+      .mobile-calendar-nav {
+        display: grid;
+      }
+
       #calendar .fc-header-toolbar {
+        display: none !important;
         grid-template-columns: auto 1fr auto;
         gap: 0.35rem;
       }
 
       #calendar .fc-toolbar-chunk {
         flex-wrap: nowrap;
+      }
+
+      #calendar.is-month-view .fc-prev-button,
+      #calendar.is-month-view .fc-next-button {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: 42px !important;
+        min-height: 42px !important;
+        padding: 0.45rem !important;
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        color: #F2F8FF !important;
+        background: rgba(14, 27, 42, 0.96) !important;
+        border: 1px solid rgba(83, 183, 232, 0.48) !important;
+      }
+
+      #calendar.is-month-view .fc-prev-button .fc-icon,
+      #calendar.is-month-view .fc-next-button .fc-icon {
+        display: none !important;
       }
 
       #calendar .fc-daygrid-day-frame {
@@ -2243,6 +2317,11 @@
       <div class="content-grid">
         <div class="panel week-panel" style="grid-column: 1 / -1; width: 100%;">
           <div class="calendar-wrapper calendar-glass-shell">
+            <div class="mobile-calendar-nav" aria-label="Calendar navigation">
+              <button type="button" class="mobile-calendar-nav-btn" id="mobile-calendar-prev" aria-label="Previous period">‹</button>
+              <div class="mobile-calendar-nav-label" id="mobile-calendar-nav-label">Calendar</div>
+              <button type="button" class="mobile-calendar-nav-btn" id="mobile-calendar-next" aria-label="Next period">›</button>
+            </div>
             <div class="calendar-scroll-wrapper" id="calendar-scroll-wrapper">
               <div id="calendar"></div>
             </div>
@@ -2595,6 +2674,9 @@
       const diaryTodayButton = document.getElementById('diary-today-btn');
       const diaryCategoryFilter = document.getElementById('diary-category-filter');
       const mobileQuickAddBtn = document.getElementById('mobile-quick-add-btn');
+      const mobileCalendarLabel = document.getElementById('mobile-calendar-nav-label');
+      const mobileCalendarPrev = document.getElementById('mobile-calendar-prev');
+      const mobileCalendarNext = document.getElementById('mobile-calendar-next');
       const calendarScrollWrapper = document.getElementById('calendar-scroll-wrapper');
       const rightTitle = document.getElementById('diary-right-title');
       const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
@@ -3070,6 +3152,18 @@
         window.history.replaceState({}, '', url.toString());
       }
 
+      function syncMobileCalendarNav() {
+        if (!mobileCalendarLabel || !window.calendar) {
+          return;
+        }
+
+        mobileCalendarLabel.textContent = window.calendar.view.title || 'Calendar';
+      }
+
+      function useScrollMonthNavigation() {
+        return !window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
+      }
+
       function syncMonthScrollMode(viewType) {
         const isMonthView = viewType === 'dayGridMonth';
         const isWeekView = viewType === 'timeGridWeek';
@@ -3081,14 +3175,16 @@
           return;
         }
 
-        calendarScrollWrapper.classList.toggle('month-scroll-active', isMonthView);
+        const allowMonthScrollNavigation = isMonthView && useScrollMonthNavigation();
+
+        calendarScrollWrapper.classList.toggle('month-scroll-active', allowMonthScrollNavigation);
         calendarScrollWrapper.classList.toggle('week-scroll-active', isWeekView);
 
         if (window.calendar) {
           applyResponsiveCalendarHeight();
         }
 
-        if (isMonthView) {
+        if (allowMonthScrollNavigation) {
           suppressCalendarScroll = true;
           calendarScrollWrapper.scrollTop = 1;
           lastCalendarScrollTop = 1;
@@ -3096,6 +3192,9 @@
           scrollResetTimer = window.setTimeout(function () {
             suppressCalendarScroll = false;
           }, 80);
+        } else if (isMonthView) {
+          suppressCalendarScroll = false;
+          lastCalendarScrollTop = calendarScrollWrapper.scrollTop;
         }
       }
 
@@ -3114,7 +3213,7 @@
       }
 
       function triggerMonthScrollNavigation(direction) {
-        if (!window.calendar || window.calendar.view.type !== 'dayGridMonth' || scrollNavigationLocked) {
+        if (!useScrollMonthNavigation() || !window.calendar || window.calendar.view.type !== 'dayGridMonth' || scrollNavigationLocked) {
           return;
         }
 
@@ -3133,7 +3232,7 @@
       }
 
       function handleCalendarScrollNavigation() {
-        if (!calendarScrollWrapper || !window.calendar || window.calendar.view.type !== 'dayGridMonth' || suppressCalendarScroll || scrollNavigationLocked) {
+        if (!useScrollMonthNavigation() || !calendarScrollWrapper || !window.calendar || window.calendar.view.type !== 'dayGridMonth' || suppressCalendarScroll || scrollNavigationLocked) {
           return;
         }
 
@@ -3153,7 +3252,7 @@
       }
 
       function handleCalendarWheelNavigation(event) {
-        if (!window.calendar || window.calendar.view.type !== 'dayGridMonth' || scrollNavigationLocked) {
+        if (!useScrollMonthNavigation() || !window.calendar || window.calendar.view.type !== 'dayGridMonth' || scrollNavigationLocked) {
           return;
         }
 
@@ -3241,6 +3340,8 @@
           right: 'next'
         },
         buttonText: {
+          prev: '‹',
+          next: '›',
           year: 'Year',
           today: 'Today',
           month: 'Month',
@@ -3287,6 +3388,7 @@
           const activeDate = window.calendar.getDate();
           renderMiniMonth(activeDate, activeDate);
           syncDiaryUrlState();
+          syncMobileCalendarNav();
         },
         eventDidMount: function (info) {
           if (info.view.type === 'multiMonthYear') {
@@ -3389,9 +3491,11 @@
 
       window.calendar.render();
       syncMonthScrollMode(window.calendar.view.type);
+      syncMobileCalendarNav();
 
       window.addEventListener('resize', function () {
         syncMonthScrollMode(window.calendar.view.type);
+        syncMobileCalendarNav();
         applyResponsiveCalendarHeight();
       });
 
@@ -3407,10 +3511,22 @@
         });
       }
 
+      if (mobileCalendarPrev) {
+        mobileCalendarPrev.addEventListener('click', function () {
+          window.calendar.prev();
+        });
+      }
+
       if (miniNextButton) {
         miniNextButton.addEventListener('click', function () {
           window.calendar.next();
           resetMonthScrollPosition();
+        });
+      }
+
+      if (mobileCalendarNext) {
+        mobileCalendarNext.addEventListener('click', function () {
+          window.calendar.next();
         });
       }
 
