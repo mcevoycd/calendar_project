@@ -606,7 +606,7 @@
     }
 
     .mobile-calendar-nav {
-      display: none;
+      display: grid;
       grid-template-columns: 42px 1fr 42px;
       align-items: center;
       gap: 0.55rem;
@@ -1659,8 +1659,8 @@
 
     /* Clean PanelBoss-like calendar layout with Fluid Notes colours */
     #calendar .fc-header-toolbar {
-      margin-bottom: 0.55rem !important;
-      display: grid;
+      margin-bottom: 0 !important;
+      display: none !important;
       grid-template-columns: auto 1fr auto;
       align-items: center;
       gap: 0.5rem;
@@ -3161,7 +3161,7 @@
       }
 
       function useScrollMonthNavigation() {
-        return !window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
+        return false;
       }
 
       function syncMonthScrollMode(viewType) {
