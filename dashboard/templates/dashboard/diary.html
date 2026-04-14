@@ -476,6 +476,13 @@
       letter-spacing: 0;
     }
 
+    .diary-view-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
     .diary-view-switch {
       display: inline-flex;
       gap: 0.35rem;
@@ -485,7 +492,8 @@
       padding: 0.25rem;
     }
 
-    .diary-view-btn {
+    .diary-view-btn,
+    .diary-today-btn {
       border: none;
       border-radius: 999px;
       background: transparent;
@@ -497,9 +505,18 @@
       letter-spacing: 0.02em;
     }
 
+    .diary-today-btn {
+      border: 1px solid #244560;
+      background: #111D30;
+      color: #EAF4FF;
+      padding-inline: 0.9rem;
+    }
+
     .diary-view-btn.is-active,
     .diary-view-btn:hover,
-    .diary-view-btn:focus {
+    .diary-view-btn:focus,
+    .diary-today-btn:hover,
+    .diary-today-btn:focus {
       background: #F2F4F7;
       color: #06111E;
       outline: none;
@@ -551,6 +568,7 @@
       flex: 1;
       min-height: 0;
       display: flex;
+      flex-direction: column;
     }
 
     .calendar-glass-shell {
@@ -566,6 +584,27 @@
       -webkit-backdrop-filter: blur(10px);
     }
 
+    .calendar-scroll-wrapper {
+      height: calc(100vh - 170px);
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    .calendar-scroll-wrapper.month-scroll-active {
+      overscroll-behavior-y: contain;
+    }
+
+    .calendar-scroll-wrapper::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .calendar-scroll-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(0, 194, 255, 0.34);
+      border-radius: 999px;
+    }
+
     #calendar {
       min-height: 0;
       height: auto;
@@ -575,6 +614,11 @@
       padding: 0;
       border-radius: 14px;
       box-shadow: none;
+    }
+
+    #calendar .fc-prev-button,
+    #calendar .fc-next-button {
+      display: none !important;
     }
 
     #calendar .fc-view-harness,
@@ -1040,6 +1084,10 @@
         padding: 1.25rem;
       }
 
+      .calendar-scroll-wrapper {
+        height: calc(100vh - 165px);
+      }
+
       #calendar {
         padding: 1.1rem;
       }
@@ -1078,6 +1126,10 @@
     @media (max-width: 900px) {
       .calendar-glass-shell {
         padding: 1rem;
+      }
+
+      .calendar-scroll-wrapper {
+        height: calc(100vh - 155px);
       }
 
       #calendar {
@@ -1267,6 +1319,10 @@
         padding: 0.35rem;
         border-radius: 14px;
         background: transparent;
+      }
+
+      .calendar-scroll-wrapper {
+        height: min(72vh, calc(100vh - 170px));
       }
 
       #calendar .fc-header-toolbar {
@@ -1880,15 +1936,20 @@
     <main class="main">
       <div class="diary-right-head">
         <!-- <h1 class="diary-right-title">Calendar <span class="diary-right-subtitle">Clean monthly planning</span></h1> -->
-        <div class="diary-view-switch" role="group" aria-label="Diary view switcher">
-          <button type="button" class="diary-view-btn" data-diary-view="dayGridMonth">Month</button>
-          <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
+        <div class="diary-view-controls">
+          <div class="diary-view-switch" role="group" aria-label="Diary view switcher">
+            <button type="button" class="diary-view-btn" data-diary-view="dayGridMonth">Month</button>
+            <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
+          </div>
+          <button type="button" class="diary-today-btn" id="diary-today-btn">Today</button>
         </div>
       </div>
       <div class="content-grid">
         <div class="panel week-panel" style="grid-column: 1 / -1; width: 100%;">
           <div class="calendar-wrapper calendar-glass-shell">
-            <div id="calendar"></div>
+            <div class="calendar-scroll-wrapper" id="calendar-scroll-wrapper">
+              <div id="calendar"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -2234,10 +2295,17 @@
       const miniMonthGrid = document.getElementById('mini-month-grid');
       const miniPrevButton = document.getElementById('mini-month-prev');
       const miniNextButton = document.getElementById('mini-month-next');
+      const diaryTodayButton = document.getElementById('diary-today-btn');
+      const calendarScrollWrapper = document.getElementById('calendar-scroll-wrapper');
       const rightTitle = document.getElementById('diary-right-title');
       const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
       let requestedEntryLoaded = false;
       let allowDeleteSubmit = false;
+      let lastCalendarScrollTop = 1;
+      let scrollNavigationLocked = false;
+      let suppressCalendarScroll = false;
+      let scrollUnlockTimer = null;
+      let scrollResetTimer = null;
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
         year: 'dayGridMonth',
@@ -2465,6 +2533,91 @@
         });
       }
 
+      function syncMonthScrollMode(viewType) {
+        const isMonthView = viewType === 'dayGridMonth';
+        if (!calendarScrollWrapper) {
+          return;
+        }
+
+        calendarScrollWrapper.classList.toggle('month-scroll-active', isMonthView);
+
+        if (isMonthView) {
+          suppressCalendarScroll = true;
+          calendarScrollWrapper.scrollTop = 1;
+          lastCalendarScrollTop = 1;
+          window.clearTimeout(scrollResetTimer);
+          scrollResetTimer = window.setTimeout(function () {
+            suppressCalendarScroll = false;
+          }, 80);
+        }
+      }
+
+      function resetMonthScrollPosition() {
+        if (!calendarScrollWrapper) {
+          return;
+        }
+
+        suppressCalendarScroll = true;
+        calendarScrollWrapper.scrollTop = 1;
+        lastCalendarScrollTop = 1;
+        window.clearTimeout(scrollResetTimer);
+        scrollResetTimer = window.setTimeout(function () {
+          suppressCalendarScroll = false;
+        }, 90);
+      }
+
+      function triggerMonthScrollNavigation(direction) {
+        if (!window.calendar || window.calendar.view.type !== 'dayGridMonth' || scrollNavigationLocked) {
+          return;
+        }
+
+        scrollNavigationLocked = true;
+        if (direction === 'down') {
+          window.calendar.next();
+        } else if (direction === 'up') {
+          window.calendar.prev();
+        }
+
+        resetMonthScrollPosition();
+        window.clearTimeout(scrollUnlockTimer);
+        scrollUnlockTimer = window.setTimeout(function () {
+          scrollNavigationLocked = false;
+        }, 420);
+      }
+
+      function handleCalendarScrollNavigation() {
+        if (!calendarScrollWrapper || !window.calendar || window.calendar.view.type !== 'dayGridMonth' || suppressCalendarScroll || scrollNavigationLocked) {
+          return;
+        }
+
+        const currentScrollTop = calendarScrollWrapper.scrollTop;
+        const delta = currentScrollTop - lastCalendarScrollTop;
+        lastCalendarScrollTop = currentScrollTop;
+
+        if (Math.abs(delta) < 26) {
+          return;
+        }
+
+        if (delta > 0) {
+          triggerMonthScrollNavigation('down');
+        } else {
+          triggerMonthScrollNavigation('up');
+        }
+      }
+
+      function handleCalendarWheelNavigation(event) {
+        if (!window.calendar || window.calendar.view.type !== 'dayGridMonth' || scrollNavigationLocked) {
+          return;
+        }
+
+        if (Math.abs(event.deltaY) < 20) {
+          return;
+        }
+
+        event.preventDefault();
+        triggerMonthScrollNavigation(event.deltaY > 0 ? 'down' : 'up');
+      }
+
       function renderMiniMonth(anchorDate, currentViewDate) {
         if (!miniMonthTitle || !miniMonthGrid || !anchorDate) {
           return;
@@ -2535,9 +2688,9 @@
         handleWindowResize: true,
         fixedWeekCount: false,
         headerToolbar: {
-          left: 'prev',
+          left: '',
           center: 'title',
-          right: 'next'
+          right: ''
         },
         buttonText: {
           year: 'Year',
@@ -2563,6 +2716,7 @@
           tryLoadRequestedEntry(events);
         },
         datesSet: function (info) {
+          syncMonthScrollMode(info.view.type);
           setActiveDiaryViewButton(info.view.type);
           const activeDate = window.calendar.getDate();
           renderMiniMonth(activeDate, activeDate);
@@ -2648,16 +2802,32 @@
       });
 
       window.calendar.render();
+      syncMonthScrollMode(window.calendar.view.type);
+
+      if (calendarScrollWrapper) {
+        calendarScrollWrapper.addEventListener('scroll', handleCalendarScrollNavigation, { passive: true });
+        calendarScrollWrapper.addEventListener('wheel', handleCalendarWheelNavigation, { passive: false });
+      }
 
       if (miniPrevButton) {
         miniPrevButton.addEventListener('click', function () {
-          calendar.prev();
+          window.calendar.prev();
+          resetMonthScrollPosition();
         });
       }
 
       if (miniNextButton) {
         miniNextButton.addEventListener('click', function () {
-          calendar.next();
+          window.calendar.next();
+          resetMonthScrollPosition();
+        });
+      }
+
+      if (diaryTodayButton) {
+        diaryTodayButton.addEventListener('click', function () {
+          window.calendar.today();
+          resetMonthScrollPosition();
+          setActiveDiaryViewButton(window.calendar.view.type);
         });
       }
 
@@ -2667,12 +2837,13 @@
           if (!targetView) {
             return;
           }
-          calendar.changeView(targetView);
+          window.calendar.changeView(targetView);
+          syncMonthScrollMode(targetView);
           setActiveDiaryViewButton(targetView);
         });
       });
 
-      setActiveDiaryViewButton(calendar.view.type);
+      setActiveDiaryViewButton(window.calendar.view.type);
       renderMiniMonth(calendar.getDate(), calendar.getDate());
 
       if (selectedDate && dateInput && !(entryIdInput && entryIdInput.value)) {
