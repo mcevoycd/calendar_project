@@ -991,9 +991,15 @@ def diary_view(request):
     # Diary page with week view
     diary_entries = DiaryEntry.objects.filter(user=request.user).order_by('-date', '-start_time', '-created_at')
     preferences = get_user_preferences(request)
+    try:
+        note_categories = list(NoteCategory.objects.filter(user=request.user).order_by('name'))
+    except (OperationalError, ProgrammingError):
+        note_categories = []
+
     context = {
         "diary_entries": diary_entries,
         "diary_category_options": get_diary_category_options(),
+        "note_categories": note_categories,
         "default_diary_view": preferences.default_diary_view,
         "nav_layout": preferences.nav_layout,
     }
@@ -1463,6 +1469,7 @@ def todo_view(request):
             "today_iso": default_date,
             "nav_layout": preferences.nav_layout,
             "diary_category_options": get_diary_category_options(),
+            "note_categories": list(NoteCategory.objects.filter(user=request.user).order_by('name')),
         },
     )
 

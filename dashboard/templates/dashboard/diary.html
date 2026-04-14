@@ -2041,6 +2041,162 @@
         padding: 0.68rem 0.72rem !important;
       }
     }
+
+    /* iPhone-only mobile section */
+    @media (max-width: 767px) {
+      :root {
+        --mobile-nav-height: 78px;
+      }
+
+      body {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 14px) !important;
+      }
+
+      body .sidebar,
+      body.nav-position-top .sidebar,
+      body.nav-position-bottom .sidebar {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        min-height: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+      }
+
+      body .app-shell {
+        display: block !important;
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        min-height: 0 !important;
+      }
+
+      body .main {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding: 0.45rem 0.75rem calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 1rem) !important;
+      }
+
+      .diary-right-head {
+        margin: 0 0 0.45rem !important;
+        padding: 0 !important;
+      }
+
+      .content-grid {
+        display: block !important;
+        overflow: visible !important;
+        gap: 0.65rem !important;
+      }
+
+      .week-panel,
+      .week-panel.panel {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      .calendar-glass-shell {
+        padding: 0 !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      .calendar-scroll-wrapper {
+        height: calc(100vh - 190px - env(safe-area-inset-bottom)) !important;
+        min-height: 420px !important;
+        overflow-y: auto !important;
+      }
+
+      #calendar {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+
+      .fc .fc-toolbar.fc-header-toolbar {
+        padding: 0.65rem 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+      }
+
+      .fc .fc-toolbar-title {
+        font-size: 1rem !important;
+      }
+
+      .fc .fc-button,
+      .fc .fc-button-primary {
+        font-size: 0.78rem !important;
+        padding: 0.44rem 0.68rem !important;
+      }
+
+      .diary-right-head {
+        align-items: stretch;
+      }
+
+      .diary-view-controls {
+        width: 100%;
+      }
+
+      .diary-filter-select {
+        flex: 1 1 100%;
+        min-width: 0;
+      }
+
+      .mobile-bottom-bar {
+        position: fixed;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: calc(env(safe-area-inset-bottom) + 0.6rem);
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+        padding: 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+        z-index: 2100;
+      }
+
+      .mobile-bottom-btn {
+        min-height: 48px;
+        border: 1px solid rgba(14, 27, 42, 0.1);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.7);
+        color: #0B1623;
+        font-weight: 700;
+      }
+
+      .mobile-bottom-btn-primary {
+        background: linear-gradient(180deg, #0F172A 0%, #172554 100%);
+        color: #FFFFFF;
+      }
+
+      #event-modal,
+      .event-modal {
+        z-index: 2500 !important;
+      }
+
+      .mobile-menu-backdrop {
+        z-index: 2050 !important;
+      }
+
+      .mobile-menu-sheet {
+        bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 1rem) !important;
+        z-index: 2060 !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -2438,6 +2594,7 @@
       const miniNextButton = document.getElementById('mini-month-next');
       const diaryTodayButton = document.getElementById('diary-today-btn');
       const diaryCategoryFilter = document.getElementById('diary-category-filter');
+      const mobileQuickAddBtn = document.getElementById('mobile-quick-add-btn');
       const calendarScrollWrapper = document.getElementById('calendar-scroll-wrapper');
       const rightTitle = document.getElementById('diary-right-title');
       const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
@@ -3265,6 +3422,12 @@
         });
       }
 
+      if (mobileQuickAddBtn) {
+        mobileQuickAddBtn.addEventListener('click', function () {
+          window.location.href = "{% url 'dashboard' %}?open_quick_add=1";
+        });
+      }
+
       if (diaryCategoryFilter) {
         diaryCategoryFilter.addEventListener('change', function () {
           activeDiaryCategoryFilter = diaryCategoryFilter.value || 'all';
@@ -3385,8 +3548,7 @@
 
   <div class="mobile-bottom-bar" aria-label="Mobile actions">
     <button type="button" class="mobile-bottom-btn" id="mobile-menu-toggle"><span class="mobile-bottom-icon">≡</span><span>Menu</span></button>
-    <a class="mobile-bottom-btn mobile-bottom-btn-primary" href="{% url 'diary' %}"><span class="mobile-bottom-icon">+</span><span>New</span></a>
-    <a class="mobile-bottom-btn" href="{% url 'dashboard' %}"><span class="mobile-bottom-icon">◎</span><span>Home</span></a>
+    <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" id="mobile-quick-add-btn"><span class="mobile-bottom-icon">+</span><span>Quick Add</span></button>
   </div>
   <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
   <nav class="mobile-menu-sheet" id="mobile-menu-sheet" aria-label="Mobile menu">

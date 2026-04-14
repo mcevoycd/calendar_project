@@ -2294,31 +2294,34 @@
         grid-template-columns: 1fr;
       }
 
+      .dashboard-workspace-row #quick-add-open-btn {
+        display: none !important;
+      }
+
       .mobile-bottom-bar {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        align-items: center;
-        gap: 0.5rem;
         position: fixed;
-        left: 0.6rem;
-        right: 0.6rem;
-        bottom: calc(0.45rem + env(safe-area-inset-bottom));
-        z-index: 2200;
-        padding: 0.55rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: calc(env(safe-area-inset-bottom) + 0.6rem);
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+        padding: 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.55);
         border-radius: 18px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        backdrop-filter: blur(14px) saturate(140%);
-        -webkit-backdrop-filter: blur(14px) saturate(140%);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+        z-index: 2100;
       }
 
       .mobile-bottom-btn {
-        min-height: 52px;
-        border: none;
+        min-height: 48px;
+        border: 1px solid rgba(14, 27, 42, 0.1);
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.08);
-        color: #F2F8FF;
+        background: rgba(255, 255, 255, 0.7);
+        color: #0B1623;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -2326,12 +2329,12 @@
         flex-direction: column;
         gap: 0.1rem;
         font-size: 0.78rem;
-        font-weight: 600;
+        font-weight: 700;
       }
 
       .mobile-bottom-btn-primary {
-        background: linear-gradient(180deg, rgba(0, 194, 255, 0.92), rgba(0, 156, 214, 0.9));
-        color: #04111C;
+        background: linear-gradient(180deg, #0F172A 0%, #172554 100%);
+        color: #FFFFFF;
       }
 
       .mobile-bottom-icon {
@@ -2926,12 +2929,25 @@
       }
     }
 
-    @media (max-width: 599px) {
-      body .sidebar {
+    @media (max-width: 767px) {
+      body .sidebar,
+      body.nav-position-top .sidebar,
+      body.nav-position-bottom .sidebar {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
       }
 
       body .app-shell {
+        display: block !important;
         grid-template-columns: 1fr !important;
         height: auto !important;
         min-height: 100vh;
@@ -2944,6 +2960,38 @@
       body .main {
         height: auto !important;
         min-height: calc(100vh - 78px - env(safe-area-inset-bottom));
+        overflow: visible !important;
+      }
+
+      .utility-bar.dashboard-workspace-row {
+        margin-bottom: 0.8rem !important;
+      }
+
+      .dashboard-todo-panel,
+      #todo-panel,
+      #worldclocks-panel,
+      #calendar-hub,
+      .dashboard-footer {
+        display: none !important;
+      }
+
+      .dashboard-layout,
+      .dashboard-primary,
+      .dashboard-secondary {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto !important;
+        gap: 0.85rem !important;
+      }
+
+      .dashboard-secondary {
+        padding: 0 !important;
+      }
+
+      .dashboard-diary-panel,
+      #notes-placeholder-panel {
+        display: block !important;
+        width: 100% !important;
       }
     }
   </style>
@@ -2973,7 +3021,7 @@
     <main class="main">
       <header class="utility-bar dashboard-workspace-row">
         <div>
-          <h1 class="utility-title">Dashboard Workspace</h1>
+          <h1 class="utility-title">Dashsboard Workspace</h1>
           <!-- <p class="utility-subtitle">Premium command center for scheduling, planning, and daily flow.</p> -->
         </div>
         <div class="utility-actions">
@@ -3396,11 +3444,22 @@
         });
       });
 
-      openBtn.addEventListener('click', function () {
+      function openQuickAddModal() {
         modal.hidden = false;
         activateQuickPanel('diary');
         applyDefaultDates();
-      });
+      }
+
+      openBtn.addEventListener('click', openQuickAddModal);
+
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('open_quick_add') === '1') {
+        openQuickAddModal();
+        searchParams.delete('open_quick_add');
+        const nextQuery = searchParams.toString();
+        const nextUrl = window.location.pathname + (nextQuery ? ('?' + nextQuery) : '');
+        window.history.replaceState({}, '', nextUrl);
+      }
 
       closeBtn.addEventListener('click', closeModal);
       modal.addEventListener('click', function (event) {
@@ -3419,8 +3478,7 @@
 
   <div class="mobile-bottom-bar" aria-label="Mobile actions">
     <button type="button" class="mobile-bottom-btn" id="mobile-menu-toggle"><span class="mobile-bottom-icon">≡</span><span>Menu</span></button>
-    <a class="mobile-bottom-btn mobile-bottom-btn-primary" href="{% url 'diary' %}"><span class="mobile-bottom-icon">+</span><span>Add</span></a>
-    <a class="mobile-bottom-btn" href="{% url 'dashboard' %}"><span class="mobile-bottom-icon">◎</span><span>Home</span></a>
+    <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" id="mobile-quick-add-btn"><span class="mobile-bottom-icon">+</span><span>Quick Add</span></button>
   </div>
   <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
   <nav class="mobile-menu-sheet" id="mobile-menu-sheet" aria-label="Mobile menu">
@@ -3436,6 +3494,8 @@
         const toggle = document.getElementById('mobile-menu-toggle');
         const backdrop = document.getElementById('mobile-menu-backdrop');
         const sheet = document.getElementById('mobile-menu-sheet');
+        const mobileQuickAddBtn = document.getElementById('mobile-quick-add-btn');
+        const desktopQuickAddBtn = document.getElementById('quick-add-open-btn');
         if (!toggle || !backdrop || !sheet) return;
 
         function closeMenu() {
@@ -3461,6 +3521,12 @@
         sheet.querySelectorAll('a').forEach(function (link) {
           link.addEventListener('click', closeMenu);
         });
+        if (mobileQuickAddBtn && desktopQuickAddBtn) {
+          mobileQuickAddBtn.addEventListener('click', function () {
+            closeMenu();
+            desktopQuickAddBtn.click();
+          });
+        }
         document.addEventListener('keydown', function (event) {
           if (event.key === 'Escape') closeMenu();
         });

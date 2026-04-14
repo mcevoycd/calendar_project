@@ -581,30 +581,29 @@
       }
 
       .mobile-bottom-bar {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        align-items: center;
-        gap: 0.5rem;
         position: fixed;
-        left: 0.6rem;
-        right: 0.6rem;
-        bottom: calc(0.45rem + env(safe-area-inset-bottom));
-        z-index: 2200;
-        padding: 0.55rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: calc(env(safe-area-inset-bottom) + 0.6rem);
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+        padding: 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.55);
         border-radius: 18px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        backdrop-filter: blur(14px) saturate(140%);
-        -webkit-backdrop-filter: blur(14px) saturate(140%);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+        z-index: 2100;
       }
 
       .mobile-bottom-btn {
-        min-height: 52px;
-        border: none;
+        min-height: 48px;
+        border: 1px solid rgba(14, 27, 42, 0.1);
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.08);
-        color: #F2F8FF;
+        background: rgba(255, 255, 255, 0.7);
+        color: #0B1623;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -612,12 +611,12 @@
         flex-direction: column;
         gap: 0.1rem;
         font-size: 0.78rem;
-        font-weight: 600;
+        font-weight: 700;
       }
 
       .mobile-bottom-btn-primary {
-        background: linear-gradient(180deg, rgba(0, 194, 255, 0.92), rgba(0, 156, 214, 0.9));
-        color: #04111C;
+        background: linear-gradient(180deg, #0F172A 0%, #172554 100%);
+        color: #FFFFFF;
       }
 
       .mobile-bottom-icon {
@@ -1054,6 +1053,47 @@
         padding: 0.68rem 0.72rem !important;
       }
     }
+
+    @media (max-width: 599px) {
+      body .sidebar,
+      body.nav-position-top .sidebar,
+      body.nav-position-bottom .sidebar {
+        display: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+      }
+
+      body .app-shell,
+      body.nav-position-top .app-shell,
+      body.nav-position-bottom .app-shell {
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+
+      body .main,
+      body.nav-position-top .main,
+      body.nav-position-bottom .main {
+        height: auto !important;
+        min-height: calc(100vh - 88px - env(safe-area-inset-bottom));
+        padding: 0.95rem 0.95rem calc(1.15rem + 78px + env(safe-area-inset-bottom)) !important;
+        overflow: visible !important;
+      }
+
+      .mobile-menu-backdrop {
+        z-index: 2050 !important;
+      }
+
+      .mobile-menu-sheet {
+        bottom: calc(78px + env(safe-area-inset-bottom) + 1rem) !important;
+        z-index: 2060 !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -1363,8 +1403,7 @@
 
   <div class="mobile-bottom-bar" aria-label="Mobile actions">
     <button type="button" class="mobile-bottom-btn" id="mobile-menu-toggle"><span class="mobile-bottom-icon">≡</span><span>Menu</span></button>
-    <a class="mobile-bottom-btn mobile-bottom-btn-primary" href="{% url 'settings' %}"><span class="mobile-bottom-icon">⚙</span><span>Prefs</span></a>
-    <a class="mobile-bottom-btn" href="{% url 'dashboard' %}"><span class="mobile-bottom-icon">◎</span><span>Home</span></a>
+    <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" id="mobile-quick-add-btn"><span class="mobile-bottom-icon">+</span><span>Quick Add</span></button>
   </div>
   <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
   <nav class="mobile-menu-sheet" id="mobile-menu-sheet" aria-label="Mobile menu">
@@ -1378,6 +1417,7 @@
     (function () {
       document.addEventListener('DOMContentLoaded', function () {
         const toggle = document.getElementById('mobile-menu-toggle');
+        const quickAddBtn = document.getElementById('mobile-quick-add-btn');
         const backdrop = document.getElementById('mobile-menu-backdrop');
         const sheet = document.getElementById('mobile-menu-sheet');
         if (!toggle || !backdrop || !sheet) return;
@@ -1405,6 +1445,11 @@
         sheet.querySelectorAll('a').forEach(function (link) {
           link.addEventListener('click', closeMenu);
         });
+        if (quickAddBtn) {
+          quickAddBtn.addEventListener('click', function () {
+            window.location.href = "{% url 'dashboard' %}?open_quick_add=1";
+          });
+        }
         document.addEventListener('keydown', function (event) {
           if (event.key === 'Escape') closeMenu();
         });

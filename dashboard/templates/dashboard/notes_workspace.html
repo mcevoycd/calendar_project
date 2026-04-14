@@ -1453,6 +1453,158 @@
         padding: 0.68rem 0.72rem !important;
       }
     }
+
+    /* iPhone-only mobile section */
+    @media (max-width: 767px) {
+      :root {
+        --mobile-nav-height: 78px;
+      }
+
+      body {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 14px) !important;
+      }
+
+      body .sidebar,
+      body.nav-position-top .sidebar,
+      body.nav-position-bottom .sidebar {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        min-height: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+      }
+
+      body .app-shell {
+        display: block !important;
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        min-height: 0 !important;
+      }
+
+      body .main {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding: 0.45rem 0.8rem calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 1rem) !important;
+      }
+
+      .notes-topbar {
+        margin: 0 0 0.45rem !important;
+        padding: 0 !important;
+      }
+
+      .notes-shell {
+        grid-template-columns: 1fr !important;
+        gap: 0.8rem !important;
+        margin-top: 0 !important;
+      }
+
+      .categories-pane {
+        display: none !important;
+      }
+
+      .notes-pane {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .note-list {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .notes-mobile-tools #open-new-note-btn {
+        display: none !important;
+      }
+
+      #notes-editor-drawer.editor-drawer {
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        height: min(78vh, 720px);
+        border-left: none !important;
+        border-top: 1px solid rgba(53, 84, 109, 0.95);
+        border-radius: 22px 22px 0 0;
+        transform: translateY(calc(100% + env(safe-area-inset-bottom) + 1.5rem)) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        z-index: 2500 !important;
+      }
+
+      #notes-editor-drawer.editor-drawer:not(.active) .editor-handle {
+        display: none !important;
+      }
+
+      #notes-editor-drawer.editor-drawer.active {
+        bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+
+      .drawer-backdrop {
+        z-index: 2490 !important;
+      }
+
+      .dialog {
+        z-index: 2600 !important;
+      }
+
+      .mobile-bottom-bar {
+        position: fixed;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: calc(env(safe-area-inset-bottom) + 0.6rem);
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+        padding: 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+        z-index: 2100;
+      }
+
+      .mobile-bottom-btn {
+        min-height: 48px;
+        border: 1px solid rgba(14, 27, 42, 0.1);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.7);
+        color: #0B1623;
+        font-weight: 700;
+      }
+
+      .mobile-bottom-btn-primary {
+        background: linear-gradient(180deg, #0F172A 0%, #172554 100%);
+        color: #FFFFFF;
+      }
+
+      .mobile-menu-backdrop {
+        z-index: 2050 !important;
+      }
+
+      .mobile-menu-sheet {
+        bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 1rem) !important;
+        z-index: 2060 !important;
+      }
+    }
   </style>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
@@ -2067,8 +2219,7 @@
 
   <div class="mobile-bottom-bar" aria-label="Mobile actions">
     <button type="button" class="mobile-bottom-btn" id="mobile-menu-toggle"><span class="mobile-bottom-icon">≡</span><span>Menu</span></button>
-    <a class="mobile-bottom-btn mobile-bottom-btn-primary" href="{% url 'notes' %}"><span class="mobile-bottom-icon">+</span><span>New</span></a>
-    <a class="mobile-bottom-btn" href="{% url 'dashboard' %}"><span class="mobile-bottom-icon">◎</span><span>Home</span></a>
+    <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" id="mobile-quick-add-btn"><span class="mobile-bottom-icon">+</span><span>Quick Add</span></button>
   </div>
   <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
   <nav class="mobile-menu-sheet" id="mobile-menu-sheet" aria-label="Mobile menu">
@@ -2084,6 +2235,8 @@
         const toggle = document.getElementById('mobile-menu-toggle');
         const backdrop = document.getElementById('mobile-menu-backdrop');
         const sheet = document.getElementById('mobile-menu-sheet');
+        const mobileQuickAddBtn = document.getElementById('mobile-quick-add-btn');
+        const desktopNewNoteBtn = document.getElementById('new-note-btn');
         if (!toggle || !backdrop || !sheet) return;
 
         function closeMenu() {
@@ -2109,6 +2262,12 @@
         sheet.querySelectorAll('a').forEach(function (link) {
           link.addEventListener('click', closeMenu);
         });
+        if (mobileQuickAddBtn) {
+          mobileQuickAddBtn.addEventListener('click', function () {
+            closeMenu();
+            window.location.href = "{% url 'dashboard' %}?open_quick_add=1";
+          });
+        }
         document.addEventListener('keydown', function (event) {
           if (event.key === 'Escape') closeMenu();
         });
