@@ -4248,6 +4248,13 @@
             updateSelectedCalendarDay();
             renderIphoneEventList();
             scrollIphoneEventListToDate(info.dateStr);
+
+            if (typeof prefillFromDate === 'function') {
+              prefillFromDate(info.date, info.allDay);
+            }
+            if (typeof openDiaryPanel === 'function') {
+              openDiaryPanel({date: info.dateStr, mode: 'new'});
+            }
             return;
           }
 
@@ -4266,6 +4273,13 @@
               updateSelectedCalendarDay();
               renderIphoneEventList();
               scrollIphoneEventListToDate(selectedStart);
+            }
+
+            if (typeof prefillFromDate === 'function') {
+              prefillFromDate(selectionInfo.start, selectionInfo.allDay, selectionInfo.end);
+            }
+            if (typeof openDiaryPanel === 'function') {
+              openDiaryPanel({date: selectionInfo.startStr, mode: 'new'});
             }
             window.calendar.unselect();
             return;
