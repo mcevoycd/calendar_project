@@ -512,12 +512,29 @@
       padding-inline: 0.9rem;
     }
 
+    .diary-filter-select {
+      min-width: 156px;
+      border: 1px solid #244560;
+      border-radius: 999px;
+      background: #111D30;
+      color: #EAF4FF;
+      padding: 0.42rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      position: relative;
+      z-index: 4;
+    }
+
     .diary-view-btn.is-active,
     .diary-view-btn:hover,
     .diary-view-btn:focus,
     .diary-today-btn:hover,
-    .diary-today-btn:focus {
-      background: #F2F4F7;
+    .diary-today-btn:focus,
+    .diary-filter-select:hover,
+    .diary-filter-select:focus {
+      background-color: #F2F4F7;
       color: #06111E;
       outline: none;
     }
@@ -2058,6 +2075,13 @@
             <button type="button" class="diary-view-btn" data-diary-view="timeGridWeek">Week</button>
           </div>
           <button type="button" class="diary-today-btn" id="diary-today-btn">Today</button>
+          <select class="diary-filter-select" id="diary-category-filter" aria-label="Filter diary categories">
+            <option value="all">All categories</option>
+            {% for category in diary_category_options %}
+              <option value="{{ category.key }}">{{ category.label }}</option>
+            {% endfor %}
+            <option value="bank-holiday">Bank Holidays</option>
+          </select>
         </div>
       </div>
       <div class="content-grid">
@@ -2413,6 +2437,7 @@
       const miniPrevButton = document.getElementById('mini-month-prev');
       const miniNextButton = document.getElementById('mini-month-next');
       const diaryTodayButton = document.getElementById('diary-today-btn');
+      const diaryCategoryFilter = document.getElementById('diary-category-filter');
       const calendarScrollWrapper = document.getElementById('calendar-scroll-wrapper');
       const rightTitle = document.getElementById('diary-right-title');
       const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
@@ -2424,6 +2449,7 @@
       let scrollUnlockTimer = null;
       let scrollResetTimer = null;
       let lastAppliedCalendarHeight = null;
+      let activeDiaryCategoryFilter = 'all';
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
         year: 'dayGridMonth',
@@ -2604,25 +2630,25 @@
 
         const wasEditing = Boolean(entryIdInput && entryIdInput.value);
 
-        if (entryDate) entryDate.value = formatDateForInput(dateObj);
-        if (entryEndDate) {
+        if (dateInput) dateInput.value = formatDateForInput(dateObj);
+        if (endDateInput) {
           if (isAllDay) {
-            entryEndDate.value = endDateObj ? formatDateForInput(endDateObj) : formatDateForInput(dateObj);
+            endDateInput.value = endDateObj ? formatDateForInput(endDateObj) : formatDateForInput(dateObj);
           } else {
-            entryEndDate.value = '';
+            endDateInput.value = '';
           }
         }
-        if (entryStartTime && entryEndTime) {
+        if (startTimeInput && endTimeInput) {
           if (isAllDay) {
-            entryStartTime.value = '';
-            entryEndTime.value = '';
+            startTimeInput.value = '';
+            endTimeInput.value = '';
           } else {
-            entryStartTime.value = formatTimeForInput(dateObj);
+            startTimeInput.value = formatTimeForInput(dateObj);
             if (endDateObj) {
-              entryEndTime.value = formatTimeForInput(endDateObj);
+              endTimeInput.value = formatTimeForInput(endDateObj);
             } else {
               const defaultEnd = new Date(dateObj.getTime() + 60 * 60 * 1000);
-              entryEndTime.value = formatTimeForInput(defaultEnd);
+              endTimeInput.value = formatTimeForInput(defaultEnd);
             }
           }
         }
@@ -2824,6 +2850,51 @@
           const isActive = button.dataset.diaryView === viewType;
           button.classList.toggle('is-active', isActive);
           button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+
+      function getEventFilterCategory(eventObj) {
+        if (!eventObj || !eventObj.extendedProps) {
+          return 'general';
+        }
+        return eventObj.extendedProps.category || eventObj.extendedProps.formCategory || 'general';
+      }
+
+      function eventMatchesActiveFilter(eventObj) {
+        if (activeDiaryCategoryFilter === 'all') {
+          return true;
+        }
+
+        const source = (eventObj.extendedProps && eventObj.extendedProps.source) || '';
+        if (activeDiaryCategoryFilter === 'bank-holiday') {
+          return source === 'uk-bank-holiday';
+        }
+
+        if (source === 'uk-bank-holiday') {
+          return false;
+        }
+
+        return getEventFilterCategory(eventObj) === activeDiaryCategoryFilter;
+      }
+
+      function applyDiaryCategoryFilter() {
+        if (!calendarEl) {
+          return;
+        }
+
+        const renderedEvents = calendarEl.querySelectorAll('.fc-event, .fc-daygrid-event, .fc-timegrid-event');
+        renderedEvents.forEach(function (eventEl) {
+          const source = eventEl.dataset.filterSource || '';
+          const category = eventEl.dataset.filterCategory || 'general';
+          let isVisible = true;
+
+          if (activeDiaryCategoryFilter === 'bank-holiday') {
+            isVisible = source === 'uk-bank-holiday';
+          } else if (activeDiaryCategoryFilter !== 'all') {
+            isVisible = source !== 'uk-bank-holiday' && category === activeDiaryCategoryFilter;
+          }
+
+          eventEl.style.display = isVisible ? '' : 'none';
         });
       }
 
@@ -3051,6 +3122,7 @@
         ],
         eventsSet: function (events) {
           tryLoadRequestedEntry(events);
+          applyDiaryCategoryFilter();
         },
         datesSet: function (info) {
           syncMonthScrollMode(info.view.type);
@@ -3066,12 +3138,16 @@
           }
 
           const eventSource = info.event.extendedProps.source || '';
+          const categoryKey = info.event.extendedProps.category || info.event.extendedProps.formCategory || 'general';
+          info.el.dataset.filterSource = eventSource;
+          info.el.dataset.filterCategory = categoryKey;
+
           if (eventSource === 'uk-bank-holiday') {
             info.el.classList.add('uk-bank-holiday-event');
+            window.requestAnimationFrame(applyDiaryCategoryFilter);
             return;
           }
 
-          const categoryKey = info.event.extendedProps.category || info.event.extendedProps.formCategory || 'general';
           info.el.classList.add(`diary-event-${categoryKey}`);
 
           if (info.view.type === 'dayGridMonth') {
@@ -3105,6 +3181,7 @@
           });
           info.el.style.position = 'relative';
           info.el.appendChild(trashBtn);
+          window.requestAnimationFrame(applyDiaryCategoryFilter);
         },
         eventClick: function (info) {
           if ((info.event.extendedProps.source || '') === 'uk-bank-holiday') {
@@ -3188,6 +3265,13 @@
         });
       }
 
+      if (diaryCategoryFilter) {
+        diaryCategoryFilter.addEventListener('change', function () {
+          activeDiaryCategoryFilter = diaryCategoryFilter.value || 'all';
+          applyDiaryCategoryFilter();
+        });
+      }
+
       viewSwitchButtons.forEach(function (button) {
         button.addEventListener('click', function () {
           const targetView = button.dataset.diaryView;
@@ -3201,7 +3285,7 @@
       });
 
       setActiveDiaryViewButton(window.calendar.view.type);
-      renderMiniMonth(calendar.getDate(), calendar.getDate());
+      renderMiniMonth(window.calendar.getDate(), window.calendar.getDate());
 
       if (selectedDate && dateInput && !(entryIdInput && entryIdInput.value)) {
         dateInput.value = selectedDate;
