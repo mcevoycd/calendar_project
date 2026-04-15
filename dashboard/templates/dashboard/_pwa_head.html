@@ -31,7 +31,7 @@
     padding-bottom: env(safe-area-inset-bottom);
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
-    background: #000 !important;
+    background: radial-gradient(circle at 20% 10%, #0B2338 0%, #06111E 42%, #050D18 100%) !important;
   }
 
   body.pwa-standalone .app-shell,
@@ -44,8 +44,12 @@
     padding-bottom: calc(env(safe-area-inset-bottom) + 0.7rem) !important;
   }
 
-  body.pwa-standalone .mobile-bottom-bar {
-    bottom: calc(0.45rem + env(safe-area-inset-bottom)) !important;
+  body.pwa-standalone .mobile-bottom-bar,
+  body.pwa-standalone [data-mobile-nav] {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    margin: 0 !important;
   }
 
   body.pwa-standalone .mobile-menu-sheet {
