@@ -1,0 +1,438 @@
+/* Fluid Notes Design System */
+:root {
+  --fn-space-1: 4px;
+  --fn-space-2: 8px;
+  --fn-space-3: 12px;
+  --fn-space-4: 16px;
+  --fn-space-5: 24px;
+  --fn-space-6: 32px;
+
+  --fn-primary: #5b8cff;
+  --fn-secondary: #14304a;
+  --fn-accent: #68d8c7;
+  --fn-surface: #0e1b2a;
+  --fn-surface-strong: #112438;
+  --fn-border: rgba(158, 176, 194, 0.22);
+  --fn-text: #eaf4ff;
+  --fn-text-muted: #9eb0c2;
+
+  --fn-radius: 12px;
+  --fn-shadow: 0 12px 30px rgba(3, 12, 24, 0.22);
+}
+
+body.fn-app {
+  color: var(--fn-text);
+  background: radial-gradient(circle at 20% 10%, #0b2338 0%, #06111e 42%, #050d18 100%);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+body.fn-app,
+body.fn-app button,
+body.fn-app input,
+body.fn-app select,
+body.fn-app textarea {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+body.fn-app .main,
+body.fn-app .content-grid,
+body.fn-app .notes-shell,
+body.fn-app .todo-sections-grid,
+body.fn-app .quick-add-panels,
+body.fn-app .settings-shell {
+  gap: var(--fn-space-4) !important;
+}
+
+body.fn-app .main {
+  padding: var(--fn-space-4) !important;
+}
+
+body.fn-app h1,
+body.fn-app .section-title,
+body.fn-app .app-modal-title {
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+body.fn-app h2,
+body.fn-app .pane-title,
+body.fn-app .todo-panel-heading,
+body.fn-app .title-inline {
+  font-size: clamp(1.05rem, 0.95rem + 0.55vw, 1.2rem);
+  line-height: 1.25;
+}
+
+body.fn-app p,
+body.fn-app li,
+body.fn-app label,
+body.fn-app input,
+body.fn-app textarea,
+body.fn-app select,
+body.fn-app .app-modal-message {
+  font-size: 0.95rem;
+}
+
+body.fn-app .section-subtitle,
+body.fn-app .title-blurb,
+body.fn-app .brand-subtitle,
+body.fn-app .sidebar-meta,
+body.fn-app .mobile-bottom-label,
+body.fn-app .todo-task-date {
+  font-size: 0.78rem;
+  color: var(--fn-text-muted) !important;
+}
+
+.FNCard,
+body.fn-app .panel,
+body.fn-app .section-pane,
+body.fn-app .notes-panel,
+body.fn-app .dashboard-panel,
+body.fn-app .todo-panel,
+body.fn-app .todo-section-column,
+body.fn-app .quick-add-panel,
+body.fn-app .dialog-card,
+body.fn-app .iphone-diary-events-panel,
+body.fn-app .week-panel,
+body.fn-app .account-panel {
+  background: linear-gradient(180deg, rgba(17, 36, 56, 0.98) 0%, rgba(9, 22, 36, 0.98) 100%) !important;
+  border: 1px solid var(--fn-border) !important;
+  border-radius: var(--fn-radius) !important;
+  box-shadow: var(--fn-shadow) !important;
+  color: var(--fn-text) !important;
+}
+
+body.fn-app .panel,
+body.fn-app .section-pane,
+body.fn-app .notes-panel,
+body.fn-app .dashboard-panel,
+body.fn-app .quick-add-panel,
+body.fn-app .account-panel {
+  padding: var(--fn-space-4) !important;
+}
+
+.FNHeader,
+body.fn-app .section-topbar,
+body.fn-app .notes-topbar,
+body.fn-app .pane-head,
+body.fn-app .topbar,
+body.fn-app .todo-section-head {
+  border-bottom: 1px solid var(--fn-border) !important;
+}
+
+body.fn-app .section-topbar,
+body.fn-app .notes-topbar,
+body.fn-app .pane-head,
+body.fn-app .topbar {
+  margin-bottom: var(--fn-space-3) !important;
+  padding-bottom: var(--fn-space-3) !important;
+}
+
+.FNButton,
+body.fn-app .btn,
+body.fn-app .btn-canvas,
+body.fn-app .btn-outline,
+body.fn-app .pill-btn,
+body.fn-app .tool-btn,
+body.fn-app .mobile-icon-btn,
+body.fn-app .tiny-icon-btn,
+body.fn-app .btn-modal,
+body.fn-app .btn-modal-primary,
+body.fn-app .todo-section-title-btn,
+body.fn-app .mobile-bottom-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: var(--fn-radius) !important;
+  border: 1px solid var(--fn-border) !important;
+  background: rgba(17, 36, 56, 0.88) !important;
+  color: var(--fn-text) !important;
+  padding: var(--fn-space-2) var(--fn-space-3) !important;
+  box-shadow: none !important;
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+body.fn-app .FNButton--primary,
+body.fn-app .btn-primary,
+body.fn-app .mobile-bottom-btn-primary,
+body.fn-app button[type="submit"],
+body.fn-app #quick-add-open-btn,
+body.fn-app #diary-submit-btn,
+body.fn-app #todo-submit-btn {
+  background: linear-gradient(135deg, var(--fn-primary), #7aa2ff) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+body.fn-app .FNButton--accent,
+body.fn-app .mobile-bottom-link.is-active,
+body.fn-app .mobile-bottom-btn.is-active {
+  background: rgba(104, 216, 199, 0.18) !important;
+  color: var(--fn-accent) !important;
+  border-color: rgba(104, 216, 199, 0.35) !important;
+}
+
+body.fn-app .btn:hover,
+body.fn-app .btn-canvas:hover,
+body.fn-app .btn-outline:hover,
+body.fn-app .pill-btn:hover,
+body.fn-app .tool-btn:hover,
+body.fn-app .mobile-icon-btn:hover,
+body.fn-app .tiny-icon-btn:hover,
+body.fn-app .mobile-bottom-link:hover,
+body.fn-app .mobile-bottom-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(91, 140, 255, 0.45) !important;
+}
+
+body.fn-app .todo-task {
+  isolation: isolate;
+}
+
+body.fn-app .todo-task-hit {
+  position: relative;
+  z-index: 1;
+}
+
+body.fn-app .todo-complete-form,
+body.fn-app .todo-delete-form,
+body.fn-app .todo-edit-btn {
+  position: absolute;
+  z-index: 5;
+}
+
+body.fn-app .todo-edit-btn,
+body.fn-app .todo-delete-btn {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: 1.75rem !important;
+  min-height: 1.75rem !important;
+}
+
+body.fn-app .todo-delete-btn {
+  color: rgba(158, 176, 194, 0.92) !important;
+}
+
+body.fn-app .todo-edit-btn:hover,
+body.fn-app .todo-edit-btn:focus,
+body.fn-app .todo-delete-btn:hover,
+body.fn-app .todo-delete-btn:focus {
+  transform: none !important;
+}
+
+body.fn-app .todo-complete-checkbox {
+  position: relative;
+  z-index: 6;
+}
+
+.FNInput,
+body.fn-app .form-control,
+body.fn-app .quick-add-input,
+body.fn-app .dialog-input,
+body.fn-app .ios-search,
+body.fn-app .todo-section-title-input,
+body.fn-app input[type="text"],
+body.fn-app input[type="date"],
+body.fn-app input[type="time"],
+body.fn-app input[type="search"],
+body.fn-app textarea,
+body.fn-app select {
+  background: rgba(7, 20, 32, 0.92) !important;
+  color: var(--fn-text) !important;
+  border: 1px solid var(--fn-border) !important;
+  border-radius: var(--fn-radius) !important;
+  padding: 10px 12px !important;
+  box-shadow: none !important;
+}
+
+body.fn-app input::placeholder,
+body.fn-app textarea::placeholder {
+  color: rgba(158, 176, 194, 0.82) !important;
+}
+
+body.fn-app .form-control:focus,
+body.fn-app .quick-add-input:focus,
+body.fn-app .dialog-input:focus,
+body.fn-app .ios-search:focus,
+body.fn-app textarea:focus,
+body.fn-app select:focus,
+body.fn-app input:focus {
+  outline: none !important;
+  border-color: rgba(91, 140, 255, 0.62) !important;
+  box-shadow: 0 0 0 3px rgba(91, 140, 255, 0.18) !important;
+}
+
+.FNModal,
+body.fn-app .app-modal {
+  background: rgba(4, 10, 18, 0.7) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body.fn-app .app-modal-dialog,
+body.fn-app .dialog-card {
+  border-radius: var(--fn-radius) !important;
+  border: 1px solid var(--fn-border) !important;
+  box-shadow: var(--fn-shadow) !important;
+  padding: var(--fn-space-5) !important;
+}
+
+.FNListItem,
+body.fn-app .note-item,
+body.fn-app .category-item,
+body.fn-app .todo-task,
+body.fn-app .todo-panel-link {
+  background: rgba(12, 29, 45, 0.92) !important;
+  border: 1px solid var(--fn-border) !important;
+  border-radius: var(--fn-radius) !important;
+  box-shadow: none !important;
+}
+
+body.fn-app .note-item,
+body.fn-app .category-item,
+body.fn-app .todo-task {
+  padding: var(--fn-space-3) !important;
+}
+
+body.fn-app .note-item.active,
+body.fn-app .category-item.active,
+body.fn-app .todo-task:hover {
+  border-color: rgba(91, 140, 255, 0.46) !important;
+  background: rgba(19, 43, 66, 0.98) !important;
+}
+
+.FNNavBar,
+body.fn-app [data-mobile-nav],
+body.fn-app .mobile-bottom-bar {
+  background: rgba(8, 20, 34, 0.92) !important;
+  border-top: 1px solid var(--fn-border) !important;
+  box-shadow: 0 -10px 24px rgba(3, 12, 24, 0.18) !important;
+}
+
+body.fn-app .mobile-bottom-link {
+  border-radius: var(--fn-radius) !important;
+}
+
+body.fn-app .sidebar,
+body.fn-app .nav-layout-top .sidebar,
+body.fn-app .nav-layout-bottom .sidebar,
+body.fn-app .nav-layout-tabs .sidebar {
+  background: linear-gradient(180deg, rgba(10, 24, 38, 0.98) 0%, rgba(7, 18, 30, 0.98) 100%) !important;
+  border-right: 1px solid var(--fn-border) !important;
+}
+
+body.fn-app .nav-link {
+  border-radius: var(--fn-radius) !important;
+}
+
+body.fn-app .nav-link.active {
+  background: rgba(91, 140, 255, 0.16) !important;
+  color: #ffffff !important;
+}
+
+body.fn-app .todo-task input[type="checkbox"],
+body.fn-app .todo-task-hit,
+body.fn-app .checklist-checkbox,
+body.fn-app input[type="checkbox"] {
+  accent-color: var(--fn-primary);
+}
+
+body.fn-app .app-modal-actions,
+body.fn-app .pane-title-row,
+body.fn-app .notes-mobile-tools,
+body.fn-app .todo-panel-actions {
+  gap: var(--fn-space-2) !important;
+}
+
+body.fn-app .fc,
+body.fn-app .fc .fc-scrollgrid,
+body.fn-app .fc .fc-toolbar-title,
+body.fn-app .fc-theme-standard td,
+body.fn-app .fc-theme-standard th {
+  border-color: var(--fn-border) !important;
+}
+
+body.fn-app .fc .fc-button {
+  border-radius: var(--fn-radius) !important;
+  background: rgba(17, 36, 56, 0.88) !important;
+  border: 1px solid var(--fn-border) !important;
+}
+
+body.fn-app .fc .fc-button-primary:not(:disabled).fc-button-active,
+body.fn-app .fc .fc-button-primary:not(:disabled):active {
+  background: linear-gradient(135deg, var(--fn-primary), #7aa2ff) !important;
+  border-color: transparent !important;
+}
+
+body.fn-app .fc .fc-daygrid-day-frame,
+body.fn-app .fc .fc-multimonth-daygrid-table {
+  background: rgba(9, 22, 36, 0.58);
+}
+
+body.fn-app .fc .fc-event,
+body.fn-app .iphone-diary-events-panel .diary-entry,
+body.fn-app .iphone-diary-events-panel .event-card {
+  border-radius: var(--fn-radius) !important;
+}
+
+@media (min-width: 600px) and (max-width: 1024px) {
+  body.fn-app[data-fn-viewport="tablet"] .dashboard-grid,
+  body.fn-app[data-fn-viewport="tablet"] .content-grid,
+  body.fn-app[data-fn-viewport="tablet"] .notes-shell {
+    gap: var(--fn-space-4) !important;
+  }
+}
+
+@media (max-width: 599px) {
+  body.fn-app .main {
+    padding: var(--fn-space-3) !important;
+  }
+
+  body.fn-app .notes-shell,
+  body.fn-app .content-grid,
+  body.fn-app .settings-shell {
+    gap: var(--fn-space-3) !important;
+  }
+
+  body.fn-app .section-topbar,
+  body.fn-app .notes-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(6, 17, 30, 0.88) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  body.fn-app .notes-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.fn-app .categories-pane,
+  body.fn-app .notes-pane,
+  body.fn-app .todo-panel {
+    border-radius: var(--fn-radius) !important;
+  }
+
+  body.fn-app .fc .fc-toolbar {
+    gap: var(--fn-space-2);
+    margin-bottom: var(--fn-space-3) !important;
+  }
+
+  body.fn-app .fc .fc-toolbar-title {
+    font-size: 1rem !important;
+  }
+}
+
+body.performance-mode.fn-app .FNButton,
+body.performance-mode.fn-app .panel,
+body.performance-mode.fn-app .section-pane,
+body.performance-mode.fn-app .note-item,
+body.performance-mode.fn-app .category-item,
+body.performance-mode.fn-app .todo-task,
+body.performance-mode.fn-app .mobile-bottom-link,
+body.performance-mode.fn-app .mobile-bottom-btn {
+  transition: none !important;
+}

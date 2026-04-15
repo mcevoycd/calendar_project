@@ -2384,7 +2384,7 @@
         display: grid !important;
         grid-template-columns: 1fr !important;
         grid-template-rows: auto minmax(0, 1fr);
-        gap: 0.18rem !important;
+        gap: 0.8rem !important;
         height: calc(100dvh - 82px - env(safe-area-inset-bottom)) !important;
         overflow: hidden !important;
         align-content: start !important;
@@ -2401,26 +2401,27 @@
         z-index: 30;
         margin: 0 !important;
         padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        overflow: visible !important;
+        background: linear-gradient(180deg, rgba(7, 25, 43, 0.98) 0%, rgba(5, 20, 34, 0.98) 100%) !important;
+        border: 1px solid rgba(38, 86, 122, 0.72) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 14px 30px rgba(3, 12, 24, 0.22) !important;
+        overflow: hidden !important;
       }
 
       .iphone-diary-month-panel .calendar-glass-shell {
-        padding: 0.14rem 0.22rem 0.04rem !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(18px) saturate(130%);
-        -webkit-backdrop-filter: blur(18px) saturate(130%);
-        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
+        padding: 0.72rem 0.75rem 0.68rem !important;
+        background: linear-gradient(180deg, rgba(10, 31, 50, 0.96) 0%, rgba(15, 36, 57, 0.96) 100%) !important;
+        border-radius: 18px !important;
+        border: 1px solid rgba(83, 183, 232, 0.16) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
         overflow: visible !important;
       }
 
       .mobile-calendar-nav {
         grid-template-columns: 1fr !important;
-        margin: 0 0 0.16rem !important;
+        margin: 0 0 0.7rem !important;
       }
 
       .mobile-calendar-nav-btn {
@@ -2432,22 +2433,24 @@
         display: block !important;
         width: 100%;
         text-align: left;
-        border: none !important;
-        background: transparent !important;
+        border: 1px solid rgba(83, 183, 232, 0.16) !important;
+        background: rgba(20, 46, 72, 0.62) !important;
         color: #F7FBFF;
-        font-size: 0.96rem !important;
-        font-weight: 650;
+        border-radius: 16px !important;
+        font-size: 1.04rem !important;
+        font-weight: 700;
         letter-spacing: -0.02em;
-        padding: 0.01rem 0.06rem 0.12rem !important;
+        padding: 0.9rem 1rem 0.8rem !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
       }
 
       .mobile-calendar-title-btn::after {
         content: 'Tap month to change';
         display: block;
-        margin-top: 0.02rem;
-        color: rgba(234, 244, 255, 0.62);
-        font-size: 0.62rem;
-        font-weight: 500;
+        margin-top: 0.16rem;
+        color: rgba(234, 244, 255, 0.68);
+        font-size: 0.72rem;
+        font-weight: 600;
         letter-spacing: 0;
       }
 
@@ -2505,19 +2508,20 @@
       }
 
       #calendar.is-month-view .fc-daygrid-day {
-        height: 2.52rem !important;
+        height: 3rem !important;
       }
 
       #calendar.is-month-view .fc-scrollgrid-sync-table tr,
       #calendar.is-month-view .fc-daygrid-body tr,
       #calendar.is-month-view .fc-daygrid-body td {
-        height: 2.52rem !important;
+        height: 3rem !important;
       }
 
       #calendar.is-month-view .fc-daygrid-day-frame {
-        min-height: 1.78rem !important;
-        height: 1.78rem !important;
-        padding: 0.03rem 0 !important;
+        min-height: 2.2rem !important;
+        height: 2.2rem !important;
+        padding: 0.08rem 0 !important;
+        border-radius: 8px !important;
       }
 
       #calendar .fc-daygrid-day-top {
@@ -2528,24 +2532,35 @@
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
-        min-width: 1.9rem;
-        min-height: 1.9rem;
+        min-width: 2rem;
+        min-height: 2rem;
         border-radius: 999px;
         color: #F5F9FF !important;
-        font-size: 0.98rem !important;
-        font-weight: 500 !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
         text-shadow: none !important;
       }
 
-      #calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-        background: rgba(255, 255, 255, 0.12) !important;
-        color: #FFFFFF !important;
+      #calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+        background: transparent !important;
+        box-shadow: none !important;
       }
 
-      #calendar .fc-daygrid-day.ios-selected-day .fc-daygrid-day-number {
+      #calendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
         background: linear-gradient(180deg, #0A84FF 0%, #007AFF 100%) !important;
         color: #FFFFFF !important;
         box-shadow: 0 8px 18px rgba(10, 132, 255, 0.24);
+      }
+
+      #calendar .fc-daygrid-day.ios-selected-day .fc-daygrid-day-frame {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      #calendar .fc-daygrid-day.ios-selected-day .fc-daygrid-day-number {
+        background: transparent !important;
+        color: #F5F9FF !important;
+        box-shadow: none !important;
       }
 
       #calendar.is-month-view .fc-daygrid-day-events,
@@ -2589,13 +2604,17 @@
         min-height: 0;
         overflow: hidden;
         margin-top: 0 !important;
-        padding: 0 0 calc(0.35rem + env(safe-area-inset-bottom)) !important;
+        padding: 0.8rem 0.8rem calc(0.5rem + env(safe-area-inset-bottom)) !important;
+        background: linear-gradient(180deg, rgba(7, 25, 43, 0.98) 0%, rgba(4, 18, 32, 0.98) 100%) !important;
+        border: 1px solid rgba(38, 86, 122, 0.72) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 14px 30px rgba(3, 12, 24, 0.22) !important;
         touch-action: pan-y;
         min-block-size: 0 !important;
       }
 
       .iphone-diary-events-header {
-        padding: 0 0.12rem 0.45rem;
+        display: none !important;
       }
 
       .iphone-diary-events-kicker {
@@ -2629,18 +2648,18 @@
         -webkit-overflow-scrolling: touch;
         overscroll-behavior-y: contain;
         touch-action: pan-y;
-        padding: 0 0.06rem 1rem;
+        padding: 0 0.05rem 0.6rem;
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 0.22rem;
+        gap: 0.14rem;
         scroll-behavior: smooth;
       }
 
       .iphone-event-day-group {
         display: flex;
         flex-direction: column;
-        gap: 0.02rem;
+        gap: 0;
       }
 
       .iphone-event-day-group.is-selected .iphone-event-card {
@@ -2657,11 +2676,11 @@
         background: transparent;
         color: #F7FBFF;
         border-radius: 0;
-        padding: 0.14rem 0.08rem;
+        padding: 0.4rem 0.08rem;
         box-shadow: none;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
-        gap: 0.5rem;
+        grid-template-columns: minmax(6rem, auto) minmax(0, 1fr);
+        gap: 0.55rem;
         align-items: center;
         text-align: left;
         transition: opacity 0.2s ease;
@@ -2678,24 +2697,30 @@
       }
 
       .iphone-event-time {
-        color: rgba(159, 215, 255, 0.92);
-        font-size: 0.72rem;
-        font-weight: 700;
+        color: rgba(159, 215, 255, 0.95);
+        font-size: 0.74rem;
+        font-weight: 800;
         letter-spacing: 0.01em;
         text-transform: uppercase;
-        min-width: 6.2rem;
+        min-width: 6.4rem;
         white-space: nowrap;
       }
 
       .iphone-event-title {
         color: #FFFFFF;
-        font-size: 0.94rem;
-        font-weight: 600;
+        font-size: 0.98rem;
+        font-weight: 700;
         letter-spacing: -0.01em;
         line-height: 1.25;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .iphone-event-day-group + .iphone-event-day-group {
+        border-top: 1px solid rgba(159, 215, 255, 0.08);
+        padding-top: 0.18rem;
+        margin-top: 0.12rem;
       }
 
       .iphone-event-meta {
@@ -2704,10 +2729,10 @@
 
       .iphone-events-empty {
         border-radius: 16px;
-        padding: 0.9rem 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(234, 244, 255, 0.76);
-        font-size: 0.85rem;
+        padding: 1rem 1rem;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(234, 244, 255, 0.8);
+        font-size: 0.88rem;
         text-align: center;
       }
     }
@@ -3459,8 +3484,7 @@
 
         const dayCells = calendarEl.querySelectorAll('.fc-daygrid-day');
         dayCells.forEach(function (cell) {
-          const cellDate = cell.getAttribute('data-date') || '';
-          cell.classList.toggle('ios-selected-day', Boolean(activePhoneSelectedDate) && cellDate === activePhoneSelectedDate);
+          cell.classList.remove('ios-selected-day');
         });
       }
 
