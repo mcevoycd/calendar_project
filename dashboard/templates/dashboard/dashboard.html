@@ -2997,6 +2997,8 @@
       }
     }
   </style>
+  <link href="{% static 'dashboard/css/mobile-bottom-nav.css' %}" rel="stylesheet">
+  <script defer src="{% static 'dashboard/js/mobile-bottom-nav.js' %}"></script>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
@@ -3590,62 +3592,6 @@
     })();
   </script>
 
-  <div class="mobile-bottom-bar" aria-label="Mobile actions">
-    <button type="button" class="mobile-bottom-btn" id="mobile-menu-toggle"><span class="mobile-bottom-icon">≡</span><span>Menu</span></button>
-    <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" id="mobile-quick-add-btn"><span class="mobile-bottom-icon">+</span><span>Quick Add</span></button>
-  </div>
-  <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
-  <nav class="mobile-menu-sheet" id="mobile-menu-sheet" aria-label="Mobile menu">
-    <a class="mobile-menu-link" href="{% url 'dashboard' %}">Dashboard</a>
-    <a class="mobile-menu-link" href="{% url 'diary' %}">Diary</a>
-    <a class="mobile-menu-link" href="{% url 'todo' %}">To Do List</a>
-    <a class="mobile-menu-link" href="{% url 'notes' %}">Notes</a>
-    <a class="mobile-menu-link" href="{% url 'settings' %}">Settings</a>
-  </nav>
-  <script>
-    (function () {
-      document.addEventListener('DOMContentLoaded', function () {
-        const toggle = document.getElementById('mobile-menu-toggle');
-        const backdrop = document.getElementById('mobile-menu-backdrop');
-        const sheet = document.getElementById('mobile-menu-sheet');
-        const mobileQuickAddBtn = document.getElementById('mobile-quick-add-btn');
-        const desktopQuickAddBtn = document.getElementById('quick-add-open-btn');
-        if (!toggle || !backdrop || !sheet) return;
-
-        function closeMenu() {
-          document.body.classList.remove('mobile-menu-open');
-          toggle.setAttribute('aria-expanded', 'false');
-        }
-
-        function openMenu() {
-          document.body.classList.add('mobile-menu-open');
-          toggle.setAttribute('aria-expanded', 'true');
-        }
-
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.addEventListener('click', function () {
-          if (document.body.classList.contains('mobile-menu-open')) {
-            closeMenu();
-          } else {
-            openMenu();
-          }
-        });
-
-        backdrop.addEventListener('click', closeMenu);
-        sheet.querySelectorAll('a').forEach(function (link) {
-          link.addEventListener('click', closeMenu);
-        });
-        if (mobileQuickAddBtn && desktopQuickAddBtn) {
-          mobileQuickAddBtn.addEventListener('click', function () {
-            closeMenu();
-            desktopQuickAddBtn.click();
-          });
-        }
-        document.addEventListener('keydown', function (event) {
-          if (event.key === 'Escape') closeMenu();
-        });
-      });
-    })();
-  </script>
+  {% include 'dashboard/_mobile_bottom_nav.html' %}
 </body>
 </html>

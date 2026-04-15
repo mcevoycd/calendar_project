@@ -1498,6 +1498,8 @@
       }
     }
   </style>
+  <link href="{% static 'dashboard/css/mobile-bottom-nav.css' %}" rel="stylesheet">
+  <script defer src="{% static 'dashboard/js/mobile-bottom-nav.js' %}"></script>
 </head>
 <body class="nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
@@ -3054,5 +3056,6 @@
     })();
   </script>
 
+{% include 'dashboard/_mobile_bottom_nav.html' %}
 </body>
 </html>
