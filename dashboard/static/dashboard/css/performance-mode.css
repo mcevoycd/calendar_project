@@ -1,0 +1,52 @@
+[data-performance-toggle].is-active {
+  border-color: rgba(246, 195, 92, 0.78) !important;
+  background: rgba(246, 195, 92, 0.18) !important;
+  color: #FFF6D2 !important;
+}
+
+body.performance-mode *,
+body.performance-mode *::before,
+body.performance-mode *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+body.performance-mode .sidebar,
+body.performance-mode .panel,
+body.performance-mode .section-pane,
+body.performance-mode .editor-drawer,
+body.performance-mode .dialog,
+body.performance-mode .drawer-backdrop,
+body.performance-mode .mobile-bottom-bar,
+body.performance-mode .app-modal,
+body.performance-mode .notes-toolbar,
+body.performance-mode .canvas-wrap,
+body.performance-mode .note-box,
+body.performance-mode .user-menu,
+body.performance-mode .utility-bar,
+body.performance-mode .quick-add-sheet,
+body.performance-mode .quick-add-backdrop,
+body.performance-mode .modal-sheet,
+body.performance-mode .modal-backdrop,
+body.performance-mode .fc,
+body.performance-mode #calendar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+body.performance-mode .nav-link:hover,
+body.performance-mode .nav-link:focus,
+body.performance-mode .mobile-bottom-btn:hover,
+body.performance-mode .mobile-bottom-btn:focus,
+body.performance-mode .pill-btn:hover,
+body.performance-mode .pill-btn:focus,
+body.performance-mode .btn-canvas:hover,
+body.performance-mode .btn-canvas:focus,
+body.performance-mode .todo-item:hover,
+body.performance-mode .note-item:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
