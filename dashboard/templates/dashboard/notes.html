@@ -1447,6 +1447,40 @@
       line-height: 1.5;
     }
 
+    #performance-toggle-btn.is-active {
+      border-color: rgba(246, 195, 92, 0.78);
+      background: rgba(246, 195, 92, 0.18);
+      color: #FFF6D2;
+    }
+
+    body.performance-mode *,
+    body.performance-mode *::before,
+    body.performance-mode *::after {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    body.performance-mode .sidebar,
+    body.performance-mode .notes-toolbar,
+    body.performance-mode .canvas-wrap,
+    body.performance-mode .note-box,
+    body.performance-mode .app-modal {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: none !important;
+    }
+
+    body.performance-mode .nav-link:hover,
+    body.performance-mode .nav-link:focus,
+    body.performance-mode .btn-canvas:hover,
+    body.performance-mode .btn-canvas:focus,
+    body.performance-mode .note-box:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
     @media (min-width: 600px) and (max-width: 1199px) {
       body .sidebar,
       body.nav-position-top .sidebar,
@@ -1508,6 +1542,7 @@
               </div>
             </div>
             <div class="toolbar-right">
+              <button type="button" class="btn-canvas" id="performance-toggle-btn" aria-pressed="false">Fast Mode: Off</button>
               <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span>
               <span class="autosave-status" id="autosave-status">Auto-save on</span>
               <button type="submit" class="btn-save">Save Canvas</button>
@@ -1535,6 +1570,47 @@
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      const toggleBtn = document.getElementById('performance-toggle-btn');
+      const storageKey = 'fluid-performance-mode';
+      if (!toggleBtn) {
+        return;
+      }
+
+      function applyPerformanceMode(enabled) {
+        document.body.classList.toggle('performance-mode', enabled);
+        toggleBtn.classList.toggle('is-active', enabled);
+        toggleBtn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        toggleBtn.textContent = enabled ? 'Fast Mode: On' : 'Fast Mode: Off';
+        try {
+          localStorage.setItem(storageKey, enabled ? '1' : '0');
+        } catch (error) {
+          // Ignore storage issues.
+        }
+      }
+
+      let enabled = false;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved === '1' || saved === '0') {
+          enabled = saved === '1';
+        } else {
+          const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const lowPowerDevice = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+          enabled = !!(prefersReducedMotion || lowPowerDevice);
+        }
+      } catch (error) {
+        enabled = false;
+      }
+
+      applyPerformanceMode(enabled);
+      toggleBtn.addEventListener('click', function () {
+        applyPerformanceMode(!document.body.classList.contains('performance-mode'));
+      });
+    })();
+  </script>
 
   <script>
     (function () {

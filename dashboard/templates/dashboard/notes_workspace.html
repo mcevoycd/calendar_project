@@ -198,6 +198,44 @@
       display: none;
     }
 
+    #performance-toggle-btn.is-active {
+      border-color: rgba(246, 195, 92, 0.78);
+      background: rgba(246, 195, 92, 0.18);
+      color: #FFF6D2;
+    }
+
+    body.performance-mode *,
+    body.performance-mode *::before,
+    body.performance-mode *::after {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    body.performance-mode .sidebar,
+    body.performance-mode .section-pane,
+    body.performance-mode .editor-drawer,
+    body.performance-mode .dialog,
+    body.performance-mode .mobile-bottom-bar,
+    body.performance-mode .drawer-backdrop {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: none !important;
+    }
+
+    body.performance-mode .category-item:hover,
+    body.performance-mode .note-item:hover,
+    body.performance-mode .nav-link:hover,
+    body.performance-mode .nav-link:focus,
+    body.performance-mode .mobile-bottom-btn:hover,
+    body.performance-mode .mobile-bottom-btn:focus,
+    body.performance-mode .pill-btn:hover,
+    body.performance-mode .pill-btn:focus {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
     .main {
       height: calc(100vh - var(--top-nav-height) - var(--page-bottom-gap));
       min-height: 0;
@@ -1805,6 +1843,7 @@
               <h2 class="pane-title"><span class="category-icon" aria-hidden="true">N</span> Notes</h2>
               <div class="new-note-actions">
                 <button type="button" class="pill-btn" id="new-note-btn">+ New Note</button>
+                <button type="button" class="pill-btn" id="performance-toggle-btn" aria-pressed="false">Fast Mode: Off</button>
               </div>
             </div>
             <div style="color:#92A6B9;font-size:0.76rem;line-height:1.35;">Select a note to open the editor panel.</div>
@@ -2269,6 +2308,47 @@
       })();
     </script>
   {% endif %}
+
+  <script>
+    (function () {
+      const toggleBtn = document.getElementById('performance-toggle-btn');
+      const storageKey = 'fluid-performance-mode';
+      if (!toggleBtn) {
+        return;
+      }
+
+      function applyPerformanceMode(enabled) {
+        document.body.classList.toggle('performance-mode', enabled);
+        toggleBtn.classList.toggle('is-active', enabled);
+        toggleBtn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        toggleBtn.textContent = enabled ? 'Fast Mode: On' : 'Fast Mode: Off';
+        try {
+          localStorage.setItem(storageKey, enabled ? '1' : '0');
+        } catch (error) {
+          // Ignore storage issues.
+        }
+      }
+
+      let enabled = false;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved === '1' || saved === '0') {
+          enabled = saved === '1';
+        } else {
+          const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const lowPowerDevice = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+          enabled = !!(prefersReducedMotion || lowPowerDevice);
+        }
+      } catch (error) {
+        enabled = false;
+      }
+
+      applyPerformanceMode(enabled);
+      toggleBtn.addEventListener('click', function () {
+        applyPerformanceMode(!document.body.classList.contains('performance-mode'));
+      });
+    })();
+  </script>
 
   <script>
     (function () {
