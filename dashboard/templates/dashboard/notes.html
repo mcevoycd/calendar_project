@@ -1609,6 +1609,9 @@
       let isDirty = false;
       let autoSaveInFlight = false;
       let lastSavedPayload = '';
+      let lastEditAt = 0;
+      const INPUT_SYNC_DELAY_MS = 180;
+      const AUTOSAVE_TYPING_PAUSE_MS = 1500;
       const supportsPointerEvents = typeof window !== 'undefined' && !!window.PointerEvent;
       let linkDrag = {
         active: false,
@@ -1662,8 +1665,11 @@
       }
 
       function markDirty() {
+        lastEditAt = Date.now();
+        if (!isDirty) {
+          updateAutoSaveStatus('Unsaved changes', false);
+        }
         isDirty = true;
-        updateAutoSaveStatus('Unsaved changes', false);
       }
 
       function uid() {
@@ -2167,6 +2173,7 @@
 
           let checklistItems = [];
           let bodyText = '';
+          let syncBoxTextTimer = null;
 
           function bindTextTool(btn, prefix) {
             btn.addEventListener('mousedown', function (event) {
@@ -2282,7 +2289,27 @@
             box.title = String(titleInput.value || '').trim().slice(0, 120);
             box.body_html = String(text.innerHTML || '').slice(0, 5000);
             box.text = composeBoxText();
+          }
+
+          function flushPendingTextSync() {
+            if (syncBoxTextTimer) {
+              clearTimeout(syncBoxTextTimer);
+              syncBoxTextTimer = null;
+            }
+            bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
+            syncBoxText();
+          }
+
+          function scheduleTextSync() {
             markDirty();
+            if (syncBoxTextTimer) {
+              clearTimeout(syncBoxTextTimer);
+            }
+            syncBoxTextTimer = window.setTimeout(function () {
+              syncBoxTextTimer = null;
+              bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
+              syncBoxText();
+            }, INPUT_SYNC_DELAY_MS);
           }
 
           function renderChecklist() {
@@ -2308,6 +2335,7 @@
               }
               checklistItems.push({ checked: false, label: value });
               composeInput.value = '';
+              markDirty();
               syncBoxText();
               renderChecklist();
             }
@@ -2353,6 +2381,7 @@
               });
               tick.addEventListener('change', function () {
                 checklistItems[idx].checked = !!tick.checked;
+                markDirty();
                 syncBoxText();
                 renderChecklist();
               });
@@ -2364,7 +2393,14 @@
               label.placeholder = 'Checklist item';
               label.addEventListener('input', function () {
                 checklistItems[idx].label = label.value;
-                syncBoxText();
+                markDirty();
+                if (syncBoxTextTimer) {
+                  clearTimeout(syncBoxTextTimer);
+                }
+                syncBoxTextTimer = window.setTimeout(function () {
+                  syncBoxTextTimer = null;
+                  syncBoxText();
+                }, INPUT_SYNC_DELAY_MS);
               });
 
               const removeBtn = document.createElement('button');
@@ -2375,6 +2411,7 @@
               removeBtn.addEventListener('click', function (event) {
                 event.preventDefault();
                 checklistItems.splice(idx, 1);
+                markDirty();
                 syncBoxText();
                 renderChecklist();
               });
@@ -2401,8 +2438,7 @@
           resizeHandle.className = 'box-resize';
 
           text.addEventListener('input', function () {
-            bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
-            syncBoxText();
+            scheduleTextSync();
           });
 
           titleInput.addEventListener('mousedown', function (event) {
@@ -2418,7 +2454,7 @@
             event.stopPropagation();
           });
           titleInput.addEventListener('input', function () {
-            syncBoxText();
+            scheduleTextSync();
           });
 
           checklist.addEventListener('mousedown', function (event) {
@@ -2569,6 +2605,14 @@
         if (autoSaveInFlight || !isDirty) {
           return;
         }
+
+        if (Date.now() - lastEditAt < AUTOSAVE_TYPING_PAUSE_MS) {
+          return;
+        }
+
+        state.boxes.forEach(function (box) {
+          normalizeBox(box);
+        });
 
         const payloadJson = JSON.stringify(buildCanvasPayload());
         if (payloadJson === lastSavedPayload) {
@@ -2883,7 +2927,7 @@
         render();
       });
 
-      setInterval(autoSaveCanvas, 8000);
+      setInterval(autoSaveCanvas, 15000);
       window.addEventListener('pagehide', immediateSaveOnLeave);
       window.addEventListener('beforeunload', immediateSaveOnLeave);
 
