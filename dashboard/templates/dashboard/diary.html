@@ -2356,11 +2356,20 @@
         overflow: hidden !important;
       }
 
+      body.pwa-standalone {
+        padding-top: 0 !important;
+      }
+
       body .main {
         height: auto !important;
-        min-height: calc(100vh - 78px - env(safe-area-inset-bottom)) !important;
+        min-height: calc(100dvh - 78px - env(safe-area-inset-bottom)) !important;
         padding: calc(0.08rem + env(safe-area-inset-top)) 0.58rem calc(0.55rem + env(safe-area-inset-bottom)) !important;
         overflow: hidden !important;
+      }
+
+      body.pwa-standalone .main {
+        min-height: calc(100dvh - 78px - env(safe-area-inset-bottom)) !important;
+        padding-top: calc(0.18rem + env(safe-area-inset-top)) !important;
       }
 
       .diary-right-head,
@@ -2376,15 +2385,19 @@
         grid-template-columns: 1fr !important;
         grid-template-rows: auto minmax(0, 1fr);
         gap: 0.18rem !important;
-        height: calc(100vh - 82px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        height: calc(100dvh - 82px - env(safe-area-inset-bottom)) !important;
         overflow: hidden !important;
         align-content: start !important;
+      }
+
+      body.pwa-standalone .content-grid.iphone-diary-shell {
+        height: calc(100dvh - 82px - env(safe-area-inset-bottom)) !important;
       }
 
       .iphone-diary-month-panel,
       .iphone-diary-month-panel.panel {
         position: sticky;
-        top: env(safe-area-inset-top);
+        top: 0;
         z-index: 30;
         margin: 0 !important;
         padding: 0 !important;
