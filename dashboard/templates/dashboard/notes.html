@@ -2909,14 +2909,13 @@
         const timePart = now.toLocaleTimeString('en-GB', {
           hour: '2-digit',
           minute: '2-digit',
-          second: '2-digit',
           hour12: false
         });
         el.textContent = `${datePart} | ${timePart}`;
       }
 
       updateSidebarDateTime();
-      setInterval(updateSidebarDateTime, 1000);
+      setInterval(updateSidebarDateTime, 30000);
     })();
   </script>
   <script>

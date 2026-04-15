@@ -7,7 +7,7 @@
   {% include 'dashboard/_pwa_head.html' %}
   <title>Fluid Notes</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="{% static 'dashboard/js/worldclock.js' %}?v=20260414reentryfix"></script>
+  <script src="{% static 'dashboard/js/worldclock.js' %}?v=20260415clockfix3"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -3291,6 +3291,118 @@
 
   <script>
     (function () {
+      function renderWorldClockFallback() {
+        const container = document.getElementById('worldclock-container');
+        if (!container || container.querySelector('.clock-item, .header-clock-item')) {
+          return;
+        }
+
+        function getOffsetMinutesForZone(timeZone) {
+          try {
+            const date = new Date();
+            const localParts = new Intl.DateTimeFormat('en-US', {
+              timeZone,
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+            }).formatToParts(date);
+            const utcParts = new Intl.DateTimeFormat('en-US', {
+              timeZone: 'UTC',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+            }).formatToParts(date);
+
+            function pick(parts, type) {
+              const match = parts.find(function (part) { return part.type === type; });
+              return match ? Number(match.value) : 0;
+            }
+
+            const localStamp = Date.UTC(
+              pick(localParts, 'year'),
+              pick(localParts, 'month') - 1,
+              pick(localParts, 'day'),
+              pick(localParts, 'hour'),
+              pick(localParts, 'minute'),
+              pick(localParts, 'second')
+            );
+            const utcStamp = Date.UTC(
+              pick(utcParts, 'year'),
+              pick(utcParts, 'month') - 1,
+              pick(utcParts, 'day'),
+              pick(utcParts, 'hour'),
+              pick(utcParts, 'minute'),
+              pick(utcParts, 'second')
+            );
+
+            return (localStamp - utcStamp) / 60000;
+          } catch (error) {
+            return 0;
+          }
+        }
+
+        let zones = ['Europe/London', 'Asia/Manila', 'America/Chicago'];
+        try {
+          const raw = JSON.parse(container.getAttribute('data-timezones') || '[]');
+          if (Array.isArray(raw) && raw.length) {
+            zones = raw.slice(0, 3);
+          }
+        } catch (error) {
+          zones = ['Europe/London', 'Asia/Manila', 'America/Chicago'];
+        }
+
+        zones = zones.sort(function (left, right) {
+          const offsetDiff = getOffsetMinutesForZone(left) - getOffsetMinutesForZone(right);
+          if (offsetDiff !== 0) {
+            return offsetDiff;
+          }
+          return String(left || '').localeCompare(String(right || ''));
+        });
+
+        container.innerHTML = '';
+        zones.forEach(function (tz) {
+          const item = document.createElement('div');
+          item.className = 'clock-item';
+
+          const zone = document.createElement('div');
+          zone.className = 'clock-zone';
+          zone.textContent = String(tz || 'Local time').split('/').pop().replace(/_/g, ' ');
+
+          const time = document.createElement('div');
+          time.className = 'clock-time';
+          try {
+            time.textContent = new Intl.DateTimeFormat('en-GB', {
+              timeZone: tz,
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }).format(new Date());
+          } catch (error) {
+            time.textContent = new Intl.DateTimeFormat('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }).format(new Date());
+          }
+
+          item.appendChild(zone);
+          item.appendChild(time);
+          container.appendChild(item);
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        window.setTimeout(renderWorldClockFallback, 350);
+      });
+
       const bodyEl = document.body;
       if (!bodyEl) return;
 
@@ -3320,7 +3432,6 @@
         const timePart = now.toLocaleTimeString('en-GB', {
           hour: '2-digit',
           minute: '2-digit',
-          second: '2-digit',
           hour12: false
         });
         if (el) {
@@ -3332,7 +3443,7 @@
       }
 
       updateSidebarDateTime();
-      setInterval(updateSidebarDateTime, 1000);
+      setInterval(updateSidebarDateTime, 30000);
     })();
 
     (function () {

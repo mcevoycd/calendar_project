@@ -55,13 +55,20 @@ const CITY_TO_TZ = {
 };
 
 function formatClock(timeZone, hour12) {
-  return new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12
-  }).format(new Date());
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12
+    }).format(new Date());
+  } catch (error) {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12
+    }).format(new Date());
+  }
 }
 
 function parseDateParts(date, timeZone) {
@@ -124,16 +131,40 @@ function formatOffset(timeZone) {
   }
 }
 
+function getOffsetMinutes(timeZone) {
+  try {
+    const date = new Date();
+    const localParts = parseDateParts(date, timeZone);
+    const utcParts = parseDateParts(date, 'UTC');
+
+    const localTimestamp = Date.UTC(
+      Number(localParts.year),
+      Number(localParts.month) - 1,
+      Number(localParts.day),
+      Number(localParts.hour),
+      Number(localParts.minute),
+      Number(localParts.second)
+    );
+
+    const utcTimestamp = Date.UTC(
+      Number(utcParts.year),
+      Number(utcParts.month) - 1,
+      Number(utcParts.day),
+      Number(utcParts.hour),
+      Number(utcParts.minute),
+      Number(utcParts.second)
+    );
+
+    return (localTimestamp - utcTimestamp) / 60000;
+  } catch (error) {
+    return 0;
+  }
+}
+
 function getSortValue(timeZone) {
-  const parts = parseDateParts(new Date(), timeZone);
-  return Date.UTC(
-    Number(parts.year),
-    Number(parts.month) - 1,
-    Number(parts.day),
-    Number(parts.hour),
-    Number(parts.minute),
-    Number(parts.second)
-  );
+  const offsetMinutes = getOffsetMinutes(timeZone);
+  const label = getTimezoneLabel(timeZone).toLowerCase();
+  return offsetMinutes * 1000 + label.charCodeAt(0);
 }
 
 function getFlag(timeZone) {
@@ -227,9 +258,7 @@ function renderWorldClock() {
     return;
   }
 
-  if (container.dataset.worldclockInitialized === 'true') {
-    return;
-  }
+  const alreadyInitialized = container.dataset.worldclockInitialized === 'true';
   container.dataset.worldclockInitialized = 'true';
   const renderMode = container.getAttribute('data-render-mode') || 'cards';
   if (renderMode !== 'compact-header') {
@@ -254,13 +283,20 @@ function renderWorldClock() {
   const savedTimezones = parseStoredJson(getStoredItem('worldclockTimezones'), null);
   let hour12 = renderMode === 'compact-header' ? true : getStoredItem('worldclockHour12') !== 'false';
   const defaultTimezones = parseStoredJson(container.getAttribute('data-timezones') || '[]', []);
+  const fallbackTimezones = ['Europe/London', 'Asia/Manila', 'America/Chicago'];
   let timezones = Array.isArray(savedTimezones) && savedTimezones.length
     ? savedTimezones.slice(0, 3)
     : defaultTimezones.slice(0, 3);
 
-  timezones = timezones.filter(isValidTimezone);
-  if (!timezones.length) {
-    timezones = ['Europe/London', 'Asia/Manila', 'America/Chicago'].filter(isValidTimezone);
+  timezones = timezones
+    .map(function (value) { return String(value || '').trim(); })
+    .filter(Boolean);
+
+  const supportedTimezones = timezones.filter(isValidTimezone);
+  if (supportedTimezones.length) {
+    timezones = supportedTimezones;
+  } else {
+    timezones = fallbackTimezones.slice();
   }
 
   function showPopup(message, options) {
@@ -344,7 +380,31 @@ function renderWorldClock() {
 
   function buildItems() {
     container.innerHTML = '';
-    const sortedTimezones = [...timezones].sort((a, b) => getSortValue(a) - getSortValue(b));
+    const sortedTimezones = [...timezones].sort(function (left, right) {
+      const offsetDiff = getOffsetMinutes(left) - getOffsetMinutes(right);
+      if (offsetDiff !== 0) {
+        return offsetDiff;
+      }
+      return getTimezoneLabel(left).localeCompare(getTimezoneLabel(right));
+    });
+
+    if (!sortedTimezones.length) {
+      const fallbackCard = document.createElement('div');
+      fallbackCard.className = 'clock-item';
+
+      const fallbackZone = document.createElement('div');
+      fallbackZone.className = 'clock-zone';
+      fallbackZone.textContent = 'Local time';
+
+      const fallbackTime = document.createElement('div');
+      fallbackTime.className = 'clock-time';
+      fallbackTime.textContent = formatClock(undefined, hour12);
+
+      fallbackCard.appendChild(fallbackZone);
+      fallbackCard.appendChild(fallbackTime);
+      container.appendChild(fallbackCard);
+      return;
+    }
 
     sortedTimezones.forEach((tz, index) => {
       if (renderMode === 'compact-header') {
@@ -434,12 +494,13 @@ function renderWorldClock() {
     });
   }
 
-  if (toggle) {
+  if (!alreadyInitialized && toggle) {
     toggle.addEventListener('click', function () {
       hour12 = !hour12;
       setStoredItem('worldclockHour12', String(hour12));
       updateToggleText();
       buildItems();
+      tick();
     });
   }
 
@@ -472,30 +533,41 @@ function renderWorldClock() {
     }
   }
 
-  if (addButton && timezoneInput) {
+  if (!alreadyInitialized && addButton && timezoneInput) {
     addButton.addEventListener('click', function () {
       if (!timezoneInput.value.trim()) return;
       addTimezone(timezoneInput.value);
+      tick();
     });
   }
 
-  if (timezoneInput) {
+  if (!alreadyInitialized && timezoneInput) {
     timezoneInput.addEventListener('keydown', function (event) {
       if (event.key === 'Enter') {
         event.preventDefault();
         addTimezone(timezoneInput.value);
+        tick();
       }
     });
+  }
+
+  function scheduleNextTick() {
+    if (window.__fluidWorldClockRefreshTimeout) {
+      window.clearTimeout(window.__fluidWorldClockRefreshTimeout);
+    }
+
+    const now = new Date();
+    const delay = ((60 - now.getSeconds()) * 1000) - now.getMilliseconds();
+    window.__fluidWorldClockRefreshTimeout = window.setTimeout(function () {
+      tick();
+      scheduleNextTick();
+    }, Math.max(1000, delay));
   }
 
   updateToggleText();
   buildItems();
   tick();
-
-  if (window.__fluidWorldClockInterval) {
-    window.clearInterval(window.__fluidWorldClockInterval);
-  }
-  window.__fluidWorldClockInterval = window.setInterval(tick, 1000);
+  scheduleNextTick();
 }
 
 function initWorldClock() {
