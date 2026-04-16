@@ -665,6 +665,13 @@
       background: rgba(246, 195, 92, 0.1);
     }
 
+    .category-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.56rem 0.62rem;
+    }
+
     .category-link {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -672,9 +679,10 @@
       gap: 0.5rem;
       color: #DCE8F2;
       text-decoration: none;
-      padding: 0.56rem 0.62rem;
+      padding: 0;
       font-size: 0.84rem;
       min-width: 0;
+      flex: 1 1 auto;
     }
 
     .category-link strong {
@@ -698,10 +706,13 @@
     }
 
     .category-delete-row {
-      border-top: 1px solid rgba(53, 84, 109, 0.65);
-      padding: 0.36rem 0.5rem;
+      margin-left: auto;
+      padding: 0;
       display: flex;
+      align-items: center;
       justify-content: flex-end;
+      border: 0;
+      flex-shrink: 0;
     }
 
     .tiny-icon-btn {
@@ -739,35 +750,64 @@
       flex-wrap: wrap;
     }
 
+    .note-top-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.35rem;
+      align-items: start;
+      padding: 0.65rem 0.72rem;
+    }
+
     .note-link {
       color: inherit;
       text-decoration: none;
       display: grid;
       gap: 0.35rem;
-      padding: 0.65rem 0.72rem;
       min-width: 0;
+      padding: 0;
     }
 
     .note-head {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.45rem;
+      display: flex;
       align-items: center;
+      gap: 0.55rem;
       min-width: 0;
     }
 
-    .note-meta-row {
-      display: flex;
+    .note-actions {
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.6rem;
+      gap: 0.15rem;
+      flex-shrink: 0;
+      padding-top: 0.02rem;
     }
 
-    .note-delete-form {
+    .note-delete-form,
+    .note-pin-form {
       margin: 0;
       display: inline-flex;
       align-items: center;
       flex-shrink: 0;
+    }
+
+    .note-action-btn {
+      width: 1.65rem;
+      height: 1.65rem;
+    }
+
+    .note-edit-btn {
+      color: #F6C35C;
+      text-decoration: none;
+    }
+
+    .note-pin-toggle {
+      color: rgba(246, 195, 92, 0.78);
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+
+    .note-pin-toggle.is-pinned {
+      color: #F6C35C;
     }
 
     .note-delete-btn {
@@ -787,13 +827,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .note-pin {
-      color: #F6C35C;
-      font-size: 0.85rem;
-      line-height: 1;
-      flex-shrink: 0;
     }
 
     .note-preview {
@@ -1928,12 +1961,12 @@
               <div class="category-list">
                 {% for category in categories %}
                   <article class="category-item {% if selected_category_id == category.id|stringformat:'s' %}active{% endif %}">
-                    <a class="category-link" href="{% url 'notes' %}?category={{ category.id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
-                      <span class="category-icon" aria-hidden="true">{% cycle 'T' 'S' 'F' 'K' %}</span>
-                      <strong>{{ category.name }}</strong>
-                    </a>
-                    <div class="category-delete-row">
-                      <form method="post" action="{% url 'notes' %}" onsubmit="return window.confirm('Delete this category and unassign its notes?');">
+                    <div class="category-row">
+                      <a class="category-link" href="{% url 'notes' %}?category={{ category.id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
+                        <span class="category-icon" aria-hidden="true">{% cycle 'T' 'S' 'F' 'K' %}</span>
+                        <strong>{{ category.name }}</strong>
+                      </a>
+                      <form class="category-delete-row" method="post" action="{% url 'notes' %}" onsubmit="return window.confirm('Delete this category and unassign its notes?');">
                         {% csrf_token %}
                         <input type="hidden" name="notes_action" value="delete_category">
                         <input type="hidden" name="category_id" value="{{ category.id }}">
@@ -1962,21 +1995,29 @@
             <div class="note-list">
               {% for note in notes %}
                 <article class="note-item {% if selected_note and selected_note.id == note.id %}active{% endif %}">
-                  <a class="note-link" href="{% url 'notes' %}?note={{ note.id }}{% if selected_category_id %}&category={{ selected_category_id }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
-                    <div class="note-head">
-                      <span class="note-title">{{ note.title }}</span>
-                      <span class="note-pin" aria-hidden="true">{% if note.is_pinned %}★{% else %}☆{% endif %}</span>
+                  <div class="note-top-row">
+                    <a class="note-link" href="{% url 'notes' %}?note={{ note.id }}{% if selected_category_id %}&category={{ selected_category_id }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">
+                      <div class="note-head">
+                        <span class="note-title">{{ note.title }}</span>
+                        <span class="note-meta">{{ note.updated_at|date:"M d, Y H:i" }}</span>
+                      </div>
+                      <p class="note-preview">{{ note.body|striptags|default:'No content yet.'|truncatechars:140 }}</p>
+                    </a>
+                    <div class="note-actions">
+                      <form method="post" action="{% url 'notes' %}" class="note-pin-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="notes_action" value="toggle_pin">
+                        <input type="hidden" name="note_id" value="{{ note.id }}">
+                        <button class="tiny-icon-btn note-action-btn note-pin-toggle {% if note.is_pinned %}is-pinned{% endif %}" type="submit" aria-label="{% if note.is_pinned %}Unpin{% else %}Pin{% endif %} {{ note.title|default:'note' }}" title="{% if note.is_pinned %}Unpin{% else %}Pin{% endif %} note">{% if note.is_pinned %}★{% else %}☆{% endif %}</button>
+                      </form>
+                      <a class="tiny-icon-btn note-action-btn note-edit-btn" href="{% url 'notes' %}?note={{ note.id }}{% if selected_category_id %}&category={{ selected_category_id }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" aria-label="Edit {{ note.title|default:'note' }}" title="Edit note"><img class="fn-icon" src="{% static 'dashboard/icons/edit_yellow.svg' %}" alt="" aria-hidden="true"></a>
+                      <form method="post" action="{% url 'notes' %}" class="js-delete-note-form note-delete-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="notes_action" value="delete_note">
+                        <input type="hidden" name="note_id" value="{{ note.id }}">
+                        <button class="tiny-icon-btn note-action-btn note-delete-btn" type="submit" aria-label="Delete {{ note.title|default:'note' }}" title="Delete note"><img class="fn-icon" src="{% static 'dashboard/icons/delete_red.svg' %}" alt="" aria-hidden="true"></button>
+                      </form>
                     </div>
-                    <p class="note-preview">{{ note.body|striptags|default:'No content yet.'|truncatechars:140 }}</p>
-                  </a>
-                  <div class="note-meta-row">
-                    <span class="note-meta">{{ note.updated_at|date:"M d, Y H:i" }}</span>
-                    <form method="post" action="{% url 'notes' %}" class="js-delete-note-form note-delete-form">
-                      {% csrf_token %}
-                      <input type="hidden" name="notes_action" value="delete_note">
-                      <input type="hidden" name="note_id" value="{{ note.id }}">
-                      <button class="tiny-icon-btn note-delete-btn" type="submit" aria-label="Delete {{ note.title|default:'note' }}" title="Delete note"><img class="fn-icon" src="{% static 'dashboard/icons/delete_red.svg' %}" alt="" aria-hidden="true"></button>
-                    </form>
                   </div>
                 </article>
               {% empty %}

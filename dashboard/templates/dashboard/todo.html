@@ -351,12 +351,41 @@
       text-transform: uppercase;
       cursor: text;
       transition: background 0.15s ease;
+      position: relative;
+    }
+
+    .todo-section-title-btn::after {
+      content: 'Click title to edit';
+      position: absolute;
+      left: 0.3rem;
+      bottom: calc(100% + 0.35rem);
+      padding: 0.3rem 0.45rem;
+      border-radius: 8px;
+      background: rgba(6, 17, 30, 0.94);
+      color: #EAF4FF;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-transform: none;
+      white-space: nowrap;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 10;
     }
 
     .todo-section-title-btn:hover,
     .todo-section-title-btn:focus {
       background: rgba(6, 17, 30, 0.12);
       outline: none;
+    }
+
+    .todo-section-title-btn:hover::after,
+    .todo-section-title-btn:focus::after {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .todo-section-title-form {
@@ -1741,7 +1770,7 @@
             {% for section in section_lists %}
               <article class="todo-section-column {{ section.class_name }}" aria-label="{{ section.name }} tasks" data-section-key="{{ section.key }}" data-section-name="{{ section.name|escape }}">
                 <header class="todo-section-head">
-                  <button type="button" class="todo-section-title-btn" data-section-title-trigger aria-label="Rename {{ section.name }} section">{{ section.name }}</button>
+                  <button type="button" class="todo-section-title-btn" data-section-title-trigger aria-label="Rename {{ section.name }} section" title="Click title to edit">{{ section.name }}</button>
                   <form class="todo-section-title-form" method="post" action="{% url 'todo' %}" data-section-title-form>
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="rename_todo_section">
