@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
@@ -48,3 +50,42 @@ class NotesViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertFalse(NoteAttachment.objects.filter(id=attachment.id).exists())
+
+
+class CanvasViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='canvas_tester', password='pass12345')
+        self.client.login(username='canvas_tester', password='pass12345')
+
+    def test_canvas_preserves_plain_text_box_type(self):
+        payload = {
+            'boxes': [
+                {
+                    'id': 'box-text-1',
+                    'x': 80,
+                    'y': 90,
+                    'w': 360,
+                    'h': 220,
+                    'title': '',
+                    'type': 'Text',
+                    'note_date': '2026-04-13',
+                    'completed': False,
+                    'body_html': 'Simple linked text',
+                    'text': 'Simple linked text',
+                }
+            ],
+            'links': [],
+        }
+
+        post_response = self.client.post(
+            reverse('canvas'),
+            {
+                'canvas_data': json.dumps(payload),
+            },
+        )
+        self.assertEqual(post_response.status_code, 302)
+
+        get_response = self.client.get(reverse('canvas'))
+        self.assertEqual(get_response.status_code, 200)
+        self.assertIn('"type": "Text"', get_response.context['canvas_data_json'])

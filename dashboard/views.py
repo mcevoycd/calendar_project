@@ -1705,9 +1705,9 @@ def canvas_view(request):
     week_key = week_start.isoformat()
     todo_sections = get_todo_sections(request)
 
-    note_type_options = ['Note']
-    note_type_colors = {'Note': '#F6C35C'}
-    seen_titles = {'Note'.casefold()}
+    note_type_options = ['Note', 'Text']
+    note_type_colors = {'Note': '#F6C35C', 'Text': '#38BDF8'}
+    seen_titles = {'Note'.casefold(), 'Text'.casefold()}
     for section in todo_sections:
         title = section.get('title', '')
         section_key = section.get('key', '')
@@ -1744,7 +1744,7 @@ def canvas_view(request):
                     'w': 360,
                     'h': 150,
                     'title': '',
-                    'type': 'Note',
+                    'type': 'Text',
                     'note_date': week_start.isoformat(),
                     'completed': False,
                     'body_html': '',
@@ -1874,7 +1874,7 @@ def canvas_view(request):
                 continue
 
             box_type = str(box.get('type', 'Note')).strip()
-            if not box_type or box_type == 'Note':
+            if not box_type or box_type in {'Note', 'Text'}:
                 continue
 
             section_key = section_title_to_key.get(box_type.casefold())

@@ -545,6 +545,14 @@
       opacity: 0.74;
     }
 
+    .note-box.is-plain-text {
+      min-height: 140px;
+    }
+
+    .note-box.is-plain-text .box-text {
+      padding-top: 0.75rem;
+    }
+
     .box-head {
       min-height: 32px;
       background: rgba(0, 194, 255, 0.13);
@@ -1559,6 +1567,7 @@
           <div class="notes-toolbar">
             <div class="toolbar-left">
               <button type="button" class="btn-canvas" id="add-box-btn">Add Text Box</button>
+              <button type="button" class="btn-canvas" id="add-note-box-btn">Add Note Box</button>
               <button type="button" class="btn-canvas" id="link-mode-btn">Link Mode</button>
               <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
               <button type="button" class="btn-canvas" id="delete-box-btn">Delete Selected</button>
@@ -1650,6 +1659,7 @@
       const linksSvg = document.getElementById('canvas-links');
       const notesForm = document.getElementById('notes-form');
       const addBoxBtn = document.getElementById('add-box-btn');
+      const addNoteBoxBtn = document.getElementById('add-note-box-btn');
       const linkModeBtn = document.getElementById('link-mode-btn');
       const cancelLinkBtn = document.getElementById('cancel-link-btn');
       const deleteBoxBtn = document.getElementById('delete-box-btn');
@@ -1800,7 +1810,7 @@
         renderLinks();
       }
 
-      function newBox(x, y) {
+      function newBox(x, y, preferredType) {
         return {
           id: uid(),
           x: x,
@@ -1808,7 +1818,7 @@
           w: 360,
           h: 220,
           title: '',
-          type: boxTypeOptions[0],
+          type: sanitizeType(preferredType || 'Text'),
           note_date: weekStartIso,
           completed: false,
           body_html: '',
@@ -2025,6 +2035,12 @@
             boxEl.classList.add('is-completed');
           }
 
+          const isPlainTextBox = box.type === 'Text';
+          if (isPlainTextBox) {
+            boxEl.classList.add('is-plain-text');
+            box.completed = false;
+          }
+
           const typeColor = getTypeColor(box.type);
           boxEl.style.left = box.x + 'px';
           boxEl.style.top = box.y + 'px';
@@ -2105,7 +2121,9 @@
 
           headLeft.appendChild(dot);
           headLeft.appendChild(typeSelect);
-          headLeft.appendChild(dateInput);
+          if (!isPlainTextBox) {
+            headLeft.appendChild(dateInput);
+          }
 
           const headRight = document.createElement('div');
           headRight.className = 'box-head-right';
@@ -2269,7 +2287,7 @@
           const text = document.createElement('div');
           text.className = 'box-text';
           text.contentEditable = 'true';
-          text.setAttribute('data-placeholder', 'Write your note...');
+          text.setAttribute('data-placeholder', isPlainTextBox ? 'Write simple text...' : 'Write your note...');
           text.setAttribute('role', 'textbox');
           text.setAttribute('aria-multiline', 'true');
 
@@ -2391,8 +2409,16 @@
           }
 
           function syncBoxText() {
-            box.title = String(titleInput.value || '').trim().slice(0, 120);
             box.body_html = String(text.innerHTML || '').slice(0, 5000);
+
+            if (isPlainTextBox) {
+              box.title = '';
+              box.completed = false;
+              box.text = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '').slice(0, 1200);
+              return;
+            }
+
+            box.title = String(titleInput.value || '').trim().slice(0, 120);
             box.text = composeBoxText();
           }
 
@@ -2529,14 +2555,27 @@
           }
 
           const parsed = parseBoxText(box.text);
-          titleInput.value = (String(box.title || '').trim() || parsed.title || '').slice(0, 120);
-          checklistItems = parsed.checklist;
-          if (String(box.body_html || '').trim()) {
-            text.innerHTML = box.body_html;
-            bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
+          if (isPlainTextBox) {
+            titleInput.value = '';
+            checklistItems = [];
+            box.completed = false;
+            if (String(box.body_html || '').trim()) {
+              text.innerHTML = box.body_html;
+              bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
+            } else {
+              bodyText = String(box.text || '').replace(/^\n+|\n+$/g, '');
+              text.innerHTML = plainTextToHtml(bodyText);
+            }
           } else {
-            bodyText = parsed.body;
-            text.innerHTML = plainTextToHtml(bodyText);
+            titleInput.value = (String(box.title || '').trim() || parsed.title || '').slice(0, 120);
+            checklistItems = parsed.checklist;
+            if (String(box.body_html || '').trim()) {
+              text.innerHTML = box.body_html;
+              bodyText = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '');
+            } else {
+              bodyText = parsed.body;
+              text.innerHTML = plainTextToHtml(bodyText);
+            }
           }
 
           const resizeHandle = document.createElement('div');
@@ -2604,9 +2643,11 @@
           enableResize(resizeHandle, box);
 
           boxEl.appendChild(head);
-          boxEl.appendChild(titleRow);
-          boxEl.appendChild(formatRow);
-          boxEl.appendChild(checklist);
+          if (!isPlainTextBox) {
+            boxEl.appendChild(titleRow);
+            boxEl.appendChild(formatRow);
+            boxEl.appendChild(checklist);
+          }
           boxEl.appendChild(text);
           boxEl.appendChild(resizeHandle);
           boxesLayer.appendChild(boxEl);
@@ -2797,8 +2838,8 @@
         isDirty = false;
       }
 
-      function addBoxAt(x, y, shouldFocusText) {
-        const box = newBox(x, y);
+      function addBoxAt(x, y, shouldFocusText, preferredType) {
+        const box = newBox(x, y, preferredType);
         normalizeBox(box);
         state.boxes.push(box);
         markDirty();
@@ -2872,9 +2913,19 @@
         const bounds = getSurfaceBounds();
         const x = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.width - 390);
         const y = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.height - 190);
-        addBoxAt(x, y, true);
-        updateToolbarInfo('New text box added. Drag and type to organize your notes.');
+        addBoxAt(x, y, true, 'Text');
+        updateToolbarInfo('New simple text box added. Drag it anywhere and use Link Mode to connect it.');
       });
+
+      if (addNoteBoxBtn) {
+        addNoteBoxBtn.addEventListener('click', function () {
+          const bounds = getSurfaceBounds();
+          const x = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.width - 390);
+          const y = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.height - 190);
+          addBoxAt(x, y, true, 'Note');
+          updateToolbarInfo('New note box added. Change its type if you want it to feed the To Do board.');
+        });
+      }
 
       linkModeBtn.addEventListener('click', function () {
         linkMode = !linkMode;
@@ -2965,7 +3016,7 @@
         const x = pointer.x - 125;
         const y = pointer.y - 75;
 
-        addBoxAt(x, y, true);
+        addBoxAt(x, y, true, 'Text');
         updateToolbarInfo('New text box created at click position.');
       });
 
