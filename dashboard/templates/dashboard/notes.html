@@ -436,6 +436,10 @@
       justify-content: flex-start;
     }
 
+    .toolbar-right .toolbar-menu-panel .btn-save {
+      justify-content: center;
+    }
+
     .saved-canvas-controls .canvas-name-input,
     .saved-canvas-controls .canvas-save-select,
     .saved-canvas-controls .btn-canvas,
@@ -626,8 +630,8 @@
       border-radius: 12px;
       background: rgba(14, 27, 42, 0.95);
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-      min-width: 320px;
-      min-height: 120px;
+      min-width: 160px;
+      min-height: 90px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -650,7 +654,8 @@
     }
 
     .note-box.is-plain-text {
-      min-height: 140px;
+      min-width: 120px;
+      min-height: 70px;
     }
 
     .note-box.is-plain-text .box-text {
@@ -1689,6 +1694,8 @@
           {% csrf_token %}
           <input type="hidden" name="canvas_data" id="canvas-data-input">
           <input type="hidden" name="notes_action" id="notes-action-input" value="">
+          <input type="hidden" name="canvas_name" id="canvas-name-input" value="{{ current_canvas_name|default:'' }}">
+          <input type="hidden" name="saved_canvas_id" id="saved-canvas-id-input" value="">
 
           <div class="notes-toolbar">
             <div class="toolbar-left">
@@ -1728,20 +1735,11 @@
               <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span>
               <span class="autosave-status" id="autosave-status">Auto-save on</span>
               <details class="toolbar-menu">
-                <summary class="btn-canvas toolbar-menu-trigger">Open &amp; Save ▾</summary>
+                <summary class="btn-canvas toolbar-menu-trigger">Canvas Actions ▾</summary>
                 <div class="toolbar-menu-panel toolbar-menu-panel--right">
-                  <div class="saved-canvas-controls">
-                    <input type="text" class="canvas-name-input" id="canvas-name-input" name="canvas_name" maxlength="120" placeholder="Canvas name" value="{{ current_canvas_name|default:'' }}">
-                    <button type="button" class="btn-canvas" id="save-later-btn">Save for Later</button>
-                    <select class="canvas-save-select" id="saved-canvas-select" name="saved_canvas_id" aria-label="Saved canvases">
-                      <option value="">Open saved canvas...</option>
-                      {% for saved in saved_canvases %}
-                        <option value="{{ saved.id }}">{{ saved.name }}</option>
-                      {% endfor %}
-                    </select>
-                    <button type="button" class="btn-canvas" id="open-saved-btn" {% if not saved_canvases %}disabled{% endif %}>Open Saved</button>
-                    <button type="submit" class="btn-save">Save Canvas</button>
-                  </div>
+                  <button type="button" class="btn-canvas" id="open-canvas-btn">Open Canvas</button>
+                  <button type="button" class="btn-canvas" id="save-later-btn">Save Canvas for Later</button>
+                  <button type="submit" class="btn-save">Save Canvas</button>
                 </div>
               </details>
             </div>
@@ -1765,6 +1763,35 @@
       <div class="app-modal-actions">
         <button type="button" class="btn-modal" id="confirm-modal-cancel-btn">Cancel</button>
         <button type="button" class="btn-modal btn-modal-primary" id="confirm-modal-confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-modal" id="save-canvas-modal" hidden>
+    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="save-canvas-modal-title">
+      <h2 class="app-modal-title" id="save-canvas-modal-title">Save canvas for later</h2>
+      <p class="app-modal-message">Give this canvas a name so you can reopen it later.</p>
+      <input type="text" class="canvas-name-input" id="modal-canvas-name-input" maxlength="120" placeholder="Canvas name">
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="save-canvas-modal-cancel-btn">Cancel</button>
+        <button type="button" class="btn-modal btn-modal-primary" id="save-canvas-modal-confirm-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-modal" id="open-canvas-modal" hidden>
+    <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="open-canvas-modal-title">
+      <h2 class="app-modal-title" id="open-canvas-modal-title">Open canvas</h2>
+      <p class="app-modal-message">Choose one of your previously saved canvases.</p>
+      <select class="canvas-save-select" id="modal-saved-canvas-select" aria-label="Saved canvases">
+        <option value="">Select a saved canvas...</option>
+        {% for saved in saved_canvases %}
+          <option value="{{ saved.id }}">{{ saved.name }}</option>
+        {% endfor %}
+      </select>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="open-canvas-modal-cancel-btn">Cancel</button>
+        <button type="button" class="btn-modal btn-modal-primary" id="open-canvas-modal-confirm-btn">Open</button>
       </div>
     </div>
   </div>
@@ -1826,9 +1853,9 @@
       const clearLinksBtn = document.getElementById('clear-links-btn');
       const clearCanvasBtn = document.getElementById('clear-canvas-btn');
       const canvasNameInput = document.getElementById('canvas-name-input');
+      const savedCanvasIdInput = document.getElementById('saved-canvas-id-input');
+      const openCanvasBtn = document.getElementById('open-canvas-btn');
       const saveLaterBtn = document.getElementById('save-later-btn');
-      const savedCanvasSelect = document.getElementById('saved-canvas-select');
-      const openSavedBtn = document.getElementById('open-saved-btn');
       const zoomOutBtn = document.getElementById('zoom-out-btn');
       const zoomInBtn = document.getElementById('zoom-in-btn');
       const zoomResetBtn = document.getElementById('zoom-reset-btn');
@@ -1841,6 +1868,14 @@
       const confirmModalMessage = document.getElementById('confirm-modal-message');
       const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel-btn');
       const confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm-btn');
+      const saveCanvasModal = document.getElementById('save-canvas-modal');
+      const modalCanvasNameInput = document.getElementById('modal-canvas-name-input');
+      const saveCanvasModalCancelBtn = document.getElementById('save-canvas-modal-cancel-btn');
+      const saveCanvasModalConfirmBtn = document.getElementById('save-canvas-modal-confirm-btn');
+      const openCanvasModal = document.getElementById('open-canvas-modal');
+      const modalSavedCanvasSelect = document.getElementById('modal-saved-canvas-select');
+      const openCanvasModalCancelBtn = document.getElementById('open-canvas-modal-cancel-btn');
+      const openCanvasModalConfirmBtn = document.getElementById('open-canvas-modal-confirm-btn');
       const weekStartIso = '{{ week_start_iso|escapejs }}';
       const weekEndIso = '{{ week_end_iso|escapejs }}';
 
@@ -2062,12 +2097,16 @@
       }
 
       function normalizeBox(box) {
-        const minW = 320;
-        const minH = 200;
-        box.w = Math.max(minW, Math.min(Number(box.w) || 360, 700));
-        box.h = Math.max(minH, Math.min(Number(box.h) || 150, 520));
-
+        const isPlainTextBox = String(box.type || '').trim() === 'Text';
+        const minW = isPlainTextBox ? 120 : 220;
+        const minH = isPlainTextBox ? 70 : 160;
         const bounds = getSurfaceBounds();
+        const maxW = Math.max(minW, bounds.width);
+        const maxH = Math.max(minH, bounds.height);
+
+        box.w = Math.max(minW, Math.min(Number(box.w) || 360, maxW));
+        box.h = Math.max(minH, Math.min(Number(box.h) || 150, maxH));
+
         const maxX = Math.max(0, bounds.width - box.w);
         const maxY = Math.max(0, bounds.height - box.h);
         box.x = Math.max(0, Math.min(Number(box.x) || 0, maxX));
@@ -3120,6 +3159,122 @@
         });
       }
 
+      function showSaveCanvasModal() {
+        if (!saveCanvasModal || !modalCanvasNameInput || !saveCanvasModalCancelBtn || !saveCanvasModalConfirmBtn) {
+          return Promise.resolve('');
+        }
+
+        modalCanvasNameInput.value = String((canvasNameInput ? canvasNameInput.value : state.canvas_name) || '').trim().slice(0, 120);
+        saveCanvasModal.hidden = false;
+        modalCanvasNameInput.focus();
+        modalCanvasNameInput.select();
+
+        return new Promise(function (resolve) {
+          let settled = false;
+
+          function close(result) {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            saveCanvasModal.hidden = true;
+            saveCanvasModal.removeEventListener('click', onBackdropClick);
+            document.removeEventListener('keydown', onKeyDown);
+            saveCanvasModalCancelBtn.removeEventListener('click', onCancel);
+            saveCanvasModalConfirmBtn.removeEventListener('click', onConfirm);
+            resolve(result);
+          }
+
+          function onCancel() {
+            close('');
+          }
+
+          function onConfirm() {
+            close(String(modalCanvasNameInput.value || '').trim().slice(0, 120));
+          }
+
+          function onBackdropClick(event) {
+            if (event.target === saveCanvasModal) {
+              close('');
+            }
+          }
+
+          function onKeyDown(event) {
+            if (event.key === 'Escape') {
+              close('');
+            }
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              onConfirm();
+            }
+          }
+
+          saveCanvasModal.addEventListener('click', onBackdropClick);
+          document.addEventListener('keydown', onKeyDown);
+          saveCanvasModalCancelBtn.addEventListener('click', onCancel);
+          saveCanvasModalConfirmBtn.addEventListener('click', onConfirm);
+        });
+      }
+
+      function showOpenCanvasModal() {
+        if (!openCanvasModal || !modalSavedCanvasSelect || !openCanvasModalCancelBtn || !openCanvasModalConfirmBtn) {
+          return Promise.resolve('');
+        }
+
+        modalSavedCanvasSelect.value = '';
+        openCanvasModalConfirmBtn.disabled = modalSavedCanvasSelect.options.length <= 1;
+        openCanvasModal.hidden = false;
+        modalSavedCanvasSelect.focus();
+
+        return new Promise(function (resolve) {
+          let settled = false;
+
+          function close(result) {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            openCanvasModal.hidden = true;
+            openCanvasModal.removeEventListener('click', onBackdropClick);
+            document.removeEventListener('keydown', onKeyDown);
+            modalSavedCanvasSelect.removeEventListener('change', onChange);
+            openCanvasModalCancelBtn.removeEventListener('click', onCancel);
+            openCanvasModalConfirmBtn.removeEventListener('click', onConfirm);
+            resolve(result);
+          }
+
+          function onChange() {
+            openCanvasModalConfirmBtn.disabled = !modalSavedCanvasSelect.value;
+          }
+
+          function onCancel() {
+            close('');
+          }
+
+          function onConfirm() {
+            close(String(modalSavedCanvasSelect.value || '').trim());
+          }
+
+          function onBackdropClick(event) {
+            if (event.target === openCanvasModal) {
+              close('');
+            }
+          }
+
+          function onKeyDown(event) {
+            if (event.key === 'Escape') {
+              close('');
+            }
+          }
+
+          modalSavedCanvasSelect.addEventListener('change', onChange);
+          openCanvasModal.addEventListener('click', onBackdropClick);
+          document.addEventListener('keydown', onKeyDown);
+          openCanvasModalCancelBtn.addEventListener('click', onCancel);
+          openCanvasModalConfirmBtn.addEventListener('click', onConfirm);
+        });
+      }
+
       addBoxBtn.addEventListener('click', function () {
         closeToolbarMenus();
         const bounds = getSurfaceBounds();
@@ -3189,12 +3344,20 @@
       });
 
       if (saveLaterBtn) {
-        saveLaterBtn.addEventListener('click', function () {
+        saveLaterBtn.addEventListener('click', async function () {
           closeToolbarMenus();
-          const currentName = String((canvasNameInput ? canvasNameInput.value : state.canvas_name) || '').trim().slice(0, 120) || 'Untitled canvas';
-          state.canvas_name = currentName;
+          const chosenName = await showSaveCanvasModal();
+          if (!chosenName) {
+            updateToolbarInfo('Save for later cancelled.');
+            return;
+          }
+
+          state.canvas_name = chosenName;
           if (canvasNameInput) {
-            canvasNameInput.value = currentName;
+            canvasNameInput.value = chosenName;
+          }
+          if (savedCanvasIdInput) {
+            savedCanvasIdInput.value = '';
           }
           if (notesActionInput) {
             notesActionInput.value = 'save_saved_canvas';
@@ -3204,22 +3367,26 @@
         });
       }
 
-      if (openSavedBtn) {
-        openSavedBtn.addEventListener('click', async function () {
+      if (openCanvasBtn) {
+        openCanvasBtn.addEventListener('click', async function () {
           closeToolbarMenus();
-          if (!savedCanvasSelect || !savedCanvasSelect.value) {
-            updateToolbarInfo('Choose a saved canvas first.');
+          const selectedId = await showOpenCanvasModal();
+          if (!selectedId) {
+            updateToolbarInfo('Open canvas cancelled.');
             return;
           }
 
           const confirmed = await showConfirmModal(
             'Open this saved canvas? Your current weekly canvas will be replaced.',
-            'Open Saved Canvas'
+            'Open Canvas'
           );
           if (!confirmed) {
             return;
           }
 
+          if (savedCanvasIdInput) {
+            savedCanvasIdInput.value = selectedId;
+          }
           if (notesActionInput) {
             notesActionInput.value = 'load_saved_canvas';
           }
