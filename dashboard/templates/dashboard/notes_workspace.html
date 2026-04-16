@@ -1807,6 +1807,11 @@
         gap: 0.65rem;
       }
 
+      .notes-pane .pane-scroll {
+        max-height: calc(6 * 6.1rem + 5 * 0.65rem);
+        overflow-y: auto !important;
+      }
+
       .category-item {
         background: rgba(8, 30, 46, 0.9);
         border-color: rgba(83, 183, 232, 0.34);
@@ -1824,15 +1829,16 @@
       #notes-editor-drawer.editor-drawer {
         left: 0 !important;
         right: 0 !important;
-        top: auto !important;
+        top: 0 !important;
         bottom: 0 !important;
         width: 100vw !important;
         max-width: none !important;
         min-width: 0 !important;
-        height: min(78vh, 720px);
+        height: 100vh !important;
+        max-height: 100vh !important;
         border-left: none !important;
-        border-top: 1px solid rgba(53, 84, 109, 0.95);
-        border-radius: 22px 22px 0 0;
+        border-top: none !important;
+        border-radius: 0 !important;
         transform: translateY(calc(100% + env(safe-area-inset-bottom) + 1.5rem)) !important;
         opacity: 0 !important;
         pointer-events: none !important;
@@ -1844,7 +1850,8 @@
       }
 
       #notes-editor-drawer.editor-drawer.active {
-        bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 0.5rem) !important;
+        top: 0 !important;
+        bottom: 0 !important;
         transform: translateY(0) !important;
         opacity: 1 !important;
         pointer-events: auto !important;
