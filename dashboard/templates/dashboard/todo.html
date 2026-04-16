@@ -544,6 +544,10 @@
       box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.4);
     }
 
+    .todo-task-hit[data-has-checklist='false'] {
+      cursor: default;
+    }
+
     .todo-edit-btn {
       position: absolute;
       top: 0.35rem;
@@ -2235,24 +2239,24 @@
           const taskItem = btn.closest('.todo-task');
           const checklistPanel = taskItem ? taskItem.querySelector('.todo-task-inline-checklist') : null;
 
-          if (checklistPanel) {
-            const shouldOpen = !taskItem.classList.contains('is-checklist-open');
-            document.querySelectorAll('.todo-task.is-checklist-open').forEach(function (openTask) {
-              openTask.classList.remove('is-checklist-open');
-              const openBtn = openTask.querySelector('.todo-task-hit');
-              if (openBtn) {
-                openBtn.setAttribute('aria-expanded', 'false');
-              }
-            });
-
-            if (shouldOpen) {
-              taskItem.classList.add('is-checklist-open');
-              btn.setAttribute('aria-expanded', 'true');
-            }
+          if (!checklistPanel) {
+            btn.blur();
             return;
           }
 
-          openEditMode(btn);
+          const shouldOpen = !taskItem.classList.contains('is-checklist-open');
+          document.querySelectorAll('.todo-task.is-checklist-open').forEach(function (openTask) {
+            openTask.classList.remove('is-checklist-open');
+            const openBtn = openTask.querySelector('.todo-task-hit');
+            if (openBtn) {
+              openBtn.setAttribute('aria-expanded', 'false');
+            }
+          });
+
+          if (shouldOpen) {
+            taskItem.classList.add('is-checklist-open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
         });
       });
 
