@@ -185,6 +185,49 @@ body.fn-app .mobile-bottom-btn:hover {
   border-color: rgba(91, 140, 255, 0.45) !important;
 }
 
+body.fn-app .fn-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+body.fn-app .nav-link-icon img,
+body.fn-app .mobile-bottom-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.note-delete-btn,
+.category-delete-row .tiny-icon-btn,
+body.fn-app .note-delete-btn,
+body.fn-app .category-delete-row .tiny-icon-btn {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: 1.9rem !important;
+  min-height: 1.9rem !important;
+}
+
+.note-delete-btn:hover,
+.note-delete-btn:focus,
+.category-delete-row .tiny-icon-btn:hover,
+.category-delete-row .tiny-icon-btn:focus,
+body.fn-app .note-delete-btn:hover,
+body.fn-app .note-delete-btn:focus,
+body.fn-app .category-delete-row .tiny-icon-btn:hover,
+body.fn-app .category-delete-row .tiny-icon-btn:focus {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 0.86;
+}
+
 body.fn-app .todo-task {
   isolation: isolate;
 }

@@ -1,52 +1,36 @@
+{% load static %}
 <div class="mobile-bottom-bar" data-mobile-nav aria-label="Primary navigation">
   <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}" aria-label="Dashboard">
     <span class="mobile-bottom-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 11.5 12 4l9 7.5"></path>
-        <path d="M5 10.5V20h14v-9.5"></path>
-      </svg>
+      <img src="{% static 'dashboard/icons/dashboard_white.svg' %}" alt="">
     </span>
     <span class="mobile-bottom-label">Dashboard</span>
   </a>
 
   <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'diary' and request.GET.view != 'month' %}is-active{% endif %}" href="{% url 'diary' %}" aria-label="Diary">
     <span class="mobile-bottom-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="5" width="16" height="15" rx="2"></rect>
-        <path d="M8 3v4M16 3v4M4 9h16"></path>
-      </svg>
+      <img src="{% static 'dashboard/icons/diary_white.svg' %}" alt="">
     </span>
     <span class="mobile-bottom-label">Diary</span>
   </a>
 
   <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'notes' %}is-active{% endif %}" href="{% url 'notes' %}" aria-label="Notes">
     <span class="mobile-bottom-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 4h8l4 4v12H7z"></path>
-        <path d="M15 4v4h4"></path>
-        <path d="M10 12h6M10 16h5"></path>
-      </svg>
+      <img src="{% static 'dashboard/icons/notes_white.svg' %}" alt="">
     </span>
     <span class="mobile-bottom-label">Notes</span>
   </a>
 
   <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'todo' %}is-active{% endif %}" href="{% url 'todo' %}" aria-label="To-Do">
     <span class="mobile-bottom-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 6h11M9 12h11M9 18h11"></path>
-        <path d="m4 6 1.5 1.5L7.5 5.5"></path>
-        <path d="m4 12 1.5 1.5L7.5 11.5"></path>
-        <path d="m4 18 1.5 1.5L7.5 17.5"></path>
-      </svg>
+      <img src="{% static 'dashboard/icons/todo_white.svg' %}" alt="">
     </span>
     <span class="mobile-bottom-label">To-Do</span>
   </a>
 
   <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" data-mobile-quick-add aria-label="Quick Add">
     <span class="mobile-bottom-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 5v14M5 12h14"></path>
-      </svg>
+      <img src="{% static 'dashboard/icons/add_white.svg' %}" alt="">
     </span>
     <span class="mobile-bottom-label">Quick Add</span>
   </button>
