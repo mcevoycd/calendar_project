@@ -186,11 +186,19 @@ body.fn-app .mobile-bottom-btn:hover {
 }
 
 body.fn-app .fn-icon {
-  width: 18px;
-  height: 18px;
+  width: 13.5px;
+  height: 13.5px;
   display: block;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+body.fn-app .todo-edit-btn .fn-icon,
+body.fn-app .todo-delete-btn .fn-icon,
+body.fn-app .note-delete-btn .fn-icon,
+body.fn-app .category-delete-row .tiny-icon-btn .fn-icon {
+  width: 10px !important;
+  height: 10px !important;
 }
 
 body.fn-app .nav-link-icon img,

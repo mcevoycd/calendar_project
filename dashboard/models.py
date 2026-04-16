@@ -1,4 +1,6 @@
 # dashboard/models.py
+import os
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -146,3 +148,24 @@ class NoteEntry(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.title}"
+
+
+def note_attachment_upload_to(instance, filename):
+    safe_name = os.path.basename(str(filename or 'attachment')) or 'attachment'
+    return f"note_attachments/user_{instance.note.user_id}/note_{instance.note_id}/{safe_name}"
+
+
+class NoteAttachment(models.Model):
+    note = models.ForeignKey(NoteEntry, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to=note_attachment_upload_to)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file.name)
+
+    def __str__(self):
+        return self.filename

@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse, Http404
 from datetime import datetime, timedelta, time
 from pathlib import Path
-from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek, NoteCategory, NoteEntry
+from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek, NoteCategory, NoteEntry, NoteAttachment
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -1526,6 +1526,22 @@ def notes_view(request):
         cleaned = re.sub(r'\s(href|src)\s*=\s*(["\'])\s*javascript:.*?\2', r' \1="#"', cleaned, flags=re.IGNORECASE | re.DOTALL)
         return cleaned
 
+    def add_uploaded_attachments(note, uploaded_files):
+        added_count = 0
+        max_attachments = 5
+        max_file_size = 10 * 1024 * 1024
+
+        for uploaded in list(uploaded_files or [])[:max_attachments]:
+            if not uploaded or not getattr(uploaded, 'name', ''):
+                continue
+            if getattr(uploaded, 'size', 0) > max_file_size:
+                messages.warning(request, f'"{uploaded.name}" was skipped because it is larger than 10 MB.')
+                continue
+            NoteAttachment.objects.create(note=note, file=uploaded)
+            added_count += 1
+
+        return added_count
+
     if request.method == 'POST':
         notes_action = str(request.POST.get('notes_action', '')).strip().lower()
 
@@ -1564,6 +1580,7 @@ def notes_view(request):
                 title=note_title,
                 body=note_body,
             )
+            add_uploaded_attachments(note, request.FILES.getlist('attachments'))
 
             redirect_to = str(request.POST.get('redirect_to', '')).strip()
             if redirect_to and url_has_allowed_host_and_scheme(
@@ -1596,7 +1613,22 @@ def notes_view(request):
                 note.body = updated_body
                 note.category = category
                 note.save(update_fields=['title', 'body', 'category', 'updated_at'])
+                add_uploaded_attachments(note, request.FILES.getlist('attachments'))
                 return HttpResponseRedirect(f"{reverse('notes')}?note={note.id}")
+            return HttpResponseRedirect(reverse('notes'))
+
+        if notes_action == 'delete_attachment':
+            note_id = str(request.POST.get('note_id', '')).strip()
+            attachment_id = str(request.POST.get('attachment_id', '')).strip()
+            if note_id.isdigit() and attachment_id.isdigit():
+                attachment = NoteAttachment.objects.filter(
+                    id=int(attachment_id),
+                    note_id=int(note_id),
+                    note__user=request.user,
+                ).first()
+                if attachment:
+                    attachment.delete()
+                    return HttpResponseRedirect(f"{reverse('notes')}?note={note_id}")
             return HttpResponseRedirect(reverse('notes'))
 
         if notes_action == 'toggle_pin':
@@ -1616,7 +1648,7 @@ def notes_view(request):
             return HttpResponseRedirect(reverse('notes'))
 
     categories = list(NoteCategory.objects.filter(user=request.user).order_by('name'))
-    notes_queryset = NoteEntry.objects.filter(user=request.user).select_related('category')
+    notes_queryset = NoteEntry.objects.filter(user=request.user).select_related('category').prefetch_related('attachments')
 
     active_category = None
     if selected_category_id.isdigit():

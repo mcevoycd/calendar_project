@@ -1030,6 +1030,76 @@
       background: #0A1A28;
     }
 
+    .editor-checklist-row,
+    .editor-checklist-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin: 0.18rem 0;
+    }
+
+    .editor-checklist-row input[type="checkbox"] {
+      margin-top: 0.22rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .attachment-panel {
+      display: grid;
+      gap: 0.45rem;
+      border: 1px solid rgba(53, 84, 109, 0.8);
+      border-radius: 12px;
+      background: #0B1F2F;
+      padding: 0.7rem;
+    }
+
+    .attachment-heading {
+      margin: 0;
+      color: #DDEAF4;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .attachment-upload {
+      padding-top: 0.45rem;
+      padding-bottom: 0.45rem;
+    }
+
+    .attachment-help {
+      margin: 0;
+      color: #92A6B9;
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .attachment-list {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .attachment-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      border: 1px solid rgba(83, 183, 232, 0.26);
+      border-radius: 10px;
+      padding: 0.5rem 0.6rem;
+      background: rgba(255, 255, 255, 0.04);
+      color: #8BE0FF;
+      text-decoration: none;
+      font-size: 0.82rem;
+      word-break: break-word;
+    }
+
+    .attachment-link:hover,
+    .attachment-link:focus {
+      border-color: rgba(83, 183, 232, 0.5);
+      background: rgba(0, 194, 255, 0.08);
+      color: #CFF5FF;
+      outline: none;
+    }
+
     .editor-empty {
       flex: 1;
       min-height: 0;
@@ -1965,7 +2035,7 @@
     </header>
 
     {% if selected_note %}
-      <form id="note-editor-form" class="editor-form" method="post" action="{% url 'notes' %}">
+      <form id="note-editor-form" class="editor-form" method="post" action="{% url 'notes' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="notes_action" value="save_note">
         <input type="hidden" name="note_id" value="{{ selected_note.id }}">
@@ -1978,6 +2048,22 @@
             <option value="{{ category.id }}" {% if selected_note.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
           {% endfor %}
         </select>
+
+        <div class="attachment-panel">
+          <p class="attachment-heading">Attachments</p>
+          <input class="editor-field attachment-upload" type="file" name="attachments" multiple aria-label="Attach files to this note">
+          <p class="attachment-help">Add documents, images, or reference files. Up to 5 files per save, max 10 MB each.</p>
+          {% if selected_note.attachments.all %}
+            <div class="attachment-list">
+              {% for attachment in selected_note.attachments.all %}
+                <a class="attachment-link" href="{{ attachment.file.url }}" target="_blank" rel="noopener">
+                  <span>{{ attachment.filename }}</span>
+                  <span>Open</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
 
         <div id="rich-editor" class="editor-field editor-body" contenteditable="true" aria-label="Note body"></div>
         <input type="hidden" name="body" id="id_body_html">
@@ -2048,7 +2134,7 @@
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="new-note-title">
       <h2 class="dialog-title" id="new-note-title">New note</h2>
       <p class="dialog-message">Create a note and optionally assign a category.</p>
-      <form method="post" action="{% url 'notes' %}" id="new-note-form">
+      <form method="post" action="{% url 'notes' %}" id="new-note-form" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="notes_action" value="create_note">
         <input class="dialog-input" type="text" name="new_note_title" maxlength="140" placeholder="Untitled note">
@@ -2058,6 +2144,7 @@
             <option value="{{ category.id }}" {% if selected_category_id == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
           {% endfor %}
         </select>
+        <input class="dialog-input" type="file" name="attachments" multiple aria-label="Attach files to your new note">
         <div class="dialog-actions">
           <button type="button" class="dialog-btn" id="cancel-note-btn">Cancel</button>
           <button type="submit" class="dialog-btn primary">Create</button>
@@ -2186,7 +2273,7 @@
           const markerId = 'note-check-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
           const wrapper = document.createElement('div');
           wrapper.className = 'editor-checklist-row';
-          wrapper.innerHTML = '<label><input type="checkbox"> <span id="' + markerId + '"><br></span></label>';
+          wrapper.innerHTML = '<label class="editor-checklist-label"><input type="checkbox" aria-label="Checklist item"> <span id="' + markerId + '"><br></span></label>';
           const item = wrapper;
 
           if (afterElement && afterElement !== editor && afterElement.parentNode) {
@@ -2196,6 +2283,7 @@
             document.execCommand('insertHTML', false, wrapper.outerHTML);
           }
 
+          prepareChecklistCheckboxes();
           const insertedSpan = document.getElementById(markerId);
           if (insertedSpan) {
             insertedSpan.removeAttribute('id');
@@ -2227,6 +2315,20 @@
           return null;
         }
 
+        function prepareChecklistCheckboxes() {
+          if (!editor) {
+            return;
+          }
+          editor.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+            checkbox.setAttribute('contenteditable', 'false');
+            checkbox.setAttribute('aria-label', checkbox.getAttribute('aria-label') || 'Checklist item');
+            const label = checkbox.closest('label');
+            if (label) {
+              label.classList.add('editor-checklist-label');
+            }
+          });
+        }
+
         function syncChecklistCheckboxes() {
           if (!editor) {
             return;
@@ -2242,11 +2344,13 @@
 
         if (editor) {
           editor.innerHTML = initialBody || '<p><br></p>';
+          prepareChecklistCheckboxes();
+          syncChecklistCheckboxes();
 
-          editor.addEventListener('mousedown', function (event) {
+          editor.addEventListener('pointerdown', function (event) {
             const checkbox = event.target.closest('input[type="checkbox"]');
             if (checkbox) {
-              event.preventDefault();
+              event.stopPropagation();
             }
           });
 
@@ -2255,13 +2359,16 @@
             if (!checkbox) {
               return;
             }
-            event.preventDefault();
-            checkbox.checked = !checkbox.checked;
-            if (checkbox.checked) {
-              checkbox.setAttribute('checked', 'checked');
-            } else {
-              checkbox.removeAttribute('checked');
+            event.stopPropagation();
+            syncChecklistCheckboxes();
+          });
+
+          editor.addEventListener('change', function (event) {
+            const checkbox = event.target.closest('input[type="checkbox"]');
+            if (!checkbox) {
+              return;
             }
+            syncChecklistCheckboxes();
           });
 
           editor.addEventListener('keydown', function (event) {
