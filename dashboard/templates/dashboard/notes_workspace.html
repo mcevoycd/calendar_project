@@ -750,6 +750,10 @@
       flex-wrap: wrap;
     }
 
+    .mobile-categories-btn {
+      display: none;
+    }
+
     .note-top-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -1743,7 +1747,7 @@
         justify-content: flex-end;
       }
 
-      .notes-mobile-tools #open-categories-btn {
+      .mobile-categories-btn {
         display: inline-flex !important;
       }
 
@@ -1922,13 +1926,6 @@
     </aside>
 
     <main class="main">
-      <div class="notes-topbar">
-        <div class="notes-mobile-tools">
-          <button type="button" class="mobile-icon-btn" id="open-categories-btn" aria-label="Open categories">Categories</button>
-          <button type="button" class="mobile-icon-btn" id="open-new-note-btn" aria-label="Create note">New</button>
-        </div>
-      </div>
-
       <section class="notes-shell">
         <aside class="section-pane categories-pane" id="categories-pane">
           <header class="pane-head">
@@ -1984,6 +1981,7 @@
             <div class="pane-title-row">
               <h2 class="pane-title"><span class="category-icon" aria-hidden="true">N</span> Notes</h2>
               <div class="new-note-actions">
+                <button type="button" class="pill-btn mobile-categories-btn" id="open-categories-btn" aria-label="Open categories">Categories</button>
                 <button type="button" class="pill-btn" id="new-note-btn">+ New Note</button>
               </div>
             </div>
