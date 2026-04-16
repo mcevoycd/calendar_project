@@ -58,8 +58,8 @@ class CanvasViewTests(TestCase):
         self.user = User.objects.create_user(username='canvas_tester', password='pass12345')
         self.client.login(username='canvas_tester', password='pass12345')
 
-    def test_canvas_preserves_plain_text_box_type(self):
-        payload = {
+    def get_canvas_payload(self):
+        return {
             'boxes': [
                 {
                     'id': 'box-text-1',
@@ -67,7 +67,7 @@ class CanvasViewTests(TestCase):
                     'y': 90,
                     'w': 360,
                     'h': 220,
-                    'title': '',
+                    'title': 'Roadmap',
                     'type': 'Text',
                     'note_date': '2026-04-13',
                     'completed': False,
@@ -77,6 +77,10 @@ class CanvasViewTests(TestCase):
             ],
             'links': [],
         }
+
+    def test_canvas_preserves_plain_text_box_type(self):
+        payload = self.get_canvas_payload()
+        payload['boxes'][0]['title'] = ''
 
         post_response = self.client.post(
             reverse('canvas'),
@@ -89,3 +93,52 @@ class CanvasViewTests(TestCase):
         get_response = self.client.get(reverse('canvas'))
         self.assertEqual(get_response.status_code, 200)
         self.assertIn('"type": "Text"', get_response.context['canvas_data_json'])
+
+    def test_canvas_can_save_named_snapshot_for_later(self):
+        payload = self.get_canvas_payload()
+
+        post_response = self.client.post(
+            reverse('canvas'),
+            {
+                'notes_action': 'save_saved_canvas',
+                'canvas_name': 'Sprint Plan',
+                'canvas_data': json.dumps(payload),
+            },
+        )
+
+        self.assertEqual(post_response.status_code, 302)
+
+        get_response = self.client.get(reverse('canvas'))
+        self.assertEqual(get_response.status_code, 200)
+        saved_canvases = list(get_response.context['saved_canvases'])
+        self.assertTrue(any(item.name == 'Sprint Plan' for item in saved_canvases))
+
+    def test_canvas_can_reopen_saved_snapshot(self):
+        payload = self.get_canvas_payload()
+        self.client.post(
+            reverse('canvas'),
+            {
+                'notes_action': 'save_saved_canvas',
+                'canvas_name': 'Sprint Plan',
+                'canvas_data': json.dumps(payload),
+            },
+        )
+
+        initial_get = self.client.get(reverse('canvas'))
+        saved_canvases = list(initial_get.context['saved_canvases'])
+        self.assertEqual(len(saved_canvases), 1)
+
+        load_response = self.client.post(
+            reverse('canvas'),
+            {
+                'notes_action': 'load_saved_canvas',
+                'saved_canvas_id': str(saved_canvases[0].id),
+            },
+        )
+
+        self.assertEqual(load_response.status_code, 302)
+
+        get_response = self.client.get(reverse('canvas'))
+        self.assertEqual(get_response.status_code, 200)
+        self.assertIn('"title": "Roadmap"', get_response.context['canvas_data_json'])
+        self.assertIn('"canvas_name": "Sprint Plan"', get_response.context['canvas_data_json'])

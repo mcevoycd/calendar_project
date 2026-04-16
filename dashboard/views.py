@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse, Http404
 from datetime import datetime, timedelta, time
 from pathlib import Path
-from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek, NoteCategory, NoteEntry, NoteAttachment
+from .models import Event, DiaryEntry, UserPreference, TodoSectionTitle, TodoTask, NotesCanvasWeek, SavedCanvas, NoteCategory, NoteEntry, NoteAttachment
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -766,6 +766,96 @@ def set_notes_canvas_week(request, week_key, canvas_state):
         session_map[str(week_key)] = canvas_state
         request.session['notes_canvas_by_week'] = session_map
         request.session.modified = True
+
+
+def get_saved_canvases(request):
+    try:
+        return list(SavedCanvas.objects.filter(user=request.user).order_by('-updated_at', '-created_at'))
+    except (OperationalError, ProgrammingError):
+        session_items = request.session.get('saved_canvas_items', [])
+        if not isinstance(session_items, list):
+            return []
+
+        normalized = []
+        for item in session_items:
+            if not isinstance(item, dict):
+                continue
+            normalized.append(
+                SimpleNamespace(
+                    id=str(item.get('id', '')).strip(),
+                    name=str(item.get('name', '')).strip()[:120],
+                    canvas_data=item.get('canvas_data', {}) if isinstance(item.get('canvas_data', {}), dict) else {},
+                    updated_at=str(item.get('updated_at', '')).strip(),
+                )
+            )
+        return normalized
+
+
+def get_saved_canvas(request, saved_canvas_id):
+    raw_id = str(saved_canvas_id or '').strip()
+    if not raw_id:
+        return None
+
+    if raw_id.isdigit():
+        try:
+            return SavedCanvas.objects.filter(user=request.user, id=int(raw_id)).first()
+        except (OperationalError, ProgrammingError):
+            pass
+
+    for item in get_saved_canvases(request):
+        if str(getattr(item, 'id', '')).strip() == raw_id:
+            return item
+    return None
+
+
+def save_saved_canvas(request, name, canvas_state):
+    clean_name = str(name or '').strip()[:120] or 'Untitled canvas'
+    safe_state = canvas_state if isinstance(canvas_state, dict) else {}
+    payload = {
+        'canvas_name': clean_name,
+        'boxes': safe_state.get('boxes', []),
+        'links': safe_state.get('links', []),
+    }
+
+    try:
+        saved_canvas = SavedCanvas.objects.filter(user=request.user, name__iexact=clean_name).first()
+        if saved_canvas:
+            saved_canvas.name = clean_name
+            saved_canvas.canvas_data = payload
+            saved_canvas.save(update_fields=['name', 'canvas_data', 'updated_at'])
+            return saved_canvas
+        return SavedCanvas.objects.create(user=request.user, name=clean_name, canvas_data=payload)
+    except (OperationalError, ProgrammingError):
+        session_items = request.session.get('saved_canvas_items', [])
+        if not isinstance(session_items, list):
+            session_items = []
+
+        timestamp = datetime.now().isoformat()
+        replaced = False
+        for item in session_items:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get('name', '')).strip().casefold() == clean_name.casefold():
+                item['name'] = clean_name
+                item['canvas_data'] = payload
+                item['updated_at'] = timestamp
+                replaced = True
+                break
+
+        if not replaced:
+            session_items.insert(
+                0,
+                {
+                    'id': str(uuid4()),
+                    'name': clean_name,
+                    'canvas_data': payload,
+                    'updated_at': timestamp,
+                },
+            )
+
+        request.session['saved_canvas_items'] = session_items[:30]
+        request.session.modified = True
+        return get_saved_canvas(request, session_items[0]['id'])
 
 
 def get_user_preferences(request):
@@ -1733,9 +1823,11 @@ def canvas_view(request):
     }
 
     notes_canvas_by_week = get_notes_canvas_by_week(request)
+    saved_canvas_items = get_saved_canvases(request)
 
     def get_default_canvas_state():
         return {
+            'canvas_name': '',
             'boxes': [
                 {
                     'id': str(uuid4()),
@@ -1759,6 +1851,7 @@ def canvas_view(request):
         if not isinstance(raw_value, dict):
             return default_state
 
+        canvas_name = str(raw_value.get('canvas_name', '')).strip()[:120]
         raw_boxes = raw_value.get('boxes', [])
         raw_links = raw_value.get('links', [])
         if not isinstance(raw_boxes, list):
@@ -1865,7 +1958,7 @@ def canvas_view(request):
             seen_links.add(key)
             links.append({'from': from_id, 'to': to_id})
 
-        return {'boxes': boxes, 'links': links}
+        return {'canvas_name': canvas_name, 'boxes': boxes, 'links': links}
 
     def build_weekly_note_tasks(canvas_state):
         generated_items = []
@@ -1953,12 +2046,30 @@ def canvas_view(request):
 
         return generated_items
 
+    def sync_canvas_week_tasks(canvas_state):
+        task_items = get_todo_task_items(request)
+        retained_items = []
+        for item in task_items:
+            if not isinstance(item, dict):
+                continue
+
+            is_notes_week_item = (
+                item.get('source') == 'notes_canvas'
+                and item.get('source_week') == week_key
+            )
+            if not is_notes_week_item:
+                retained_items.append(item)
+
+        retained_items.extend(build_weekly_note_tasks(canvas_state))
+        set_todo_task_items(request, retained_items)
+
     if request.method == 'POST':
         is_auto_save = request.POST.get('auto_save', '').strip() == '1'
         notes_action = request.POST.get('notes_action', '').strip().lower()
+        requested_canvas_name = str(request.POST.get('canvas_name', '')).strip()[:120]
 
         if notes_action == 'clear_canvas':
-            set_notes_canvas_week(request, week_key, {'boxes': [], 'links': []})
+            set_notes_canvas_week(request, week_key, {'canvas_name': requested_canvas_name, 'boxes': [], 'links': []})
 
             task_items = get_todo_task_items(request)
             preserved_items = []
@@ -1990,6 +2101,17 @@ def canvas_view(request):
             set_todo_task_items(request, preserved_items)
             return HttpResponseRedirect(reverse('canvas'))
 
+        if notes_action == 'load_saved_canvas':
+            saved_canvas_id = str(request.POST.get('saved_canvas_id', '')).strip()
+            saved_canvas = get_saved_canvas(request, saved_canvas_id)
+            if saved_canvas:
+                loaded_state = sanitize_canvas_state(getattr(saved_canvas, 'canvas_data', {}))
+                if not loaded_state.get('canvas_name'):
+                    loaded_state['canvas_name'] = str(getattr(saved_canvas, 'name', '')).strip()[:120]
+                set_notes_canvas_week(request, week_key, loaded_state)
+                sync_canvas_week_tasks(loaded_state)
+            return HttpResponseRedirect(reverse('canvas'))
+
         canvas_raw = request.POST.get('canvas_data', '').strip()
         try:
             parsed = json.loads(canvas_raw) if canvas_raw else None
@@ -1997,23 +2119,19 @@ def canvas_view(request):
             parsed = None
 
         current_canvas_state = sanitize_canvas_state(parsed)
+        if requested_canvas_name:
+            current_canvas_state['canvas_name'] = requested_canvas_name
+
         set_notes_canvas_week(request, week_key, current_canvas_state)
+        sync_canvas_week_tasks(current_canvas_state)
 
-        task_items = get_todo_task_items(request)
-        retained_items = []
-        for item in task_items:
-            if not isinstance(item, dict):
-                continue
+        if notes_action == 'save_saved_canvas':
+            saved_canvas = save_saved_canvas(request, current_canvas_state.get('canvas_name', ''), current_canvas_state)
+            if saved_canvas:
+                current_canvas_state['canvas_name'] = str(getattr(saved_canvas, 'name', '')).strip()[:120]
+                set_notes_canvas_week(request, week_key, current_canvas_state)
+            return HttpResponseRedirect(reverse('canvas'))
 
-            is_notes_week_item = (
-                item.get('source') == 'notes_canvas'
-                and item.get('source_week') == week_key
-            )
-            if not is_notes_week_item:
-                retained_items.append(item)
-
-        retained_items.extend(build_weekly_note_tasks(current_canvas_state))
-        set_todo_task_items(request, retained_items)
         if is_auto_save:
             return JsonResponse({'status': 'ok', 'saved_at': datetime.now().isoformat()})
         return HttpResponseRedirect(reverse('canvas'))
@@ -2026,6 +2144,8 @@ def canvas_view(request):
         'week_start_iso': week_start.isoformat(),
         'week_end_iso': week_end.isoformat(),
         'week_range_label': f"{week_start.strftime('%d %b %Y')} to {week_end.strftime('%d %b %Y')}",
+        'saved_canvases': saved_canvas_items,
+        'current_canvas_name': current_state.get('canvas_name', ''),
         'nav_layout': preferences.nav_layout,
     }
     return render(request, 'dashboard/notes.html', context)

@@ -387,6 +387,38 @@
       flex-wrap: wrap;
     }
 
+    .saved-canvas-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .canvas-name-input,
+    .canvas-save-select {
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D8E7F2;
+      border-radius: 10px;
+      padding: 0.45rem 0.65rem;
+      min-height: 38px;
+      outline: none;
+    }
+
+    .canvas-name-input {
+      min-width: 13rem;
+    }
+
+    .canvas-save-select {
+      max-width: 16rem;
+    }
+
+    .canvas-name-input:focus,
+    .canvas-save-select:focus {
+      border-color: #00C2FF;
+      box-shadow: 0 0 0 2px rgba(0, 194, 255, 0.2);
+    }
+
     .zoom-controls {
       display: inline-flex;
       align-items: center;
@@ -473,7 +505,10 @@
       border-radius: 14px;
       border: 1px solid #1F4F70;
       background: linear-gradient(180deg, #08131F 0%, #0A1725 100%);
-      overflow: hidden;
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
     }
 
     .canvas-wrap::before {
@@ -492,6 +527,7 @@
       position: relative;
       width: 100%;
       height: 100%;
+      min-width: 100%;
       min-height: 100%;
       z-index: 1;
       transform-origin: top left;
@@ -1103,7 +1139,7 @@
       }
 
       .notes-panel {
-        display: none;
+        display: flex;
       }
     }
 
@@ -1321,6 +1357,28 @@
       body .nav-link {
         font-size: 0.92rem !important;
         padding: 0.68rem 0.72rem !important;
+      }
+
+      .notes-panel {
+        display: flex !important;
+      }
+
+      .notes-toolbar {
+        align-items: flex-start;
+      }
+
+      .toolbar-info {
+        width: 100%;
+        border-radius: 12px;
+      }
+
+      .canvas-wrap {
+        min-height: calc(100vh - 10.5rem);
+      }
+
+      .canvas-surface {
+        min-width: 1400px;
+        min-height: 900px;
       }
     }
 
@@ -1553,7 +1611,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <p>Canvas items are scoped to the current week so each week starts fresh.</p>
+        <p>Canvas items are scoped to the current week, and named canvases can now be saved for later.</p>
       </div>
     </aside>
 
@@ -1583,6 +1641,17 @@
             <div class="toolbar-right">
               <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span>
               <span class="autosave-status" id="autosave-status">Auto-save on</span>
+              <div class="saved-canvas-controls">
+                <input type="text" class="canvas-name-input" id="canvas-name-input" name="canvas_name" maxlength="120" placeholder="Canvas name" value="{{ current_canvas_name|default:'' }}">
+                <button type="button" class="btn-canvas" id="save-later-btn">Save for Later</button>
+                <select class="canvas-save-select" id="saved-canvas-select" name="saved_canvas_id" aria-label="Saved canvases">
+                  <option value="">Open saved canvas...</option>
+                  {% for saved in saved_canvases %}
+                    <option value="{{ saved.id }}">{{ saved.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="button" class="btn-canvas" id="open-saved-btn" {% if not saved_canvases %}disabled{% endif %}>Open Saved</button>
+              </div>
               <button type="submit" class="btn-save">Save Canvas</button>
             </div>
           </div>
@@ -1665,6 +1734,10 @@
       const deleteBoxBtn = document.getElementById('delete-box-btn');
       const clearLinksBtn = document.getElementById('clear-links-btn');
       const clearCanvasBtn = document.getElementById('clear-canvas-btn');
+      const canvasNameInput = document.getElementById('canvas-name-input');
+      const saveLaterBtn = document.getElementById('save-later-btn');
+      const savedCanvasSelect = document.getElementById('saved-canvas-select');
+      const openSavedBtn = document.getElementById('open-saved-btn');
       const zoomOutBtn = document.getElementById('zoom-out-btn');
       const zoomInBtn = document.getElementById('zoom-in-btn');
       const zoomResetBtn = document.getElementById('zoom-reset-btn');
@@ -1710,7 +1783,15 @@
       }
 
       if (!state || !Array.isArray(state.boxes) || !Array.isArray(state.links)) {
-        state = { boxes: [], links: [] };
+        state = { canvas_name: '', boxes: [], links: [] };
+      }
+
+      if (typeof state.canvas_name !== 'string') {
+        state.canvas_name = '';
+      }
+      state.canvas_name = state.canvas_name.trim().slice(0, 120);
+      if (canvasNameInput && !canvasNameInput.value) {
+        canvasNameInput.value = state.canvas_name;
       }
 
       if (state.boxes.length === 0) {
@@ -1857,9 +1938,29 @@
         return '#F6C35C';
       }
 
+      function isTabletViewport() {
+        return window.matchMedia && window.matchMedia('(min-width: 600px) and (max-width: 1199px)').matches;
+      }
+
+      function ensureCanvasRoom() {
+        const wrapWidth = Math.max(canvasWrap.clientWidth || 0, 760);
+        const wrapHeight = Math.max(canvasWrap.clientHeight || 0, 540);
+        let surfaceWidth = wrapWidth;
+        let surfaceHeight = wrapHeight;
+
+        if (isTabletViewport()) {
+          surfaceWidth = Math.max(surfaceWidth, 1400);
+          surfaceHeight = Math.max(surfaceHeight, 900);
+        }
+
+        canvasSurface.style.minWidth = Math.ceil(surfaceWidth) + 'px';
+        canvasSurface.style.minHeight = Math.ceil(surfaceHeight) + 'px';
+      }
+
       function getSurfaceBounds() {
-        const width = Math.max(canvasSurface.clientWidth || 0, 760);
-        const height = Math.max(canvasSurface.clientHeight || 0, 540);
+        ensureCanvasRoom();
+        const width = Math.max(canvasSurface.scrollWidth || 0, canvasSurface.clientWidth || 0, 760);
+        const height = Math.max(canvasSurface.scrollHeight || 0, canvasSurface.clientHeight || 0, 540);
         return { width: width, height: height };
       }
 
@@ -1894,6 +1995,16 @@
 
       function updateToolbarInfo(text) {
         toolbarInfo.textContent = text;
+      }
+
+      if (canvasNameInput) {
+        canvasNameInput.addEventListener('input', function () {
+          state.canvas_name = String(canvasNameInput.value || '').trim().slice(0, 120);
+          if (canvasNameInput.value !== state.canvas_name) {
+            canvasNameInput.value = state.canvas_name;
+          }
+          markDirty();
+        });
       }
 
       function isBoxSelected(id) {
@@ -2719,12 +2830,15 @@
       }
 
       function render() {
+        ensureCanvasRoom();
         renderBoxes();
         renderLinks();
       }
 
       function buildCanvasPayload() {
+        state.canvas_name = String((canvasNameInput ? canvasNameInput.value : state.canvas_name) || '').trim().slice(0, 120);
         return {
+          canvas_name: state.canvas_name,
           boxes: state.boxes.map(function (box) {
             normalizeBox(box);
             return {
@@ -2971,6 +3085,43 @@
         render();
       });
 
+      if (saveLaterBtn) {
+        saveLaterBtn.addEventListener('click', function () {
+          const currentName = String((canvasNameInput ? canvasNameInput.value : state.canvas_name) || '').trim().slice(0, 120) || 'Untitled canvas';
+          state.canvas_name = currentName;
+          if (canvasNameInput) {
+            canvasNameInput.value = currentName;
+          }
+          if (notesActionInput) {
+            notesActionInput.value = 'save_saved_canvas';
+          }
+          canvasDataInput.value = JSON.stringify(buildCanvasPayload());
+          notesForm.submit();
+        });
+      }
+
+      if (openSavedBtn) {
+        openSavedBtn.addEventListener('click', async function () {
+          if (!savedCanvasSelect || !savedCanvasSelect.value) {
+            updateToolbarInfo('Choose a saved canvas first.');
+            return;
+          }
+
+          const confirmed = await showConfirmModal(
+            'Open this saved canvas? Your current weekly canvas will be replaced.',
+            'Open Saved Canvas'
+          );
+          if (!confirmed) {
+            return;
+          }
+
+          if (notesActionInput) {
+            notesActionInput.value = 'load_saved_canvas';
+          }
+          notesForm.submit();
+        });
+      }
+
       if (clearCanvasBtn) {
         clearCanvasBtn.addEventListener('click', async function () {
           const confirmed = await showConfirmModal(
@@ -3022,18 +3173,19 @@
 
       notesForm.addEventListener('submit', function () {
         const activeAction = notesActionInput ? notesActionInput.value : '';
-        if (activeAction === 'clear_canvas') {
+        if (activeAction === 'clear_canvas' || activeAction === 'load_saved_canvas') {
           return;
         }
 
-        if (notesActionInput) {
-          notesActionInput.value = '';
-        }
         const payloadJson = JSON.stringify(buildCanvasPayload());
         canvasDataInput.value = payloadJson;
         lastSavedPayload = payloadJson;
         isDirty = false;
         updateAutoSaveStatus('All changes saved', false);
+
+        if (notesActionInput && activeAction !== 'save_saved_canvas') {
+          notesActionInput.value = '';
+        }
       });
 
       window.addEventListener('resize', function () {
