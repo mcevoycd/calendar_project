@@ -134,7 +134,10 @@
     }
 
     .nav-link {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.6rem;
       color: #C9DAE7;
       text-decoration: none;
       padding: 0.85rem 1rem;
@@ -146,6 +149,26 @@
     .nav-link.active {
       background: rgba(0, 194, 255, 0.18);
       color: var(--accent);
+    }
+
+    .nav-link-icon {
+      width: 1rem;
+      height: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0.92;
+    }
+
+    .nav-link-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .sidebar-footer {
@@ -175,6 +198,9 @@
     }
 
     body.nav-layout-tabs .nav-link {
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.28rem;
       text-align: center;
       padding: 0.62rem 0.3rem;
       font-size: 0.76rem;
@@ -1510,12 +1536,12 @@
       </div>
 
       <nav class="nav-group" aria-label="Main navigation">
-        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-        <a class="nav-link" href="{% url 'diary' %}">Diary</a>
-        <a class="nav-link" href="{% url 'todo' %}">To Do List</a>
-        <a class="nav-link" href="{% url 'notes' %}">Notes</a>
-        <a class="nav-link nav-link-canvas active" href="{% url 'canvas' %}">Canvas</a>
-        <a class="nav-link" href="{% url 'settings' %}">Settings</a>
+        <a class="nav-link" href="{% url 'dashboard' %}"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5 10.5V20h14v-9.5"></path></svg></span><span>Dashboard</span></a>
+        <a class="nav-link" href="{% url 'diary' %}"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M4 9h16"></path></svg></span><span>Diary</span></a>
+        <a class="nav-link" href="{% url 'todo' %}"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"></path><path d="m4 6 1.5 1.5L7.5 5.5"></path><path d="m4 12 1.5 1.5L7.5 11.5"></path><path d="m4 18 1.5 1.5L7.5 17.5"></path></svg></span><span>To Do List</span></a>
+        <a class="nav-link" href="{% url 'notes' %}"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h8l4 4v12H7z"></path><path d="M15 4v4h4"></path><path d="M10 12h6M10 16h5"></path></svg></span><span>Notes</span></a>
+        <a class="nav-link nav-link-canvas active" href="{% url 'canvas' %}"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M4 12h10"></path><path d="M4 18h7"></path><path d="M18 12h2"></path></svg></span><span>Canvas</span></a>
+        <a class="nav-link" href="{% url 'settings' %}"><span class="nav-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v3"></path><path d="M12 18v3"></path><path d="M3 12h3"></path><path d="M18 12h3"></path><path d="m5.6 5.6 2.1 2.1"></path><path d="m16.3 16.3 2.1 2.1"></path><path d="m18.4 5.6-2.1 2.1"></path><path d="m7.7 16.3-2.1 2.1"></path><circle cx="12" cy="12" r="3.2"></circle></svg></span><span>Settings</span></a>
       </nav>
 
       <div class="sidebar-footer">
