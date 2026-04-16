@@ -388,10 +388,63 @@
     }
 
     .saved-canvas-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+      display: grid;
+      gap: 0.4rem;
+      min-width: 15rem;
+    }
+
+    .toolbar-menu {
+      position: relative;
+    }
+
+    .toolbar-menu summary {
+      list-style: none;
+    }
+
+    .toolbar-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toolbar-menu-trigger {
+      gap: 0.4rem;
+    }
+
+    .toolbar-menu-panel {
+      position: absolute;
+      top: calc(100% + 0.4rem);
+      left: 0;
+      min-width: 12rem;
+      padding: 0.4rem;
+      display: grid;
+      gap: 0.35rem;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 194, 255, 0.25);
+      background: rgba(8, 19, 31, 0.98);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+      z-index: 30;
+    }
+
+    .toolbar-menu-panel--right {
+      left: auto;
+      right: 0;
+      min-width: 16rem;
+    }
+
+    .toolbar-menu-panel .btn-canvas,
+    .toolbar-menu-panel .btn-save {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .saved-canvas-controls .canvas-name-input,
+    .saved-canvas-controls .canvas-save-select,
+    .saved-canvas-controls .btn-canvas,
+    .saved-canvas-controls .btn-save {
+      width: 100%;
+    }
+
+    .saved-canvas-controls .btn-save {
+      justify-content: center;
     }
 
     .canvas-name-input,
@@ -399,9 +452,11 @@
       border: 1px solid #2A5E82;
       background: #0D2132;
       color: #D8E7F2;
-      border-radius: 10px;
-      padding: 0.45rem 0.65rem;
-      min-height: 38px;
+      border-radius: 999px;
+      padding: 0.28rem 0.65rem;
+      min-height: 32px;
+      font-size: 0.78rem;
+      line-height: 1.2;
       outline: none;
     }
 
@@ -422,20 +477,21 @@
     .zoom-controls {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.2rem 0.35rem;
+      gap: 0.3rem;
+      padding: 0.16rem 0.3rem;
       border: 1px solid rgba(0, 194, 255, 0.25);
-      border-radius: 10px;
+      border-radius: 999px;
       background: rgba(0, 194, 255, 0.06);
     }
 
     .zoom-level {
-      min-width: 3.5rem;
+      min-width: 3.2rem;
       text-align: center;
       color: #B7C8D6;
       font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.02em;
+      line-height: 1.2;
     }
 
     .toolbar-info {
@@ -461,10 +517,16 @@
       border: 1px solid #215376;
       background: #10253A;
       color: #D2E1EC;
-      border-radius: 9px;
-      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      padding: 0.28rem 0.72rem;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 600;
-      font-size: 0.87rem;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      white-space: nowrap;
     }
 
     .btn-canvas:hover {
@@ -487,10 +549,16 @@
       background: var(--accent-strong);
       color: #06111E;
       border: none;
-      border-radius: 10px;
-      padding: 0.52rem 0.9rem;
+      border-radius: 999px;
+      padding: 0.28rem 0.78rem;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 700;
-      font-size: 0.88rem;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      white-space: nowrap;
     }
 
     .btn-save:hover {
@@ -630,10 +698,10 @@
       border: 1px solid #2A5E82;
       background: #0D2132;
       color: #D8E7F2;
-      border-radius: 6px;
+      border-radius: 999px;
       font-size: 0.68rem;
       line-height: 1;
-      padding: 0.2rem 0.32rem;
+      padding: 0.2rem 0.38rem;
       cursor: pointer;
       min-width: 22px;
       text-align: center;
@@ -834,10 +902,10 @@
       border: 1px solid #2A5E82;
       background: #0D2132;
       color: #D8E7F2;
-      border-radius: 7px;
+      border-radius: 999px;
       font-size: 0.78rem;
       line-height: 1;
-      padding: 0.25rem 0.45rem;
+      padding: 0.25rem 0.5rem;
       cursor: pointer;
       min-width: 24px;
       text-align: center;
@@ -890,10 +958,10 @@
       border: 1px solid #2A5E82;
       background: #0D2132;
       color: #AFC0CF;
-      border-radius: 6px;
+      border-radius: 999px;
       font-size: 0.72rem;
       line-height: 1;
-      padding: 0.2rem 0.32rem;
+      padding: 0.2rem 0.38rem;
       cursor: pointer;
       flex-shrink: 0;
     }
@@ -978,8 +1046,8 @@
       border: 1px solid #2A5E82;
       background: #0D2132;
       color: #D7E6F2;
-      border-radius: 8px;
-      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      padding: 0.42rem 0.82rem;
       cursor: pointer;
       font-size: 0.82rem;
       font-weight: 600;
@@ -1624,13 +1692,31 @@
 
           <div class="notes-toolbar">
             <div class="toolbar-left">
-              <button type="button" class="btn-canvas" id="add-box-btn">Add Text Box</button>
-              <button type="button" class="btn-canvas" id="add-note-box-btn">Add Note Box</button>
-              <button type="button" class="btn-canvas" id="link-mode-btn">Link Mode</button>
-              <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
-              <button type="button" class="btn-canvas" id="delete-box-btn">Delete Selected</button>
-              <button type="button" class="btn-canvas" id="clear-links-btn">Clear Links</button>
-              <button type="button" class="btn-canvas" id="clear-canvas-btn">Clear Canvas</button>
+              <details class="toolbar-menu">
+                <summary class="btn-canvas toolbar-menu-trigger">Add ▾</summary>
+                <div class="toolbar-menu-panel">
+                  <button type="button" class="btn-canvas" id="add-box-btn">Add Text Box</button>
+                  <button type="button" class="btn-canvas" id="add-note-box-btn">Add Note Box</button>
+                </div>
+              </details>
+
+              <details class="toolbar-menu">
+                <summary class="btn-canvas toolbar-menu-trigger">Links ▾</summary>
+                <div class="toolbar-menu-panel">
+                  <button type="button" class="btn-canvas" id="link-mode-btn">Link Mode</button>
+                  <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
+                  <button type="button" class="btn-canvas" id="clear-links-btn">Clear Links</button>
+                </div>
+              </details>
+
+              <details class="toolbar-menu">
+                <summary class="btn-canvas toolbar-menu-trigger">Canvas ▾</summary>
+                <div class="toolbar-menu-panel">
+                  <button type="button" class="btn-canvas" id="delete-box-btn">Delete Selected</button>
+                  <button type="button" class="btn-canvas" id="clear-canvas-btn">Clear Canvas</button>
+                </div>
+              </details>
+
               <div class="zoom-controls" aria-label="Canvas zoom controls">
                 <button type="button" class="btn-canvas" id="zoom-out-btn" title="Zoom out">-</button>
                 <span class="zoom-level" id="zoom-level">100%</span>
@@ -1641,18 +1727,23 @@
             <div class="toolbar-right">
               <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span>
               <span class="autosave-status" id="autosave-status">Auto-save on</span>
-              <div class="saved-canvas-controls">
-                <input type="text" class="canvas-name-input" id="canvas-name-input" name="canvas_name" maxlength="120" placeholder="Canvas name" value="{{ current_canvas_name|default:'' }}">
-                <button type="button" class="btn-canvas" id="save-later-btn">Save for Later</button>
-                <select class="canvas-save-select" id="saved-canvas-select" name="saved_canvas_id" aria-label="Saved canvases">
-                  <option value="">Open saved canvas...</option>
-                  {% for saved in saved_canvases %}
-                    <option value="{{ saved.id }}">{{ saved.name }}</option>
-                  {% endfor %}
-                </select>
-                <button type="button" class="btn-canvas" id="open-saved-btn" {% if not saved_canvases %}disabled{% endif %}>Open Saved</button>
-              </div>
-              <button type="submit" class="btn-save">Save Canvas</button>
+              <details class="toolbar-menu">
+                <summary class="btn-canvas toolbar-menu-trigger">Open &amp; Save ▾</summary>
+                <div class="toolbar-menu-panel toolbar-menu-panel--right">
+                  <div class="saved-canvas-controls">
+                    <input type="text" class="canvas-name-input" id="canvas-name-input" name="canvas_name" maxlength="120" placeholder="Canvas name" value="{{ current_canvas_name|default:'' }}">
+                    <button type="button" class="btn-canvas" id="save-later-btn">Save for Later</button>
+                    <select class="canvas-save-select" id="saved-canvas-select" name="saved_canvas_id" aria-label="Saved canvases">
+                      <option value="">Open saved canvas...</option>
+                      {% for saved in saved_canvases %}
+                        <option value="{{ saved.id }}">{{ saved.name }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="button" class="btn-canvas" id="open-saved-btn" {% if not saved_canvases %}disabled{% endif %}>Open Saved</button>
+                    <button type="submit" class="btn-save">Save Canvas</button>
+                  </div>
+                </div>
+              </details>
             </div>
           </div>
 
@@ -1858,6 +1949,12 @@
         }
         autoSaveStatus.textContent = text;
         autoSaveStatus.style.color = isError ? '#FCA5A5' : '#AFC0CF';
+      }
+
+      function closeToolbarMenus() {
+        document.querySelectorAll('.toolbar-menu[open]').forEach(function (menu) {
+          menu.removeAttribute('open');
+        });
       }
 
       function markDirty() {
@@ -3024,6 +3121,7 @@
       }
 
       addBoxBtn.addEventListener('click', function () {
+        closeToolbarMenus();
         const bounds = getSurfaceBounds();
         const x = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.width - 390);
         const y = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.height - 190);
@@ -3033,6 +3131,7 @@
 
       if (addNoteBoxBtn) {
         addNoteBoxBtn.addEventListener('click', function () {
+          closeToolbarMenus();
           const bounds = getSurfaceBounds();
           const x = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.width - 390);
           const y = Math.min(Math.max(40, 70 + (state.boxes.length % 5) * 26), bounds.height - 190);
@@ -3042,6 +3141,7 @@
       }
 
       linkModeBtn.addEventListener('click', function () {
+        closeToolbarMenus();
         linkMode = !linkMode;
         linkModeBtn.classList.toggle('active', linkMode);
         if (linkMode) {
@@ -3058,6 +3158,7 @@
       });
 
       cancelLinkBtn.addEventListener('click', function () {
+        closeToolbarMenus();
         if (!linkMode) {
           return;
         }
@@ -3067,6 +3168,7 @@
       });
 
       deleteBoxBtn.addEventListener('click', function () {
+        closeToolbarMenus();
         if (!selectedBoxId) {
           updateToolbarInfo('Select a box first, then use Delete Selected.');
           return;
@@ -3078,6 +3180,7 @@
       });
 
       clearLinksBtn.addEventListener('click', function () {
+        closeToolbarMenus();
         state.links = [];
         markDirty();
         cancelPendingLink();
@@ -3087,6 +3190,7 @@
 
       if (saveLaterBtn) {
         saveLaterBtn.addEventListener('click', function () {
+          closeToolbarMenus();
           const currentName = String((canvasNameInput ? canvasNameInput.value : state.canvas_name) || '').trim().slice(0, 120) || 'Untitled canvas';
           state.canvas_name = currentName;
           if (canvasNameInput) {
@@ -3102,6 +3206,7 @@
 
       if (openSavedBtn) {
         openSavedBtn.addEventListener('click', async function () {
+          closeToolbarMenus();
           if (!savedCanvasSelect || !savedCanvasSelect.value) {
             updateToolbarInfo('Choose a saved canvas first.');
             return;
@@ -3124,6 +3229,7 @@
 
       if (clearCanvasBtn) {
         clearCanvasBtn.addEventListener('click', async function () {
+          closeToolbarMenus();
           const confirmed = await showConfirmModal(
             'Clear the notes canvas for this week? Existing To Do items created from this canvas will be kept.',
             'Clear Canvas'
