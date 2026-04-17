@@ -42,9 +42,14 @@ TODO_DAY_ORDER = [day_name for day_name, _ in TODO_DAYS]
 TODO_DAY_INDEX = {day_name: index for index, day_name in enumerate(TODO_DAY_ORDER)}
 
 TODO_PRIORITY_CHOICES = {
+    "urgent": "Urgent",
     "high": "High",
     "medium": "Medium",
     "low": "Low",
+}
+
+TODO_PRIORITY_RANK = {
+    priority: index for index, priority in enumerate(TODO_PRIORITY_CHOICES.keys())
 }
 
 TODO_MAX_NOTES_LENGTH = 2000
@@ -376,6 +381,23 @@ def parse_task_date(raw_value):
         return datetime.strptime(value, "%Y-%m-%d").date()
     except ValueError:
         return None
+
+
+def get_todo_priority_rank(priority):
+    normalized = str(priority or "").strip().lower()
+    return TODO_PRIORITY_RANK.get(normalized, TODO_PRIORITY_RANK["medium"])
+
+
+def get_todo_task_sort_key(item):
+    start_date = parse_task_date(item.get('start_date'))
+    end_date = parse_task_date(item.get('end_date'))
+    anchor = start_date or end_date
+    return (
+        get_todo_priority_rank(item.get('priority')),
+        anchor is None,
+        anchor or datetime.max.date(),
+        str(item.get('title', '')).lower(),
+    )
 
 
 def format_task_date_range(start_date, end_date):
@@ -985,8 +1007,9 @@ def dashboard_view(request):
         section_tasks = [
             item
             for item in task_items
-            if item["section"] == section["key"] and item.get("priority") in {"high", "medium"}
+            if item["section"] == section["key"] and item.get("priority") in {"urgent", "high", "medium"}
         ]
+        section_tasks.sort(key=get_todo_task_sort_key)
 
         display_tasks = []
         for task in section_tasks[:6]:
@@ -1553,13 +1576,7 @@ def todo_view(request):
     for section in todo_sections:
         section_tasks = [item for item in task_items if item.get('section') == section['key']]
 
-        def task_sort_key(item):
-            start_date = parse_task_date(item.get('start_date'))
-            end_date = parse_task_date(item.get('end_date'))
-            anchor = start_date or end_date
-            return (anchor is None, anchor or datetime.max.date(), str(item.get('title', '')).lower())
-
-        section_tasks.sort(key=task_sort_key)
+        section_tasks.sort(key=get_todo_task_sort_key)
 
         display_tasks = []
         for task in section_tasks:

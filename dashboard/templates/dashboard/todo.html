@@ -537,6 +537,7 @@
       color: #06111E;
     }
 
+    .todo-priority-urgent { background: #ef4444; }
     .todo-priority-high { background: #FB7185; }
     .todo-priority-medium { background: #FACC15; }
     .todo-priority-low { background: #34D399; }
@@ -1939,6 +1940,7 @@
         <label>
           Priority
           <select name="task_priority" id="task-priority-input" required>
+            <option value="urgent">Urgent</option>
             <option value="high">High</option>
             <option value="medium" selected>Medium</option>
             <option value="low">Low</option>

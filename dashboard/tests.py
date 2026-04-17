@@ -8,6 +8,50 @@ from django.urls import reverse
 from .models import NoteAttachment, NoteEntry
 
 
+class TodoViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='todo_tester', password='pass12345')
+        self.client.login(username='todo_tester', password='pass12345')
+
+    def add_task(self, title, priority):
+        return self.client.post(
+            reverse('todo'),
+            {
+                'form_type': 'add_todo_entry',
+                'task_title': title,
+                'task_start_date': '2026-04-17',
+                'task_end_date': '2026-04-17',
+                'task_section': 'planning',
+                'task_notes': '',
+                'task_checklist_json': '[]',
+                'task_priority': priority,
+            },
+        )
+
+    def test_todo_accepts_urgent_priority(self):
+        response = self.add_task('Fix outage', 'urgent')
+        self.assertEqual(response.status_code, 302)
+
+        get_response = self.client.get(reverse('todo'))
+        self.assertEqual(get_response.status_code, 200)
+        planning = next(section for section in get_response.context['section_lists'] if section['key'] == 'planning')
+        self.assertEqual(planning['tasks'][0]['priority'], 'urgent')
+        self.assertEqual(planning['tasks'][0]['priority_label'], 'Urgent')
+
+    def test_todo_is_sorted_by_priority(self):
+        self.add_task('Low task', 'low')
+        self.add_task('High task', 'high')
+        self.add_task('Urgent task', 'urgent')
+        self.add_task('Medium task', 'medium')
+
+        response = self.client.get(reverse('todo'))
+        self.assertEqual(response.status_code, 200)
+        planning = next(section for section in response.context['section_lists'] if section['key'] == 'planning')
+        ordered_titles = [task['title'] for task in planning['tasks']]
+        self.assertEqual(ordered_titles[:4], ['Urgent task', 'High task', 'Medium task', 'Low task'])
+
+
 class NotesViewTests(TestCase):
     def setUp(self):
         self.client = Client()
