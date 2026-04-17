@@ -613,6 +613,12 @@
       position: absolute;
       top: 0.42rem;
       left: 0.42rem;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1rem;
+      height: 1rem;
     }
 
     .todo-complete-checkbox {
@@ -621,6 +627,9 @@
       accent-color: #34D399;
       cursor: pointer;
       margin: 0;
+      position: relative;
+      z-index: 3;
+      flex-shrink: 0;
     }
 
     .todo-delete-btn {

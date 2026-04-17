@@ -2701,7 +2701,6 @@
           const isPlainTextBox = box.type === 'Text';
           if (isPlainTextBox) {
             boxEl.classList.add('is-plain-text');
-            box.completed = false;
           }
 
           const typeColor = getTypeColor(box.type);
@@ -3122,7 +3121,6 @@
 
             if (isPlainTextBox) {
               box.title = '';
-              box.completed = false;
               box.text = htmlToPlainText(text.innerHTML).replace(/^\n+|\n+$/g, '').slice(0, 1200);
               return;
             }
@@ -3384,7 +3382,9 @@
           boxEl.appendChild(head);
           if (!isPlainTextBox) {
             boxEl.appendChild(titleRow);
-            boxEl.appendChild(formatRow);
+          }
+          boxEl.appendChild(formatRow);
+          if (!isPlainTextBox) {
             boxEl.appendChild(checklist);
           }
           boxEl.appendChild(text);
