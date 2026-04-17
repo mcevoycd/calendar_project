@@ -958,6 +958,14 @@
       gap: 0.6rem;
     }
 
+    .editor-head-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
     .editor-label {
       margin: 0;
       color: #9EB0C2;
@@ -990,13 +998,32 @@
     }
 
     .editor-toolbar {
+      position: relative;
+      display: inline-block;
+    }
+
+    .editor-toolbar summary {
+      list-style: none;
+    }
+
+    .editor-toolbar summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .editor-toolbar-menu {
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      left: 0;
+      min-width: 18rem;
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
       border: 1px solid rgba(53, 84, 109, 0.78);
       border-radius: 12px;
-      background: rgba(10, 28, 44, 0.8);
-      padding: 0.4rem;
+      background: rgba(10, 28, 44, 0.96);
+      padding: 0.45rem;
+      z-index: 20;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
     }
 
     .tool-btn {
@@ -1025,6 +1052,7 @@
       gap: 0.45rem;
       flex-wrap: wrap;
       justify-content: flex-end;
+      margin-left: auto;
     }
 
     .editor-form {
@@ -1078,62 +1106,6 @@
       margin-top: 0.22rem;
       cursor: pointer;
       flex-shrink: 0;
-    }
-
-    .attachment-panel {
-      display: grid;
-      gap: 0.45rem;
-      border: 1px solid rgba(53, 84, 109, 0.8);
-      border-radius: 12px;
-      background: #0B1F2F;
-      padding: 0.7rem;
-    }
-
-    .attachment-heading {
-      margin: 0;
-      color: #DDEAF4;
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .attachment-upload {
-      padding-top: 0.45rem;
-      padding-bottom: 0.45rem;
-    }
-
-    .attachment-help {
-      margin: 0;
-      color: #92A6B9;
-      font-size: 0.75rem;
-      line-height: 1.4;
-    }
-
-    .attachment-list {
-      display: grid;
-      gap: 0.4rem;
-    }
-
-    .attachment-link {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.6rem;
-      border: 1px solid rgba(83, 183, 232, 0.26);
-      border-radius: 10px;
-      padding: 0.5rem 0.6rem;
-      background: rgba(255, 255, 255, 0.04);
-      color: #8BE0FF;
-      text-decoration: none;
-      font-size: 0.82rem;
-      word-break: break-word;
-    }
-
-    .attachment-link:hover,
-    .attachment-link:focus {
-      border-color: rgba(83, 183, 232, 0.5);
-      background: rgba(0, 194, 255, 0.08);
-      color: #CFF5FF;
-      outline: none;
     }
 
     .editor-empty {
@@ -2053,18 +2025,22 @@
         <button type="button" class="editor-close-btn" id="editor-close-btn" aria-label="Close editor"><img class="fn-icon" src="{% static 'dashboard/icons/close_grey.svg' %}" alt="" aria-hidden="true"></button>
       </div>
 
-      <div class="editor-toolbar" aria-label="Rich text controls">
-        <button type="button" class="tool-btn" data-cmd="bold" title="Bold">B</button>
-        <button type="button" class="tool-btn" data-cmd="italic" title="Italic">I</button>
-        <button type="button" class="tool-btn" data-cmd="underline" title="Underline">U</button>
-        <button type="button" class="tool-btn" data-cmd="insertUnorderedList" title="Bulleted list">List</button>
-        <button type="button" class="tool-btn" data-cmd="insertChecklist" title="Insert tick box">☑</button>
-        <button type="button" class="tool-btn" data-cmd="formatBlock" data-value="<h3>" title="Heading">H3</button>
-        <button type="button" class="tool-btn" data-cmd="createLink" title="Insert link">Link</button>
-        <button type="button" class="tool-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
-      </div>
+      <div class="editor-head-actions-row">
+        <details class="editor-toolbar" aria-label="Rich text controls">
+          <summary class="pill-btn">Formatting ▾</summary>
+          <div class="editor-toolbar-menu">
+            <button type="button" class="tool-btn" data-cmd="bold" title="Bold">B</button>
+            <button type="button" class="tool-btn" data-cmd="italic" title="Italic">I</button>
+            <button type="button" class="tool-btn" data-cmd="underline" title="Underline">U</button>
+            <button type="button" class="tool-btn" data-cmd="insertUnorderedList" title="Bulleted list">List</button>
+            <button type="button" class="tool-btn" data-cmd="insertChecklist" title="Insert tick box">☑</button>
+            <button type="button" class="tool-btn" data-cmd="formatBlock" data-value="<h3>" title="Heading">H3</button>
+            <button type="button" class="tool-btn" data-cmd="createLink" title="Insert link">Link</button>
+            <button type="button" class="tool-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+          </div>
+        </details>
 
-      <div class="editor-actions">
+        <div class="editor-actions">
         {% if selected_note %}
           <button type="submit" class="pill-btn" form="note-editor-form">Save</button>
           <form method="post" action="{% url 'notes' %}">
@@ -2080,11 +2056,12 @@
             <button type="submit" class="pill-btn warn">Delete</button>
           </form>
         {% endif %}
+        </div>
       </div>
     </header>
 
     {% if selected_note %}
-      <form id="note-editor-form" class="editor-form" method="post" action="{% url 'notes' %}" enctype="multipart/form-data">
+      <form id="note-editor-form" class="editor-form" method="post" action="{% url 'notes' %}">
         {% csrf_token %}
         <input type="hidden" name="notes_action" value="save_note">
         <input type="hidden" name="note_id" value="{{ selected_note.id }}">
@@ -2097,22 +2074,6 @@
             <option value="{{ category.id }}" {% if selected_note.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
           {% endfor %}
         </select>
-
-        <div class="attachment-panel">
-          <p class="attachment-heading">Attachments</p>
-          <input class="editor-field attachment-upload" type="file" name="attachments" multiple aria-label="Attach files to this note">
-          <p class="attachment-help">Add documents, images, or reference files. Up to 5 files per save, max 10 MB each.</p>
-          {% if selected_note.attachments.all %}
-            <div class="attachment-list">
-              {% for attachment in selected_note.attachments.all %}
-                <a class="attachment-link" href="{{ attachment.file.url }}" target="_blank" rel="noopener">
-                  <span>{{ attachment.filename }}</span>
-                  <span>Open</span>
-                </a>
-              {% endfor %}
-            </div>
-          {% endif %}
-        </div>
 
         <div id="rich-editor" class="editor-field editor-body" contenteditable="true" aria-label="Note body"></div>
         <input type="hidden" name="body" id="id_body_html">
@@ -2183,7 +2144,7 @@
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="new-note-title">
       <h2 class="dialog-title" id="new-note-title">New note</h2>
       <p class="dialog-message">Create a note and optionally assign a category.</p>
-      <form method="post" action="{% url 'notes' %}" id="new-note-form" enctype="multipart/form-data">
+      <form method="post" action="{% url 'notes' %}" id="new-note-form">
         {% csrf_token %}
         <input type="hidden" name="notes_action" value="create_note">
         <input class="dialog-input" type="text" name="new_note_title" maxlength="140" placeholder="Untitled note">
@@ -2193,7 +2154,6 @@
             <option value="{{ category.id }}" {% if selected_category_id == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
           {% endfor %}
         </select>
-        <input class="dialog-input" type="file" name="attachments" multiple aria-label="Attach files to your new note">
         <div class="dialog-actions">
           <button type="button" class="dialog-btn" id="cancel-note-btn">Cancel</button>
           <button type="submit" class="dialog-btn primary">Create</button>
