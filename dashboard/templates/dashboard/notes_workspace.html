@@ -1094,6 +1094,40 @@
       background: #0A1A28;
     }
 
+    .editor-body ul,
+    .editor-body ol {
+      margin: 0.35rem 0 0.55rem 1rem;
+      padding-left: 1.15rem;
+    }
+
+    .editor-body ul {
+      list-style-type: disc;
+    }
+
+    .editor-body ul ul {
+      list-style-type: circle;
+    }
+
+    .editor-body ul ul ul {
+      list-style-type: square;
+    }
+
+    .editor-body ol {
+      list-style-type: decimal;
+    }
+
+    .editor-body ol ol {
+      list-style-type: lower-alpha;
+    }
+
+    .editor-body ol ol ol {
+      list-style-type: lower-roman;
+    }
+
+    .editor-body li {
+      margin: 0.18rem 0;
+    }
+
     .editor-checklist-row,
     .editor-checklist-label {
       display: flex;
@@ -2033,6 +2067,9 @@
             <button type="button" class="tool-btn" data-cmd="italic" title="Italic">I</button>
             <button type="button" class="tool-btn" data-cmd="underline" title="Underline">U</button>
             <button type="button" class="tool-btn" data-cmd="insertUnorderedList" title="Bulleted list">List</button>
+            <button type="button" class="tool-btn" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+            <button type="button" class="tool-btn" data-cmd="indent" title="Indent list item">→</button>
+            <button type="button" class="tool-btn" data-cmd="outdent" title="Outdent list item">←</button>
             <button type="button" class="tool-btn" data-cmd="insertChecklist" title="Insert tick box">☑</button>
             <button type="button" class="tool-btn" data-cmd="formatBlock" data-value="<h3>" title="Heading">H3</button>
             <button type="button" class="tool-btn" data-cmd="createLink" title="Insert link">Link</button>
@@ -2324,6 +2361,20 @@
           return null;
         }
 
+        function getListItem(node) {
+          if (!node) {
+            return null;
+          }
+          if (node.nodeType === Node.TEXT_NODE) {
+            node = node.parentNode;
+          }
+          if (!node || !node.closest) {
+            return null;
+          }
+          const listItem = node.closest('li');
+          return listItem && editor && editor.contains(listItem) ? listItem : null;
+        }
+
         function prepareChecklistCheckboxes() {
           if (!editor) {
             return;
@@ -2381,16 +2432,27 @@
           });
 
           editor.addEventListener('keydown', function (event) {
-            if (event.key !== 'Enter') {
-              return;
-            }
-
             const selection = window.getSelection();
             if (!selection || selection.rangeCount === 0) {
               return;
             }
 
             const anchorNode = selection.anchorNode;
+
+            if (event.key === 'Tab') {
+              const listItem = getListItem(anchorNode);
+              if (!listItem) {
+                return;
+              }
+              event.preventDefault();
+              document.execCommand(event.shiftKey ? 'outdent' : 'indent', false, null);
+              return;
+            }
+
+            if (event.key !== 'Enter') {
+              return;
+            }
+
             const checklistRow = getChecklistRow(anchorNode);
             if (!checklistRow || !checklistRow.querySelector('input[type="checkbox"]')) {
               return;
