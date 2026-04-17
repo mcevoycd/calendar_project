@@ -1925,6 +1925,7 @@
       }
 
       let selectedBoxId = null;
+      let lastFocusedTextBoxId = null;
       let linkMode = false;
       let linkSourceId = null;
       let zoomLevel = 1;
@@ -2131,6 +2132,35 @@
 
       function updateToolbarInfo(text) {
         toolbarInfo.textContent = text;
+      }
+
+      function placeCaretAtEnd(element) {
+        if (!element) {
+          return;
+        }
+        const selection = window.getSelection && window.getSelection();
+        if (!selection) {
+          return;
+        }
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      function focusExistingTextBox(boxId, placeCaret) {
+        if (!boxId) {
+          return;
+        }
+        const textEl = boxesLayer.querySelector('[data-box-id="' + boxId + '"] .box-text');
+        if (!textEl) {
+          return;
+        }
+        textEl.focus();
+        if (placeCaret) {
+          placeCaretAtEnd(textEl);
+        }
       }
 
       if (canvasNameInput) {
@@ -2534,6 +2564,7 @@
           const text = document.createElement('div');
           text.className = 'box-text';
           text.contentEditable = 'true';
+          text.tabIndex = 0;
           text.setAttribute('data-placeholder', isPlainTextBox ? 'Write simple text...' : 'Write your note...');
           text.setAttribute('role', 'textbox');
           text.setAttribute('aria-multiline', 'true');
@@ -2828,7 +2859,33 @@
           const resizeHandle = document.createElement('div');
           resizeHandle.className = 'box-resize';
 
+          text.addEventListener('mousedown', function (event) {
+            if (skipMouseEvent(event)) {
+              return;
+            }
+            event.stopPropagation();
+            lastFocusedTextBoxId = box.id;
+          });
+          text.addEventListener('pointerdown', function (event) {
+            event.stopPropagation();
+            lastFocusedTextBoxId = box.id;
+          });
+          text.addEventListener('focus', function () {
+            lastFocusedTextBoxId = box.id;
+            selectedBoxId = box.id;
+          });
+          text.addEventListener('click', function (event) {
+            event.stopPropagation();
+            lastFocusedTextBoxId = box.id;
+            if (document.activeElement !== text) {
+              text.focus();
+            }
+          });
+          text.addEventListener('blur', function () {
+            flushPendingTextSync();
+          });
           text.addEventListener('input', function () {
+            lastFocusedTextBoxId = box.id;
             scheduleTextSync();
           });
 
@@ -2971,6 +3028,15 @@
         renderLinks();
       }
 
+      window.addEventListener('focus', function () {
+        if (!lastFocusedTextBoxId || document.hidden) {
+          return;
+        }
+        window.setTimeout(function () {
+          focusExistingTextBox(lastFocusedTextBoxId, false);
+        }, 60);
+      });
+
       function buildCanvasPayload() {
         state.canvas_name = String((canvasNameInput ? canvasNameInput.value : state.canvas_name) || '').trim().slice(0, 120);
         return {
@@ -3097,10 +3163,8 @@
         render();
 
         if (shouldFocusText) {
-          const input = boxesLayer.querySelector('[data-box-id="' + box.id + '"] .box-text');
-          if (input) {
-            input.focus();
-          }
+          lastFocusedTextBoxId = box.id;
+          focusExistingTextBox(box.id, true);
         }
 
         return box;
