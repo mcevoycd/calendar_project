@@ -1835,6 +1835,13 @@ def canvas_view(request):
     allowed_note_types = set(note_type_options)
     allowed_link_styles = {'solid', 'dashed', 'dotted'}
     allowed_link_ends = {'none', 'arrow'}
+
+    def sanitize_link_color(value):
+        candidate = str(value or '').strip()
+        if re.fullmatch(r'#[0-9A-Fa-f]{6}', candidate):
+            return candidate
+        return '#F6C35C'
+
     section_title_to_key = {
         str(section.get('title', '')).strip().casefold(): section.get('key')
         for section in todo_sections
@@ -1995,8 +2002,10 @@ def canvas_view(request):
             if line_end not in allowed_link_ends:
                 line_end = 'none'
 
+            link_color = sanitize_link_color(item.get('color', ''))
+
             seen_links.add(key)
-            links.append({'from': from_id, 'to': to_id, 'style': line_style, 'end': line_end})
+            links.append({'from': from_id, 'to': to_id, 'style': line_style, 'end': line_end, 'color': link_color})
 
         return {'canvas_name': canvas_name, 'boxes': boxes, 'links': links}
 

@@ -608,7 +608,21 @@
       overflow: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
-      touch-action: pan-x pan-y;
+      touch-action: none;
+      cursor: grab;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .canvas-wrap::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    .canvas-wrap.is-panning {
+      cursor: grabbing;
+      user-select: none;
     }
 
     .canvas-wrap::before {
@@ -637,25 +651,25 @@
     .canvas-links {
       position: absolute;
       inset: 0;
-      pointer-events: none;
+      pointer-events: auto;
+      overflow: visible;
       z-index: 1;
     }
 
     .canvas-links line {
-      stroke: rgba(246, 195, 92, 0.8);
+      fill: none;
       stroke-width: 2.2;
       pointer-events: stroke;
       cursor: pointer;
     }
 
     .canvas-links line.is-selected {
-      stroke: #7FE3FF;
       stroke-width: 2.8;
       filter: drop-shadow(0 0 4px rgba(127, 227, 255, 0.7));
     }
 
     .canvas-links .preview-line {
-      stroke: rgba(0, 194, 255, 0.85);
+      fill: none;
       stroke-width: 2;
       stroke-dasharray: 6 5;
     }
@@ -1790,6 +1804,10 @@
                       <option value="arrow">Arrow</option>
                     </select>
                   </div>
+                  <div class="toolbar-field">
+                    <label class="toolbar-field-label" for="link-color-input">Line colour</label>
+                    <input type="color" class="box-color-input" id="link-color-input" value="#f6c35c" aria-label="Choose link colour">
+                  </div>
                 </div>
               </details>
 
@@ -1928,6 +1946,7 @@
       const cancelLinkBtn = document.getElementById('cancel-link-btn');
       const linkStyleSelect = document.getElementById('link-style-select');
       const linkEndSelect = document.getElementById('link-end-select');
+      const linkColorInput = document.getElementById('link-color-input');
       const deleteBoxBtn = document.getElementById('delete-box-btn');
       const clearLinksBtn = document.getElementById('clear-links-btn');
       const clearCanvasBtn = document.getElementById('clear-canvas-btn');
@@ -2013,6 +2032,8 @@
       let linkMode = false;
       let linkSourceId = null;
       let zoomLevel = 1;
+      let surfaceWidth = 2200;
+      let surfaceHeight = 1400;
       let isDirty = false;
       let autoSaveInFlight = false;
       let lastSavedPayload = '';
@@ -2022,6 +2043,15 @@
       const supportsPointerEvents = typeof window !== 'undefined' && !!window.PointerEvent;
       let currentLinkStyle = sanitizeLinkStyle(linkStyleSelect ? linkStyleSelect.value : 'solid');
       let currentLinkEnd = sanitizeLinkEnd(linkEndSelect ? linkEndSelect.value : 'none');
+      let currentLinkColor = sanitizeBoxColor(linkColorInput ? linkColorInput.value : '#F6C35C', '#F6C35C');
+      let canvasPan = {
+        active: false,
+        pointerId: null,
+        startX: 0,
+        startY: 0,
+        startScrollLeft: 0,
+        startScrollTop: 0
+      };
       let linkDrag = {
         active: false,
         sourceId: null,
@@ -2073,6 +2103,19 @@
         autoSaveStatus.style.color = isError ? '#FCA5A5' : '#AFC0CF';
       }
 
+      function isCanvasPanTarget(target) {
+        if (!target) {
+          return false;
+        }
+        if (target.closest('.note-box')) {
+          return false;
+        }
+        if (target.closest('button, input, select, textarea, label, summary, a')) {
+          return false;
+        }
+        return !!target.closest('#canvas-wrap');
+      }
+
       function closeToolbarMenus() {
         document.querySelectorAll('.toolbar-menu[open]').forEach(function (menu) {
           menu.removeAttribute('open');
@@ -2099,7 +2142,7 @@
       }
 
       function setZoom(nextZoom) {
-        const min = 0.5;
+        const min = 0.35;
         const max = 2;
         const clamped = Math.max(min, Math.min(max, nextZoom));
         if (Math.abs(clamped - zoomLevel) < 0.001) {
@@ -2107,7 +2150,7 @@
         }
         zoomLevel = clamped;
         updateZoomUi();
-        renderLinks();
+        render();
       }
 
       function newBox(x, y, preferredType) {
@@ -2199,7 +2242,8 @@
           from: from,
           to: to,
           style: sanitizeLinkStyle(link.style),
-          end: sanitizeLinkEnd(link.end)
+          end: sanitizeLinkEnd(link.end),
+          color: sanitizeBoxColor(link.color, '#F6C35C')
         };
       }
 
@@ -2227,11 +2271,15 @@
       function syncLinkControlInputs(link) {
         const activeStyle = sanitizeLinkStyle(link ? link.style : currentLinkStyle);
         const activeEnd = sanitizeLinkEnd(link ? link.end : currentLinkEnd);
+        const activeColor = sanitizeBoxColor(link ? link.color : currentLinkColor, '#F6C35C');
         if (linkStyleSelect) {
           linkStyleSelect.value = activeStyle;
         }
         if (linkEndSelect) {
           linkEndSelect.value = activeEnd;
+        }
+        if (linkColorInput) {
+          linkColorInput.value = activeColor;
         }
       }
 
@@ -2239,25 +2287,56 @@
         return window.matchMedia && window.matchMedia('(min-width: 600px) and (max-width: 1199px)').matches;
       }
 
-      function ensureCanvasRoom() {
-        const wrapWidth = Math.max(canvasWrap.clientWidth || 0, 760);
-        const wrapHeight = Math.max(canvasWrap.clientHeight || 0, 540);
-        let surfaceWidth = wrapWidth;
-        let surfaceHeight = wrapHeight;
+      function getCanvasContentExtents(candidateBox) {
+        let maxRight = 0;
+        let maxBottom = 0;
+        const seenCandidate = Array.isArray(state.boxes) && state.boxes.includes(candidateBox);
 
-        if (isTabletViewport()) {
-          surfaceWidth = Math.max(surfaceWidth, 1400);
-          surfaceHeight = Math.max(surfaceHeight, 900);
+        function includeBox(box) {
+          if (!box || typeof box !== 'object') {
+            return;
+          }
+          const boxX = Math.max(0, Number(box.x) || 0);
+          const boxY = Math.max(0, Number(box.y) || 0);
+          const boxW = Math.max(0, Number(box.w) || 0);
+          const boxH = Math.max(0, Number(box.h) || 0);
+          maxRight = Math.max(maxRight, boxX + boxW);
+          maxBottom = Math.max(maxBottom, boxY + boxH);
         }
 
+        (Array.isArray(state.boxes) ? state.boxes : []).forEach(includeBox);
+        if (candidateBox && !seenCandidate) {
+          includeBox(candidateBox);
+        }
+
+        return { maxRight: maxRight, maxBottom: maxBottom };
+      }
+
+      function ensureCanvasRoom(candidateBox) {
+        const wrapWidth = Math.max(canvasWrap.clientWidth || 0, 760);
+        const wrapHeight = Math.max(canvasWrap.clientHeight || 0, 540);
+        const logicalViewportWidth = Math.max(wrapWidth / Math.max(zoomLevel, 0.35), 760);
+        const logicalViewportHeight = Math.max(wrapHeight / Math.max(zoomLevel, 0.35), 540);
+        const extents = getCanvasContentExtents(candidateBox);
+
+        surfaceWidth = Math.max(surfaceWidth, 2200, Math.ceil(logicalViewportWidth * 1.8), Math.ceil(extents.maxRight + 520));
+        surfaceHeight = Math.max(surfaceHeight, 1400, Math.ceil(logicalViewportHeight * 1.8), Math.ceil(extents.maxBottom + 420));
+
+        if (isTabletViewport()) {
+          surfaceWidth = Math.max(surfaceWidth, 2600);
+          surfaceHeight = Math.max(surfaceHeight, 1700);
+        }
+
+        canvasSurface.style.width = Math.ceil(surfaceWidth) + 'px';
+        canvasSurface.style.height = Math.ceil(surfaceHeight) + 'px';
         canvasSurface.style.minWidth = Math.ceil(surfaceWidth) + 'px';
         canvasSurface.style.minHeight = Math.ceil(surfaceHeight) + 'px';
       }
 
-      function getSurfaceBounds() {
-        ensureCanvasRoom();
-        const width = Math.max(canvasSurface.scrollWidth || 0, canvasSurface.clientWidth || 0, 760);
-        const height = Math.max(canvasSurface.scrollHeight || 0, canvasSurface.clientHeight || 0, 540);
+      function getSurfaceBounds(candidateBox) {
+        ensureCanvasRoom(candidateBox);
+        const width = Math.max(surfaceWidth, canvasSurface.scrollWidth || 0, canvasSurface.clientWidth || 0, 760);
+        const height = Math.max(surfaceHeight, canvasSurface.scrollHeight || 0, canvasSurface.clientHeight || 0, 540);
         return { width: width, height: height };
       }
 
@@ -2265,7 +2344,7 @@
         const isPlainTextBox = String(box.type || '').trim() === 'Text';
         const minW = isPlainTextBox ? 120 : 220;
         const minH = isPlainTextBox ? 70 : 160;
-        const bounds = getSurfaceBounds();
+        const bounds = getSurfaceBounds(box);
         const maxW = Math.max(minW, bounds.width);
         const maxH = Math.max(minH, bounds.height);
 
@@ -2375,6 +2454,7 @@
           to: toId,
           style: currentLinkStyle,
           end: currentLinkEnd,
+          color: currentLinkColor,
         });
         if (!nextLink) {
           return;
@@ -2399,6 +2479,7 @@
       function applyCurrentLinkSettings() {
         currentLinkStyle = sanitizeLinkStyle(linkStyleSelect ? linkStyleSelect.value : currentLinkStyle);
         currentLinkEnd = sanitizeLinkEnd(linkEndSelect ? linkEndSelect.value : currentLinkEnd);
+        currentLinkColor = sanitizeBoxColor(linkColorInput ? linkColorInput.value : currentLinkColor, '#F6C35C');
 
         if (!selectedLinkKey) {
           updateToolbarInfo('New links will use a ' + describeLinkAppearance(currentLinkStyle, currentLinkEnd) + '.');
@@ -2416,6 +2497,7 @@
 
         activeLink.style = currentLinkStyle;
         activeLink.end = currentLinkEnd;
+        activeLink.color = currentLinkColor;
         markDirty();
         renderLinks();
         updateToolbarInfo('Selected link updated to a ' + describeLinkAppearance(currentLinkStyle, currentLinkEnd) + '.');
@@ -2425,8 +2507,9 @@
         const rect = canvasSurface.getBoundingClientRect();
         const rawX = (event.clientX - rect.left) / zoomLevel;
         const rawY = (event.clientY - rect.top) / zoomLevel;
-        const x = Math.max(0, Math.min(rawX, canvasSurface.clientWidth));
-        const y = Math.max(0, Math.min(rawY, canvasSurface.clientHeight));
+        const bounds = getSurfaceBounds();
+        const x = Math.max(0, Math.min(rawX, bounds.width));
+        const y = Math.max(0, Math.min(rawY, bounds.height));
         return { x: x, y: y };
       }
 
@@ -2492,20 +2575,33 @@
         linksSvg.setAttribute('height', String(canvasSurface.clientHeight));
 
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-        marker.setAttribute('id', 'canvas-link-arrow');
-        marker.setAttribute('markerWidth', '10');
-        marker.setAttribute('markerHeight', '10');
-        marker.setAttribute('refX', '8');
-        marker.setAttribute('refY', '3');
-        marker.setAttribute('orient', 'auto');
-        marker.setAttribute('markerUnits', 'strokeWidth');
+        const markerIdsByColor = {};
 
-        const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        arrowPath.setAttribute('d', 'M0,0 L0,6 L9,3 z');
-        arrowPath.setAttribute('fill', '#F6C35C');
-        marker.appendChild(arrowPath);
-        defs.appendChild(marker);
+        function ensureArrowMarker(color) {
+          const safeColor = sanitizeBoxColor(color, '#F6C35C');
+          if (markerIdsByColor[safeColor]) {
+            return markerIdsByColor[safeColor];
+          }
+
+          const markerId = 'canvas-link-arrow-' + safeColor.slice(1).toLowerCase();
+          const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+          marker.setAttribute('id', markerId);
+          marker.setAttribute('markerWidth', '10');
+          marker.setAttribute('markerHeight', '10');
+          marker.setAttribute('refX', '8');
+          marker.setAttribute('refY', '3');
+          marker.setAttribute('orient', 'auto');
+          marker.setAttribute('markerUnits', 'strokeWidth');
+
+          const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          arrowPath.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+          arrowPath.setAttribute('fill', safeColor);
+          marker.appendChild(arrowPath);
+          defs.appendChild(marker);
+          markerIdsByColor[safeColor] = markerId;
+          return markerId;
+        }
+
         linksSvg.appendChild(defs);
 
         for (const rawLink of state.links) {
@@ -2527,20 +2623,22 @@
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'line');
           const dashArray = getLinkDashArray(link.style);
           const isSelected = selectedLinkKey === getLinkKey(link);
+          const linkColor = sanitizeBoxColor(link.color, '#F6C35C');
 
           path.setAttribute('x1', String(from.x));
           path.setAttribute('y1', String(from.y));
           path.setAttribute('x2', String(to.x));
           path.setAttribute('y2', String(to.y));
+          path.setAttribute('stroke', linkColor);
           if (dashArray) {
             path.setAttribute('stroke-dasharray', dashArray);
           }
           if (link.end === 'arrow') {
-            path.setAttribute('marker-end', 'url(#canvas-link-arrow)');
+            const markerId = ensureArrowMarker(linkColor);
+            path.setAttribute('marker-end', 'url(#' + markerId + ')');
           }
           if (isSelected) {
             path.classList.add('is-selected');
-            arrowPath.setAttribute('fill', '#7FE3FF');
           }
 
           path.addEventListener('click', function (event) {
@@ -2550,6 +2648,7 @@
             selectedLinkKey = getLinkKey(link);
             currentLinkStyle = sanitizeLinkStyle(link.style);
             currentLinkEnd = sanitizeLinkEnd(link.end);
+            currentLinkColor = sanitizeBoxColor(link.color, '#F6C35C');
             syncLinkControlInputs(link);
             updateToolbarInfo('Link selected. Choose a style or end from the Links menu.');
             renderLinks();
@@ -2564,6 +2663,7 @@
             const from = getBoxEdgePoint(fromBox, linkDrag.pointerX, linkDrag.pointerY);
             const preview = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             preview.classList.add('preview-line');
+            preview.setAttribute('stroke', currentLinkColor);
             preview.setAttribute('x1', String(from.x));
             preview.setAttribute('y1', String(from.y));
             preview.setAttribute('x2', String(linkDrag.pointerX));
@@ -2573,7 +2673,8 @@
               preview.setAttribute('stroke-dasharray', previewDash);
             }
             if (currentLinkEnd === 'arrow') {
-              preview.setAttribute('marker-end', 'url(#canvas-link-arrow)');
+              const previewMarkerId = ensureArrowMarker(currentLinkColor);
+              preview.setAttribute('marker-end', 'url(#' + previewMarkerId + ')');
             }
             linksSvg.appendChild(preview);
           }
@@ -3392,9 +3493,20 @@
               text: box.text || ''
             };
           }),
-          links: state.links.filter(function (link) {
-            return !!getBox(link.from) && !!getBox(link.to) && link.from !== link.to;
-          })
+          links: state.links
+            .map(normalizeLink)
+            .filter(function (link) {
+              return !!link && !!getBox(link.from) && !!getBox(link.to) && link.from !== link.to;
+            })
+            .map(function (link) {
+              return {
+                from: link.from,
+                to: link.to,
+                style: sanitizeLinkStyle(link.style),
+                end: sanitizeLinkEnd(link.end),
+                color: sanitizeBoxColor(link.color, '#F6C35C')
+              };
+            })
         };
       }
 
@@ -3763,6 +3875,11 @@
         linkEndSelect.addEventListener('change', applyCurrentLinkSettings);
       }
 
+      if (linkColorInput) {
+        linkColorInput.addEventListener('input', applyCurrentLinkSettings);
+        linkColorInput.addEventListener('change', applyCurrentLinkSettings);
+      }
+
       syncLinkControlInputs(null);
 
       if (saveLaterBtn) {
@@ -3833,6 +3950,55 @@
           notesForm.submit();
         });
       }
+
+      canvasWrap.addEventListener('pointerdown', function (event) {
+        if (!isCanvasPanTarget(event.target)) {
+          return;
+        }
+        if (event.pointerType !== 'touch' && event.button !== 0) {
+          return;
+        }
+
+        canvasPan.active = true;
+        canvasPan.pointerId = event.pointerId;
+        canvasPan.startX = event.clientX;
+        canvasPan.startY = event.clientY;
+        canvasPan.startScrollLeft = canvasWrap.scrollLeft;
+        canvasPan.startScrollTop = canvasWrap.scrollTop;
+        canvasWrap.classList.add('is-panning');
+        event.preventDefault();
+      });
+
+      canvasWrap.addEventListener('pointermove', function (event) {
+        if (!canvasPan.active || canvasPan.pointerId !== event.pointerId) {
+          return;
+        }
+        const deltaX = event.clientX - canvasPan.startX;
+        const deltaY = event.clientY - canvasPan.startY;
+        canvasWrap.scrollLeft = canvasPan.startScrollLeft - deltaX;
+        canvasWrap.scrollTop = canvasPan.startScrollTop - deltaY;
+        event.preventDefault();
+      });
+
+      function stopCanvasPan(event) {
+        if (!canvasPan.active) {
+          return;
+        }
+        if (event && canvasPan.pointerId !== null && event.pointerId !== canvasPan.pointerId) {
+          return;
+        }
+        canvasPan.active = false;
+        canvasPan.pointerId = null;
+        canvasWrap.classList.remove('is-panning');
+      }
+
+      canvasWrap.addEventListener('pointerup', stopCanvasPan);
+      canvasWrap.addEventListener('pointercancel', stopCanvasPan);
+      canvasWrap.addEventListener('pointerleave', function (event) {
+        if (event.pointerType === 'mouse') {
+          stopCanvasPan(event);
+        }
+      });
 
       canvasSurface.addEventListener('click', function (event) {
         if (event.target.closest('.note-box')) {

@@ -214,6 +214,7 @@ class CanvasViewTests(TestCase):
                 'to': 'box-text-2',
                 'style': 'dashed',
                 'end': 'arrow',
+                'color': '#ff8844',
             }
         ]
 
@@ -231,4 +232,5 @@ class CanvasViewTests(TestCase):
         self.assertIn('"color": "#ff6b6b"', canvas_data)
         self.assertIn('"style": "dashed"', canvas_data)
         self.assertIn('"end": "arrow"', canvas_data)
+        self.assertIn('"color": "#ff8844"', canvas_data)
         self.assertIn('"w": 140', canvas_data)
