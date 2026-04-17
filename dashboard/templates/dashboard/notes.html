@@ -440,6 +440,34 @@
       justify-content: center;
     }
 
+    .toolbar-field {
+      display: grid;
+      gap: 0.22rem;
+      margin-top: 0.18rem;
+    }
+
+    .toolbar-field-label {
+      font-size: 0.72rem;
+      color: #AFC0CF;
+      padding: 0 0.12rem;
+    }
+
+    .toolbar-select {
+      width: 100%;
+      border: 1px solid #2A5E82;
+      background: #0D2132;
+      color: #D8E7F2;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      padding: 0.34rem 0.45rem;
+      outline: none;
+    }
+
+    .toolbar-select:focus {
+      border-color: #00C2FF;
+      box-shadow: 0 0 0 2px rgba(0, 194, 255, 0.2);
+    }
+
     .saved-canvas-controls .canvas-name-input,
     .saved-canvas-controls .canvas-save-select,
     .saved-canvas-controls .btn-canvas,
@@ -616,6 +644,14 @@
     .canvas-links line {
       stroke: rgba(246, 195, 92, 0.8);
       stroke-width: 2.2;
+      pointer-events: stroke;
+      cursor: pointer;
+    }
+
+    .canvas-links line.is-selected {
+      stroke: #7FE3FF;
+      stroke-width: 2.8;
+      filter: drop-shadow(0 0 4px rgba(127, 227, 255, 0.7));
     }
 
     .canvas-links .preview-line {
@@ -1739,6 +1775,21 @@
                   <button type="button" class="btn-canvas" id="link-mode-btn">Link Mode</button>
                   <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
                   <button type="button" class="btn-canvas" id="clear-links-btn">Clear Links</button>
+                  <div class="toolbar-field">
+                    <label class="toolbar-field-label" for="link-style-select">Line style</label>
+                    <select class="toolbar-select" id="link-style-select">
+                      <option value="solid">Solid</option>
+                      <option value="dashed">Dashed</option>
+                      <option value="dotted">Dotted</option>
+                    </select>
+                  </div>
+                  <div class="toolbar-field">
+                    <label class="toolbar-field-label" for="link-end-select">Line end</label>
+                    <select class="toolbar-select" id="link-end-select">
+                      <option value="none">Plain</option>
+                      <option value="arrow">Arrow</option>
+                    </select>
+                  </div>
                 </div>
               </details>
 
@@ -1875,6 +1926,8 @@
       const addNoteBoxBtn = document.getElementById('add-note-box-btn');
       const linkModeBtn = document.getElementById('link-mode-btn');
       const cancelLinkBtn = document.getElementById('cancel-link-btn');
+      const linkStyleSelect = document.getElementById('link-style-select');
+      const linkEndSelect = document.getElementById('link-end-select');
       const deleteBoxBtn = document.getElementById('delete-box-btn');
       const clearLinksBtn = document.getElementById('clear-links-btn');
       const clearCanvasBtn = document.getElementById('clear-canvas-btn');
@@ -1938,6 +1991,10 @@
         state = { canvas_name: '', boxes: [], links: [] };
       }
 
+      state.links = Array.isArray(state.links)
+        ? state.links.map(normalizeLink).filter(Boolean)
+        : [];
+
       if (typeof state.canvas_name !== 'string') {
         state.canvas_name = '';
       }
@@ -1951,6 +2008,7 @@
       }
 
       let selectedBoxId = null;
+      let selectedLinkKey = null;
       let lastFocusedTextBoxId = null;
       let linkMode = false;
       let linkSourceId = null;
@@ -1962,6 +2020,8 @@
       const INPUT_SYNC_DELAY_MS = 180;
       const AUTOSAVE_TYPING_PAUSE_MS = 1500;
       const supportsPointerEvents = typeof window !== 'undefined' && !!window.PointerEvent;
+      let currentLinkStyle = sanitizeLinkStyle(linkStyleSelect ? linkStyleSelect.value : 'solid');
+      let currentLinkEnd = sanitizeLinkEnd(linkEndSelect ? linkEndSelect.value : 'none');
       let linkDrag = {
         active: false,
         sourceId: null,
@@ -2116,6 +2176,65 @@
         return '#F6C35C';
       }
 
+      function sanitizeLinkStyle(value) {
+        const candidate = String(value || '').trim().toLowerCase();
+        return ['solid', 'dashed', 'dotted'].includes(candidate) ? candidate : 'solid';
+      }
+
+      function sanitizeLinkEnd(value) {
+        const candidate = String(value || '').trim().toLowerCase();
+        return ['none', 'arrow'].includes(candidate) ? candidate : 'none';
+      }
+
+      function normalizeLink(link) {
+        if (!link || typeof link !== 'object') {
+          return null;
+        }
+        const from = String(link.from || '').trim();
+        const to = String(link.to || '').trim();
+        if (!from || !to || from === to) {
+          return null;
+        }
+        return {
+          from: from,
+          to: to,
+          style: sanitizeLinkStyle(link.style),
+          end: sanitizeLinkEnd(link.end)
+        };
+      }
+
+      function getLinkKey(link) {
+        return String(link.from || '') + '->' + String(link.to || '');
+      }
+
+      function getLinkDashArray(style) {
+        const safeStyle = sanitizeLinkStyle(style);
+        if (safeStyle === 'dashed') {
+          return '8 6';
+        }
+        if (safeStyle === 'dotted') {
+          return '2 5';
+        }
+        return '';
+      }
+
+      function describeLinkAppearance(style, end) {
+        const safeStyle = sanitizeLinkStyle(style);
+        const safeEnd = sanitizeLinkEnd(end);
+        return (safeStyle === 'solid' ? 'solid' : safeStyle) + (safeEnd === 'arrow' ? ' arrow' : ' line');
+      }
+
+      function syncLinkControlInputs(link) {
+        const activeStyle = sanitizeLinkStyle(link ? link.style : currentLinkStyle);
+        const activeEnd = sanitizeLinkEnd(link ? link.end : currentLinkEnd);
+        if (linkStyleSelect) {
+          linkStyleSelect.value = activeStyle;
+        }
+        if (linkEndSelect) {
+          linkEndSelect.value = activeEnd;
+        }
+      }
+
       function isTabletViewport() {
         return window.matchMedia && window.matchMedia('(min-width: 600px) and (max-width: 1199px)').matches;
       }
@@ -2232,6 +2351,15 @@
         if (linkSourceId === boxId) {
           linkSourceId = null;
         }
+        if (selectedLinkKey) {
+          const selectedStillExists = state.links.some(function (link) {
+            return getLinkKey(link) === selectedLinkKey;
+          });
+          if (!selectedStillExists) {
+            selectedLinkKey = null;
+            syncLinkControlInputs(null);
+          }
+        }
       }
 
       function addLink(fromId, toId) {
@@ -2242,7 +2370,18 @@
         if (exists) {
           return;
         }
-        state.links.push({ from: fromId, to: toId });
+        const nextLink = normalizeLink({
+          from: fromId,
+          to: toId,
+          style: currentLinkStyle,
+          end: currentLinkEnd,
+        });
+        if (!nextLink) {
+          return;
+        }
+        state.links.push(nextLink);
+        selectedLinkKey = getLinkKey(nextLink);
+        syncLinkControlInputs(nextLink);
         markDirty();
       }
 
@@ -2255,6 +2394,31 @@
         linkDrag.sourceId = null;
         linkSourceId = null;
         refreshLinkControls();
+      }
+
+      function applyCurrentLinkSettings() {
+        currentLinkStyle = sanitizeLinkStyle(linkStyleSelect ? linkStyleSelect.value : currentLinkStyle);
+        currentLinkEnd = sanitizeLinkEnd(linkEndSelect ? linkEndSelect.value : currentLinkEnd);
+
+        if (!selectedLinkKey) {
+          updateToolbarInfo('New links will use a ' + describeLinkAppearance(currentLinkStyle, currentLinkEnd) + '.');
+          return;
+        }
+
+        const activeLink = state.links.find(function (link) {
+          return getLinkKey(link) === selectedLinkKey;
+        });
+        if (!activeLink) {
+          selectedLinkKey = null;
+          updateToolbarInfo('New links will use a ' + describeLinkAppearance(currentLinkStyle, currentLinkEnd) + '.');
+          return;
+        }
+
+        activeLink.style = currentLinkStyle;
+        activeLink.end = currentLinkEnd;
+        markDirty();
+        renderLinks();
+        updateToolbarInfo('Selected link updated to a ' + describeLinkAppearance(currentLinkStyle, currentLinkEnd) + '.');
       }
 
       function getPointerOnSurface(event) {
@@ -2300,6 +2464,24 @@
         };
       }
 
+      function getBoxEdgePoint(box, targetX, targetY) {
+        const center = boxCenter(box);
+        const dx = targetX - center.x;
+        const dy = targetY - center.y;
+        if (!dx && !dy) {
+          return center;
+        }
+
+        const halfW = Math.max(1, box.w / 2);
+        const halfH = Math.max(1, box.h / 2);
+        const scale = 1 / Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
+
+        return {
+          x: center.x + dx * scale,
+          y: center.y + dy * scale,
+        };
+      }
+
       function getBox(id) {
         return state.boxes.find((box) => box.id === id);
       }
@@ -2309,33 +2491,90 @@
         linksSvg.setAttribute('width', String(canvasSurface.clientWidth));
         linksSvg.setAttribute('height', String(canvasSurface.clientHeight));
 
-        for (const link of state.links) {
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', 'canvas-link-arrow');
+        marker.setAttribute('markerWidth', '10');
+        marker.setAttribute('markerHeight', '10');
+        marker.setAttribute('refX', '8');
+        marker.setAttribute('refY', '3');
+        marker.setAttribute('orient', 'auto');
+        marker.setAttribute('markerUnits', 'strokeWidth');
+
+        const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        arrowPath.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+        arrowPath.setAttribute('fill', '#F6C35C');
+        marker.appendChild(arrowPath);
+        defs.appendChild(marker);
+        linksSvg.appendChild(defs);
+
+        for (const rawLink of state.links) {
+          const link = normalizeLink(rawLink);
+          if (!link) {
+            continue;
+          }
+
           const fromBox = getBox(link.from);
           const toBox = getBox(link.to);
           if (!fromBox || !toBox) {
             continue;
           }
 
-          const from = boxCenter(fromBox);
-          const to = boxCenter(toBox);
+          const fromCenter = boxCenter(fromBox);
+          const toCenter = boxCenter(toBox);
+          const from = getBoxEdgePoint(fromBox, toCenter.x, toCenter.y);
+          const to = getBoxEdgePoint(toBox, fromCenter.x, fromCenter.y);
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          const dashArray = getLinkDashArray(link.style);
+          const isSelected = selectedLinkKey === getLinkKey(link);
+
           path.setAttribute('x1', String(from.x));
           path.setAttribute('y1', String(from.y));
           path.setAttribute('x2', String(to.x));
           path.setAttribute('y2', String(to.y));
+          if (dashArray) {
+            path.setAttribute('stroke-dasharray', dashArray);
+          }
+          if (link.end === 'arrow') {
+            path.setAttribute('marker-end', 'url(#canvas-link-arrow)');
+          }
+          if (isSelected) {
+            path.classList.add('is-selected');
+            arrowPath.setAttribute('fill', '#7FE3FF');
+          }
+
+          path.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            selectedBoxId = null;
+            selectedLinkKey = getLinkKey(link);
+            currentLinkStyle = sanitizeLinkStyle(link.style);
+            currentLinkEnd = sanitizeLinkEnd(link.end);
+            syncLinkControlInputs(link);
+            updateToolbarInfo('Link selected. Choose a style or end from the Links menu.');
+            renderLinks();
+          });
+
           linksSvg.appendChild(path);
         }
 
         if (linkMode && linkDrag.active && linkDrag.sourceId) {
           const fromBox = getBox(linkDrag.sourceId);
           if (fromBox) {
-            const from = boxCenter(fromBox);
+            const from = getBoxEdgePoint(fromBox, linkDrag.pointerX, linkDrag.pointerY);
             const preview = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             preview.classList.add('preview-line');
             preview.setAttribute('x1', String(from.x));
             preview.setAttribute('y1', String(from.y));
             preview.setAttribute('x2', String(linkDrag.pointerX));
             preview.setAttribute('y2', String(linkDrag.pointerY));
+            const previewDash = getLinkDashArray(currentLinkStyle);
+            if (previewDash) {
+              preview.setAttribute('stroke-dasharray', previewDash);
+            }
+            if (currentLinkEnd === 'arrow') {
+              preview.setAttribute('marker-end', 'url(#canvas-link-arrow)');
+            }
             linksSvg.appendChild(preview);
           }
         }
@@ -3020,6 +3259,8 @@
             if (!linkMode) {
               if (!clickedEditable) {
                 selectedBoxId = box.id;
+                selectedLinkKey = null;
+                syncLinkControlInputs(null);
                 render();
               }
               return;
@@ -3031,6 +3272,8 @@
 
             event.stopPropagation();
             selectedBoxId = box.id;
+            selectedLinkKey = null;
+            syncLinkControlInputs(null);
             render();
           });
 
@@ -3480,8 +3723,19 @@
 
       deleteBoxBtn.addEventListener('click', function () {
         closeToolbarMenus();
+        if (selectedLinkKey && !selectedBoxId) {
+          state.links = state.links.filter(function (link) {
+            return getLinkKey(link) !== selectedLinkKey;
+          });
+          selectedLinkKey = null;
+          syncLinkControlInputs(null);
+          markDirty();
+          updateToolbarInfo('Selected link deleted.');
+          renderLinks();
+          return;
+        }
         if (!selectedBoxId) {
-          updateToolbarInfo('Select a box first, then use Delete Selected.');
+          updateToolbarInfo('Select a box or link first, then use Delete Selected.');
           return;
         }
         removeBox(selectedBoxId);
@@ -3493,11 +3747,23 @@
       clearLinksBtn.addEventListener('click', function () {
         closeToolbarMenus();
         state.links = [];
+        selectedLinkKey = null;
         markDirty();
         cancelPendingLink();
+        syncLinkControlInputs(null);
         updateToolbarInfo('All links removed.');
         render();
       });
+
+      if (linkStyleSelect) {
+        linkStyleSelect.addEventListener('change', applyCurrentLinkSettings);
+      }
+
+      if (linkEndSelect) {
+        linkEndSelect.addEventListener('change', applyCurrentLinkSettings);
+      }
+
+      syncLinkControlInputs(null);
 
       if (saveLaterBtn) {
         saveLaterBtn.addEventListener('click', async function () {
@@ -3580,6 +3846,8 @@
           return;
         }
         selectedBoxId = null;
+        selectedLinkKey = null;
+        syncLinkControlInputs(null);
         render();
       });
 

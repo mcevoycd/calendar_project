@@ -1833,6 +1833,8 @@ def canvas_view(request):
         note_type_colors[title] = TODO_SECTION_COLORS.get(section_key, '#00C2FF')
 
     allowed_note_types = set(note_type_options)
+    allowed_link_styles = {'solid', 'dashed', 'dotted'}
+    allowed_link_ends = {'none', 'arrow'}
     section_title_to_key = {
         str(section.get('title', '')).strip().casefold(): section.get('key')
         for section in todo_sections
@@ -1854,6 +1856,7 @@ def canvas_view(request):
                     'h': 150,
                     'title': '',
                     'type': 'Text',
+                    'color': '#38BDF8',
                     'note_date': week_start.isoformat(),
                     'completed': False,
                     'body_html': '',
@@ -1867,6 +1870,12 @@ def canvas_view(request):
         default_state = get_default_canvas_state()
         if not isinstance(raw_value, dict):
             return default_state
+
+        def sanitize_box_color(value, fallback):
+            candidate = str(value or '').strip()
+            if re.fullmatch(r'#[0-9A-Fa-f]{6}', candidate):
+                return candidate
+            return fallback
 
         canvas_name = str(raw_value.get('canvas_name', '')).strip()[:120]
         raw_boxes = raw_value.get('boxes', [])
@@ -1898,8 +1907,6 @@ def canvas_view(request):
 
             x = max(0, min(x, 2400))
             y = max(0, min(y, 2400))
-            w = max(320, min(w, 700))
-            h = max(200, min(h, 520))
 
             text = item.get('text', '')
             if not isinstance(text, str):
@@ -1923,6 +1930,12 @@ def canvas_view(request):
             if box_type not in allowed_note_types:
                 box_type = 'Note'
 
+            min_w = 120 if box_type == 'Text' else 220
+            min_h = 70 if box_type == 'Text' else 160
+            w = max(min_w, min(w, 2400))
+            h = max(min_h, min(h, 1800))
+
+            color = sanitize_box_color(item.get('color', ''), note_type_colors.get(box_type, '#F6C35C'))
             completed = bool(item.get('completed', False))
 
             note_date_value = str(item.get('note_date', '')).strip()
@@ -1945,6 +1958,7 @@ def canvas_view(request):
                     'h': h,
                     'title': title,
                     'type': box_type,
+                    'color': color,
                     'note_date': parsed_note_date.isoformat(),
                     'completed': completed,
                     'body_html': body_html,
@@ -1972,8 +1986,17 @@ def canvas_view(request):
             key = (from_id, to_id)
             if key in seen_links:
                 continue
+
+            line_style = str(item.get('style', 'solid')).strip().lower()
+            if line_style not in allowed_link_styles:
+                line_style = 'solid'
+
+            line_end = str(item.get('end', 'none')).strip().lower()
+            if line_end not in allowed_link_ends:
+                line_end = 'none'
+
             seen_links.add(key)
-            links.append({'from': from_id, 'to': to_id})
+            links.append({'from': from_id, 'to': to_id, 'style': line_style, 'end': line_end})
 
         return {'canvas_name': canvas_name, 'boxes': boxes, 'links': links}
 

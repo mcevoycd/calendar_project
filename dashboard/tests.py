@@ -186,3 +186,49 @@ class CanvasViewTests(TestCase):
         self.assertEqual(get_response.status_code, 200)
         self.assertIn('"title": "Roadmap"', get_response.context['canvas_data_json'])
         self.assertIn('"canvas_name": "Sprint Plan"', get_response.context['canvas_data_json'])
+
+    def test_canvas_preserves_box_colour_and_link_style(self):
+        payload = self.get_canvas_payload()
+        payload['boxes'][0]['color'] = '#ff6b6b'
+        payload['boxes'][0]['w'] = 140
+        payload['boxes'][0]['h'] = 90
+        payload['boxes'].append(
+            {
+                'id': 'box-text-2',
+                'x': 420,
+                'y': 120,
+                'w': 180,
+                'h': 110,
+                'title': 'Second',
+                'type': 'Text',
+                'note_date': '2026-04-13',
+                'completed': False,
+                'color': '#4ade80',
+                'body_html': 'Another box',
+                'text': 'Another box',
+            }
+        )
+        payload['links'] = [
+            {
+                'from': 'box-text-1',
+                'to': 'box-text-2',
+                'style': 'dashed',
+                'end': 'arrow',
+            }
+        ]
+
+        post_response = self.client.post(
+            reverse('canvas'),
+            {
+                'canvas_data': json.dumps(payload),
+            },
+        )
+        self.assertEqual(post_response.status_code, 302)
+
+        get_response = self.client.get(reverse('canvas'))
+        self.assertEqual(get_response.status_code, 200)
+        canvas_data = get_response.context['canvas_data_json']
+        self.assertIn('"color": "#ff6b6b"', canvas_data)
+        self.assertIn('"style": "dashed"', canvas_data)
+        self.assertIn('"end": "arrow"', canvas_data)
+        self.assertIn('"w": 140', canvas_data)
