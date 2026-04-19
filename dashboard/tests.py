@@ -58,6 +58,36 @@ class NotesViewTests(TestCase):
         self.user = User.objects.create_user(username='tester', password='pass12345')
         self.client.login(username='tester', password='pass12345')
 
+    def test_notes_editor_exposes_table_toolbar_button(self):
+        note = NoteEntry.objects.create(user=self.user, title='Toolbar note', body='<p>Body</p>')
+
+        response = self.client.get(reverse('notes'), {'note': note.id})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-cmd="insertTable"')
+        self.assertContains(response, 'data-cmd="insertHorizontalRule"')
+
+    def test_save_note_preserves_table_markup(self):
+        note = NoteEntry.objects.create(user=self.user, title='Table note', body='<p>Old</p>')
+        table_html = '<table><tr><th>Head</th></tr><tr><td>Cell</td></tr></table>'
+
+        response = self.client.post(
+            reverse('notes'),
+            {
+                'notes_action': 'save_note',
+                'note_id': str(note.id),
+                'title': 'Table note',
+                'body': table_html,
+                'category_id': '',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        note.refresh_from_db()
+        self.assertIn('<table>', note.body)
+        self.assertIn('<th>Head</th>', note.body)
+        self.assertIn('<td>Cell</td>', note.body)
+
     def test_create_note_with_attachment(self):
         upload = SimpleUploadedFile('hello.txt', b'hello world', content_type='text/plain')
 

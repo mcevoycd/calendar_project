@@ -856,7 +856,7 @@
       margin: 0;
       color: #B4C4D3;
       font-size: 0.78rem;
-      line-height: 1.45;
+      line-height: 1.2;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       line-clamp: 2;
@@ -1066,6 +1066,10 @@
       outline: none;
     }
 
+    .tool-btn[data-cmd="insertTable"] {
+      min-width: 3rem;
+    }
+
     .editor-actions {
       display: flex;
       align-items: center;
@@ -1110,13 +1114,18 @@
       flex: 1;
       min-height: 0;
       overflow: auto;
-      line-height: 1.58;
+      line-height: 1.2;
       background: #0A1A28;
+    }
+
+    .editor-body p,
+    .editor-body div {
+      margin: 0;
     }
 
     .editor-body ul,
     .editor-body ol {
-      margin: 0.35rem 0 0.55rem 1rem;
+      margin: 0 0 0.35rem 1rem;
       padding-left: 1.15rem;
     }
 
@@ -1145,7 +1154,41 @@
     }
 
     .editor-body li {
-      margin: 0.18rem 0;
+      margin: 0.08rem 0;
+    }
+
+    .editor-body table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0.25rem 0 0.45rem;
+    }
+
+    .editor-body th,
+    .editor-body td {
+      border: 1px solid rgba(83, 183, 232, 0.38);
+      padding: 0.38rem 0.45rem;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .editor-body th {
+      background: rgba(20, 63, 92, 0.7);
+      color: #F3FAFF;
+      font-weight: 700;
+    }
+
+    .editor-body blockquote {
+      margin: 0.25rem 0;
+      padding: 0.15rem 0 0.15rem 0.75rem;
+      border-left: 3px solid rgba(83, 183, 232, 0.9);
+      color: #DCEAF6;
+    }
+
+    .editor-body hr {
+      border: 0;
+      border-top: 1px solid rgba(83, 183, 232, 0.38);
+      margin: 0.45rem 0;
     }
 
     .editor-checklist-row,
@@ -2093,6 +2136,14 @@
             <button type="button" class="tool-btn" data-cmd="insertChecklist" title="Insert tick box">☑</button>
             <button type="button" class="tool-btn" data-cmd="formatBlock" data-value="<h3>" title="Heading">H3</button>
             <button type="button" class="tool-btn" data-cmd="createLink" title="Insert link">Link</button>
+            <button type="button" class="tool-btn" data-cmd="insertTable" title="Insert table">Table</button>
+            <button type="button" class="tool-btn" data-cmd="insertHorizontalRule" title="Insert divider">HR</button>
+            <button type="button" class="tool-btn" data-cmd="formatBlock" data-value="<blockquote>" title="Quote">❝</button>
+            <button type="button" class="tool-btn" data-cmd="justifyLeft" title="Align left">L</button>
+            <button type="button" class="tool-btn" data-cmd="justifyCenter" title="Align center">C</button>
+            <button type="button" class="tool-btn" data-cmd="justifyRight" title="Align right">R</button>
+            <button type="button" class="tool-btn" data-cmd="undo" title="Undo">↶</button>
+            <button type="button" class="tool-btn" data-cmd="redo" title="Redo">↷</button>
             <button type="button" class="tool-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
           </div>
         </details>
@@ -2357,6 +2408,29 @@
           }
         }
 
+        function insertTable() {
+          if (!editor) {
+            return;
+          }
+
+          const markerId = 'note-table-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+          const tableHtml = [
+            '<table><thead><tr><th>Heading 1</th><th>Heading 2</th><th>Heading 3</th></tr></thead>',
+            '<tbody><tr><td>Cell</td><td>Cell</td><td>Cell</td></tr>',
+            '<tr><td>Cell</td><td>Cell</td><td>Cell</td></tr></tbody></table>',
+            '<p id="' + markerId + '"><br></p>'
+          ].join('');
+
+          editor.focus();
+          document.execCommand('insertHTML', false, tableHtml);
+
+          const marker = document.getElementById(markerId);
+          if (marker) {
+            marker.removeAttribute('id');
+            placeCaretAtEnd(marker);
+          }
+        }
+
         function getChecklistRow(node) {
           if (!node) {
             return null;
@@ -2505,6 +2579,10 @@
             }
             if (cmd === 'insertChecklist') {
               insertChecklistItem();
+              return;
+            }
+            if (cmd === 'insertTable') {
+              insertTable();
               return;
             }
             document.execCommand(cmd, false, fixedValue);
