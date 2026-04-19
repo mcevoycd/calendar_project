@@ -126,6 +126,20 @@ class NotesViewTests(TestCase):
         self.assertFalse(NoteAttachment.objects.filter(id=attachment.id).exists())
 
 
+class SettingsViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='settings_tester', password='pass12345')
+        self.client.login(username='settings_tester', password='pass12345')
+
+    def test_settings_hides_navigation_layout_option(self):
+        response = self.client.get(reverse('settings'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Navigation layout')
+        self.assertContains(response, 'name="nav_layout"', html=False)
+
+
 class CanvasViewTests(TestCase):
     def setUp(self):
         self.client = Client()

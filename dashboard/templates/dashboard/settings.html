@@ -1157,22 +1157,12 @@
       </div>
       <section class="panel settings-shell">
         <section class="settings-section" aria-labelledby="preferences-heading">
-          <h2 id="preferences-heading" class="title-inline">Preferences <span class="title-blurb">Set your navigation and diary defaults.</span></h2>
+          <h2 id="preferences-heading" class="title-inline">Preferences <span class="title-blurb">Set your diary defaults.</span></h2>
 
           <form method="post" novalidate>
             {% csrf_token %}
             <input type="hidden" name="form_type" value="update_preferences">
-            <div class="mb-3">
-              <label class="form-label" for="id_nav_layout">Navigation layout</label>
-              {{ settings_form.nav_layout }}
-              {% if settings_form.nav_layout.errors %}
-                <ul class="form-error-list">
-                  {% for error in settings_form.nav_layout.errors %}
-                    <li>{{ error }}</li>
-                  {% endfor %}
-                </ul>
-              {% endif %}
-            </div>
+            {{ settings_form.nav_layout.as_hidden }}
             <div class="mb-4">
               <label class="form-label" for="id_default_diary_view">Default diary view</label>
               {{ settings_form.default_diary_view }}
