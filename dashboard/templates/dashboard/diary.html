@@ -3166,10 +3166,12 @@
     (function () {
       const bodyEl = document.body;
       if (!bodyEl) return;
+      const preferredNavLayout = '{{ nav_layout|default:"top" }}';
 
       function applyResponsiveNavLayout() {
         bodyEl.classList.remove('nav-position-top', 'nav-position-bottom');
-        bodyEl.classList.add('nav-position-top');
+        const useTabletBottomNav = preferredNavLayout === 'bottom' && window.matchMedia('(min-width: 600px) and (max-width: 1199px)').matches;
+        bodyEl.classList.add(useTabletBottomNav ? 'nav-position-bottom' : 'nav-position-top');
       }
 
       applyResponsiveNavLayout();

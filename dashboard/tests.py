@@ -5,7 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import NoteAttachment, NoteEntry
+from .models import NoteAttachment, NoteEntry, UserPreference
 
 
 class TodoViewTests(TestCase):
@@ -132,12 +132,34 @@ class SettingsViewTests(TestCase):
         self.user = User.objects.create_user(username='settings_tester', password='pass12345')
         self.client.login(username='settings_tester', password='pass12345')
 
-    def test_settings_hides_navigation_layout_option(self):
+    def test_settings_shows_ipad_navigation_option(self):
         response = self.client.get(reverse('settings'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, 'Navigation layout')
+        self.assertContains(response, 'iPad navigation')
+        self.assertContains(response, 'iPhone-style bottom menu')
         self.assertContains(response, 'name="nav_layout"', html=False)
+
+    def test_settings_can_save_ipad_navigation_preference(self):
+        response = self.client.post(
+            reverse('settings'),
+            {
+                'form_type': 'update_preferences',
+                'nav_layout': 'bottom',
+                'default_diary_view': 'week',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        preferences = UserPreference.objects.get(user=self.user)
+        self.assertEqual(preferences.nav_layout, 'bottom')
+
+    def test_shared_compact_menu_includes_settings_link(self):
+        response = self.client.get(reverse('settings'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Settings"', html=False)
+        self.assertContains(response, '>Settings<', html=False)
 
 
 class CanvasViewTests(TestCase):

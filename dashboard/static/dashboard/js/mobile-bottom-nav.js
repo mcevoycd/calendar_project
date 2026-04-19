@@ -14,7 +14,8 @@
   }
 
   function initMobileBottomNav() {
-    if (window.innerWidth > 599) {
+    var isTabletBottomNav = document.body && document.body.classList.contains('nav-position-bottom') && window.innerWidth >= 600 && window.innerWidth <= 1199;
+    if (window.innerWidth > 599 && !isTabletBottomNav) {
       return;
     }
 

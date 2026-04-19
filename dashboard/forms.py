@@ -28,11 +28,11 @@ class SignUpForm(UserCreationForm):
 
 class SettingsForm(forms.Form):
     NAV_LAYOUT_CHOICES = [
-        ('top', 'Top nav bar'),
-        ('bottom', 'Bottom nav bar'),
+        ('top', 'Standard iPad navigation'),
+        ('bottom', 'iPhone-style bottom menu'),
     ]
 
-    nav_layout = forms.ChoiceField(choices=NAV_LAYOUT_CHOICES)
+    nav_layout = forms.ChoiceField(choices=NAV_LAYOUT_CHOICES, label='iPad navigation')
     default_diary_view = forms.ChoiceField(choices=UserPreference.DIARY_VIEW_CHOICES)
 
     def __init__(self, *args, **kwargs):
