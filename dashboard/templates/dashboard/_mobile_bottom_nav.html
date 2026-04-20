@@ -14,6 +14,13 @@
     <span class="mobile-bottom-label">Diary</span>
   </a>
 
+  <button type="button" class="mobile-bottom-link mobile-bottom-btn" data-mobile-quick-add aria-label="Quick Add">
+    <span class="mobile-bottom-icon" aria-hidden="true">
+      <img src="{% static 'dashboard/icons/add_white.svg' %}" alt="">
+    </span>
+    <span class="mobile-bottom-label">Quick Add</span>
+  </button>
+
   <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'notes' %}is-active{% endif %}" href="{% url 'notes' %}" aria-label="Notes">
     <span class="mobile-bottom-icon" aria-hidden="true">
       <img src="{% static 'dashboard/icons/notes_white.svg' %}" alt="">
@@ -28,17 +35,10 @@
     <span class="mobile-bottom-label">To-Do</span>
   </a>
 
-  <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'settings' %}is-active{% endif %}" href="{% url 'settings' %}" aria-label="Settings">
+  <a class="mobile-bottom-link mobile-bottom-link-settings {% if request.resolver_match.url_name == 'settings' %}is-active{% endif %}" href="{% url 'settings' %}" aria-label="Settings">
     <span class="mobile-bottom-icon" aria-hidden="true">
       <img src="{% static 'dashboard/icons/settings_white.svg' %}" alt="">
     </span>
     <span class="mobile-bottom-label">Settings</span>
   </a>
-
-  <button type="button" class="mobile-bottom-btn mobile-bottom-btn-primary" data-mobile-quick-add aria-label="Quick Add">
-    <span class="mobile-bottom-icon" aria-hidden="true">
-      <img src="{% static 'dashboard/icons/add_white.svg' %}" alt="">
-    </span>
-    <span class="mobile-bottom-label">Quick Add</span>
-  </button>
 </div>

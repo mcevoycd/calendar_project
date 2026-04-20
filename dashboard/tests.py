@@ -1,5 +1,7 @@
 import json
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
@@ -126,6 +128,64 @@ class NotesViewTests(TestCase):
         self.assertFalse(NoteAttachment.objects.filter(id=attachment.id).exists())
 
 
+class DashboardViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='dashboard_tester', password='pass12345')
+        self.client.login(username='dashboard_tester', password='pass12345')
+
+    def test_dashboard_uses_embedded_quick_add_tab_in_bottom_menu(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="bottom-menu"', html=False)
+        self.assertContains(response, 'menu-label">Quick Add<', html=False)
+        self.assertNotContains(response, 'mobile-bottom-btn-primary', html=False)
+
+    def test_dashboard_quick_add_matches_standard_tab_styling(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-mobile-quick-add', html=False)
+        self.assertNotContains(response, 'menu-item quick-add', html=False)
+
+    def test_dashboard_ipad_bottom_nav_hides_footer(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'body.nav-position-bottom .dashboard-footer', html=False)
+        self.assertContains(response, 'display: none !important', html=False)
+
+    def test_dashboard_phone_menu_hides_settings_but_keeps_ipad_version(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="menu-item settings-link"', html=False)
+        self.assertContains(response, '.bottom-menu .menu-item.settings-link {', html=False)
+        self.assertContains(response, 'grid-template-columns: repeat(5, minmax(0, 1fr));', html=False)
+
+    def test_dashboard_shows_account_modal_trigger(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="account-open-btn"', html=False)
+        self.assertContains(response, 'id="account-modal"', html=False)
+        self.assertContains(response, self.user.username)
+
+    def test_dashboard_can_update_email_from_account_modal(self):
+        response = self.client.post(
+            reverse('dashboard'),
+            {
+                'form_type': 'update_email',
+                'email': 'updated@example.com',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, 'updated@example.com')
+
+
 class SettingsViewTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -154,12 +214,28 @@ class SettingsViewTests(TestCase):
         preferences = UserPreference.objects.get(user=self.user)
         self.assertEqual(preferences.nav_layout, 'bottom')
 
-    def test_shared_compact_menu_includes_settings_link(self):
+    def test_shared_compact_menu_keeps_settings_for_ipad_and_desktop(self):
         response = self.client.get(reverse('settings'))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'aria-label="Settings"', html=False)
+        self.assertContains(response, 'mobile-bottom-link-settings', html=False)
         self.assertContains(response, '>Settings<', html=False)
+
+    def test_shared_phone_menu_hides_settings_link(self):
+        css_path = Path(settings.BASE_DIR) / 'dashboard' / 'static' / 'dashboard' / 'css' / 'mobile-bottom-nav.css'
+        css = css_path.read_text(encoding='utf-8')
+
+        self.assertIn('@media (max-width: 599px)', css)
+        self.assertIn('.mobile-bottom-link-settings', css)
+        self.assertIn('display: none !important', css)
+
+    def test_shared_compact_menu_uses_inline_quick_add_tab(self):
+        response = self.client.get(reverse('settings'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-mobile-quick-add', html=False)
+        self.assertNotContains(response, 'mobile-bottom-btn-primary', html=False)
 
 
 class CanvasViewTests(TestCase):

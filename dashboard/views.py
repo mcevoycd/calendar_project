@@ -966,6 +966,35 @@ def sync_notes_box_completed_state(request, task_item):
 @login_required
 def dashboard_view(request):
     preferences = get_user_preferences(request)
+    open_account = request.GET.get('account', '').strip().lower() in {'1', 'true', 'open'}
+    email_form = AccountEmailForm(initial={'email': request.user.email}, user=request.user)
+    email_form.fields['email'].widget.attrs.update({'class': 'quick-add-input', 'placeholder': 'Email address'})
+    password_form = PasswordChangeForm(request.user)
+    for field in password_form.fields.values():
+        field.widget.attrs.update({'class': 'quick-add-input'})
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', '').strip()
+
+        if form_type == 'update_email':
+            open_account = True
+            email_form = AccountEmailForm(request.POST, user=request.user)
+            email_form.fields['email'].widget.attrs.update({'class': 'quick-add-input', 'placeholder': 'Email address'})
+            if email_form.is_valid():
+                request.user.email = email_form.cleaned_data['email']
+                request.user.save(update_fields=['email'])
+                return redirect(f"{reverse('dashboard')}?account=1")
+
+        elif form_type == 'update_password':
+            open_account = True
+            password_form = PasswordChangeForm(request.user, request.POST)
+            for field in password_form.fields.values():
+                field.widget.attrs.update({'class': 'quick-add-input'})
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                return redirect(f"{reverse('dashboard')}?account=1")
+
     # Keep "Up & Coming" focused on future and not-yet-finished entries.
     now = datetime.now()
     today = now.date()
@@ -1060,6 +1089,9 @@ def dashboard_view(request):
         'todo_sections': todo_sections,
         'recent_notes': recent_notes,
         'note_categories': note_categories,
+        'email_form': email_form,
+        'password_form': password_form,
+        'open_account': open_account,
         'nav_layout': preferences.nav_layout,
         'app_version': getattr(settings, 'FLUID_NOTES_VERSION', 'Fluid Notes v2.0.0'),
     }

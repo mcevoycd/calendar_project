@@ -1624,6 +1624,92 @@
       white-space: nowrap;
     }
 
+    .account-chip {
+      appearance: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: pointer;
+      min-height: 2.25rem;
+      max-width: 14rem;
+    }
+
+    .account-chip:hover,
+    .account-chip:focus {
+      filter: brightness(1.08);
+      outline: none;
+    }
+
+    .account-chip-avatar {
+      width: 1.45rem;
+      height: 1.45rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 20, 33, 0.45);
+      color: #f4fbff;
+      font-size: 0.76rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .account-chip-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .account-modal-dialog {
+      width: min(760px, 100%);
+      max-height: min(86vh, 820px);
+      overflow-y: auto;
+    }
+
+    .account-modal-stack {
+      display: grid;
+      gap: 0.9rem;
+      margin-top: 0.75rem;
+    }
+
+    .account-modal-section {
+      border: 1px solid rgba(31, 79, 112, 0.7);
+      border-radius: 14px;
+      padding: 0.9rem;
+      background: rgba(8, 20, 33, 0.72);
+    }
+
+    .account-modal-section h3 {
+      margin: 0 0 0.25rem;
+      font-size: 0.98rem;
+      color: #eaf4ff;
+    }
+
+    .account-modal-note {
+      margin: 0 0 0.75rem;
+      color: #9eb7ca;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
+    .account-form-errors {
+      margin: 0.45rem 0 0;
+      padding-left: 1rem;
+      color: #fca5a5;
+      font-size: 0.82rem;
+    }
+
+    .account-modal-links {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.35rem;
+    }
+
     .btn-quick-add {
       border: 1px solid rgba(6, 182, 212, 0.68);
       background: linear-gradient(135deg, rgba(6, 182, 212, 0.36), rgba(59, 130, 246, 0.35));
@@ -1985,6 +2071,25 @@
       font-size: 0.74rem;
       background: rgba(8, 20, 33, 0.9);
       flex-shrink: 0;
+    }
+
+    @media (min-width: 600px) and (max-width: 1199px) {
+      body.nav-position-bottom .main {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 0 !important;
+        padding-bottom: calc(66px + env(safe-area-inset-bottom)) !important;
+      }
+
+      body.nav-position-bottom .dashboard-layout {
+        flex: 1 1 auto;
+        min-height: 0 !important;
+        padding-bottom: 0.2rem;
+      }
+
+      body.nav-position-bottom .dashboard-footer {
+        display: none !important;
+      }
     }
 
     .sync-ok {
@@ -2384,11 +2489,6 @@
         gap: 0.1rem;
         font-size: 0.78rem;
         font-weight: 700;
-      }
-
-      .mobile-bottom-btn-primary {
-        background: linear-gradient(180deg, #0F172A 0%, #172554 100%);
-        color: #FFFFFF;
       }
 
       .mobile-bottom-icon {
@@ -3049,6 +3149,131 @@
         width: 100% !important;
       }
     }
+
+    .bottom-menu {
+      display: none;
+    }
+
+    .bottom-menu .menu-item {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #EAF4FF;
+      text-decoration: none;
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 0.34rem;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 42px;
+      padding: 0.34rem 0.08rem;
+      border-radius: 12px;
+      font-weight: 700;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .bottom-menu .menu-item:hover,
+    .bottom-menu .menu-item:focus-visible {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      outline: none;
+    }
+
+    .bottom-menu .menu-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.92;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 3px rgba(4, 12, 24, 0.28));
+      flex-shrink: 0;
+    }
+
+    .bottom-menu .menu-label {
+      font-size: 0.62rem;
+      line-height: 1;
+      opacity: 0.95;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: calc(100% - 18px);
+    }
+
+    .bottom-menu .menu-item[data-active="true"] {
+      background: rgba(59, 130, 246, 0.16);
+      border-color: rgba(125, 211, 252, 0.26);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .bottom-menu .menu-item[data-active="true"] .menu-icon,
+    .bottom-menu .menu-item[data-active="true"] .menu-label {
+      opacity: 1;
+    }
+
+    .bottom-menu .menu-item[data-active="true"] .menu-label {
+      font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      .bottom-menu {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        gap: 0.16rem;
+        min-height: calc(58px + env(safe-area-inset-bottom));
+        padding: 0.2rem 0.3rem calc(0.2rem + env(safe-area-inset-bottom));
+        backdrop-filter: blur(24px) saturate(160%);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        background: linear-gradient(180deg, rgba(5, 14, 24, 0.98), rgba(11, 24, 39, 0.99));
+        border-top: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 -10px 24px rgba(2, 8, 23, 0.28);
+        z-index: 9999;
+      }
+
+      .bottom-menu .menu-item.settings-link {
+        display: none;
+      }
+    }
+
+    @media (min-width: 600px) and (max-width: 1199px) {
+      body.nav-position-bottom .bottom-menu {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transform: none;
+        width: 100vw;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        align-items: center;
+        gap: 0.24rem;
+        min-height: calc(60px + env(safe-area-inset-bottom));
+        padding: 0.24rem 0.7rem calc(0.24rem + env(safe-area-inset-bottom));
+        backdrop-filter: blur(24px) saturate(160%);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        background: linear-gradient(180deg, rgba(5, 14, 24, 0.98), rgba(11, 24, 39, 0.99));
+        border-top: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 -12px 26px rgba(2, 8, 23, 0.26);
+        z-index: 9999;
+      }
+
+      body.nav-position-bottom .bottom-menu .menu-item {
+        min-height: 44px;
+        padding: 0.34rem 0.18rem;
+      }
+
+      body.nav-position-bottom .bottom-menu .menu-label {
+        font-size: 0.72rem;
+        max-width: none;
+      }
+    }
   </style>
   <link href="{% static 'dashboard/css/mobile-bottom-nav.css' %}" rel="stylesheet">
   <script defer src="{% static 'dashboard/js/mobile-bottom-nav.js' %}"></script>
@@ -3083,7 +3308,10 @@
         </div>
         <div class="utility-actions">
           <span class="date-chip js-utility-datetime">Loading date and time...</span>
-          <span class="profile-chip">{{ request.user.username|slice:':1'|upper }}</span>
+          <button type="button" class="profile-chip account-chip" id="account-open-btn" aria-haspopup="dialog" aria-controls="account-modal">
+            <span class="account-chip-avatar">{{ request.user.username|slice:':1'|upper }}</span>
+            <span class="account-chip-name">{{ request.user.username }}</span>
+          </button>
           <button type="button" class="btn-quick-add" id="performance-toggle-btn" data-performance-toggle aria-pressed="false">Fast Mode: Off</button>
           <button type="button" class="btn-quick-add" id="quick-add-open-btn">+ Quick Add</button>
         </div>
@@ -3333,6 +3561,96 @@
       </div>
       <div class="app-modal-actions">
         <button type="button" class="btn-modal" id="quick-add-close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-modal" id="account-modal" {% if not open_account %}hidden{% endif %}>
+    <div class="app-modal-dialog account-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="account-modal-title" aria-describedby="account-modal-message">
+      <h2 class="app-modal-title" id="account-modal-title">Account</h2>
+      <p class="app-modal-message" id="account-modal-message">Manage your sign-in details directly from the dashboard.</p>
+      <div class="account-modal-stack">
+        <section class="account-modal-section">
+          <h3>Profile</h3>
+          <p class="account-modal-note">Signed in as <strong>{{ request.user.username }}</strong>.</p>
+          <form method="post" action="{% url 'dashboard' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="update_email">
+            <label class="quick-add-label">
+              Email address
+              {{ email_form.email }}
+            </label>
+            {% if email_form.email.errors %}
+              <ul class="account-form-errors">
+                {% for error in email_form.email.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            <div class="account-modal-links">
+              <button type="submit" class="btn-modal btn-modal-primary">Update email</button>
+              <a class="quick-add-secondary-link" href="{% url 'settings' %}?account=1">Open full settings</a>
+            </div>
+          </form>
+        </section>
+
+        <section class="account-modal-section">
+          <h3>Password</h3>
+          <p class="account-modal-note">Change your password without leaving the dashboard.</p>
+          <form method="post" action="{% url 'dashboard' %}" class="quick-add-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="update_password">
+            <label class="quick-add-label">
+              Current password
+              {{ password_form.old_password }}
+            </label>
+            {% if password_form.old_password.errors %}
+              <ul class="account-form-errors">
+                {% for error in password_form.old_password.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            <div class="quick-add-form-grid">
+              <label class="quick-add-label">
+                New password
+                {{ password_form.new_password1 }}
+              </label>
+              <label class="quick-add-label">
+                Confirm new password
+                {{ password_form.new_password2 }}
+              </label>
+            </div>
+            {% if password_form.new_password1.errors or password_form.new_password2.errors or password_form.non_field_errors %}
+              <ul class="account-form-errors">
+                {% for error in password_form.new_password1.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+                {% for error in password_form.new_password2.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+                {% for error in password_form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            <div class="account-modal-links">
+              <button type="submit" class="btn-modal btn-modal-primary">Update password</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="account-modal-section">
+          <h3>Sign out</h3>
+          <p class="account-modal-note">Securely end your current session from the dashboard.</p>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-modal">Sign out</button>
+          </form>
+        </section>
+      </div>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="account-close-btn">Close</button>
       </div>
     </div>
   </div>
@@ -3646,8 +3964,76 @@
         }
       });
     })();
+
+    (function () {
+      const openBtn = document.getElementById('account-open-btn');
+      const closeBtn = document.getElementById('account-close-btn');
+      const modal = document.getElementById('account-modal');
+      const shouldOpenOnLoad = {{ open_account|yesno:'true,false' }};
+
+      if (!openBtn || !closeBtn || !modal) {
+        return;
+      }
+
+      function openModal() {
+        modal.hidden = false;
+      }
+
+      function closeModal() {
+        modal.hidden = true;
+      }
+
+      openBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hidden) {
+          closeModal();
+        }
+      });
+
+      if (shouldOpenOnLoad) {
+        openModal();
+      }
+    })();
   </script>
 
-  {% include 'dashboard/_mobile_bottom_nav.html' %}
+  <nav class="bottom-menu" aria-label="Primary navigation">
+    <a class="menu-item" data-active="true" href="{% url 'dashboard' %}" aria-label="Dashboard">
+      <img class="menu-icon" src="{% static 'dashboard/icons/dashboard_white.svg' %}" alt="">
+      <span class="menu-label">Dashboard</span>
+    </a>
+
+    <a class="menu-item" data-active="false" href="{% url 'diary' %}" aria-label="Diary">
+      <img class="menu-icon" src="{% static 'dashboard/icons/diary_white.svg' %}" alt="">
+      <span class="menu-label">Diary</span>
+    </a>
+
+    <button type="button" class="menu-item" data-active="false" data-mobile-quick-add aria-label="Quick Add">
+      <img class="menu-icon" src="{% static 'dashboard/icons/add_white.svg' %}" alt="">
+      <span class="menu-label">Quick Add</span>
+    </button>
+
+    <a class="menu-item" data-active="false" href="{% url 'notes' %}" aria-label="Notes">
+      <img class="menu-icon" src="{% static 'dashboard/icons/notes_white.svg' %}" alt="">
+      <span class="menu-label">Notes</span>
+    </a>
+
+    <a class="menu-item" data-active="false" href="{% url 'todo' %}" aria-label="To-Do">
+      <img class="menu-icon" src="{% static 'dashboard/icons/todo_white.svg' %}" alt="">
+      <span class="menu-label">To-Do</span>
+    </a>
+
+    <a class="menu-item settings-link" data-active="false" href="{% url 'settings' %}" aria-label="Settings">
+      <img class="menu-icon" src="{% static 'dashboard/icons/settings_white.svg' %}" alt="">
+      <span class="menu-label">Settings</span>
+    </a>
+  </nav>
 </body>
 </html>
