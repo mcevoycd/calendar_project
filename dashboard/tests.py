@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import NoteAttachment, NoteEntry, UserPreference
+from .models import NoteAttachment, NoteEntry, TodoTask, UserPreference
 
 
 class TodoViewTests(TestCase):
@@ -52,6 +52,38 @@ class TodoViewTests(TestCase):
         planning = next(section for section in response.context['section_lists'] if section['key'] == 'planning')
         ordered_titles = [task['title'] for task in planning['tasks']]
         self.assertEqual(ordered_titles[:4], ['Urgent task', 'High task', 'Medium task', 'Low task'])
+
+    def test_todo_can_persist_manual_drag_drop_order(self):
+        self.add_task('Low task', 'low')
+        self.add_task('Urgent task', 'urgent')
+
+        tasks = list(TodoTask.objects.filter(user=self.user).order_by('created_at'))
+        self.assertEqual(len(tasks), 2)
+
+        response = self.client.post(
+            reverse('todo'),
+            {
+                'form_type': 'reorder_todo_entries',
+                'ordered_task_ids_json': json.dumps([
+                    {
+                        'id': tasks[0].task_id,
+                        'section': 'planning',
+                    },
+                    {
+                        'id': tasks[1].task_id,
+                        'section': 'planning',
+                    },
+                ]),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        get_response = self.client.get(reverse('todo'))
+        self.assertEqual(get_response.status_code, 200)
+        planning = next(section for section in get_response.context['section_lists'] if section['key'] == 'planning')
+        ordered_titles = [task['title'] for task in planning['tasks']]
+        self.assertEqual(ordered_titles[:2], ['Low task', 'Urgent task'])
 
 
 class NotesViewTests(TestCase):

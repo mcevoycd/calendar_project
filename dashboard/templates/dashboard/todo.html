@@ -432,6 +432,12 @@
       overflow-y: auto;
       min-height: 0;
       cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .todo-section-body.is-drag-target {
+      background: rgba(0, 194, 255, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(0, 194, 255, 0.16);
     }
 
     .todo-section-tasks {
@@ -449,7 +455,55 @@
       padding: 0.2rem 0.1rem;
     }
 
-    .todo-task { position: relative; }
+    .todo-task {
+      position: relative;
+      touch-action: none;
+    }
+
+    .todo-task.is-dragging {
+      opacity: 0.96;
+      z-index: 3200;
+      pointer-events: none;
+    }
+
+    .todo-task-placeholder {
+      min-height: 74px;
+      border: 1px dashed rgba(83, 183, 232, 0.72);
+      border-radius: 10px;
+      background: rgba(0, 194, 255, 0.08);
+    }
+
+    .todo-drag-handle {
+      position: absolute;
+      top: 0.35rem;
+      right: 3.55rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #8EA0B1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: grab;
+      transition: background 0.15s ease, color 0.15s ease;
+      z-index: 4;
+      font-size: 0.92rem;
+      line-height: 1;
+    }
+
+    .todo-drag-handle:hover,
+    .todo-drag-handle:focus {
+      background: rgba(246, 195, 92, 0.18);
+      color: #F6C35C;
+      outline: none;
+    }
+
+    .todo-drag-handle:active {
+      cursor: grabbing;
+    }
 
     .todo-task-hit {
       width: 100%;
@@ -458,7 +512,7 @@
       background: #1A3145;
       color: #D9E4EE;
       border-radius: 10px;
-      padding: 0.65rem 3.8rem 0.65rem 2rem;
+      padding: 0.65rem 5.15rem 0.65rem 2rem;
       font-size: 0.82rem;
       line-height: 1.35;
       cursor: pointer;
@@ -551,7 +605,7 @@
 
     .todo-task-hit[data-has-checklist='true'] {
       position: relative;
-      padding-right: 2.3rem;
+      padding-right: 5.15rem;
     }
 
     .todo-task-hit[data-has-checklist='true']::after {
@@ -1787,7 +1841,7 @@
                   {% if section.tasks %}
                     <ul class="todo-section-tasks">
                       {% for task in section.tasks %}
-                        <li class="todo-task">
+                        <li class="todo-task" data-task-id="{{ task.id }}">
                           <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
                             {% csrf_token %}
                             <input type="hidden" name="form_type" value="toggle_todo_completed">
@@ -1795,6 +1849,7 @@
                             <input type="hidden" name="return_task_id" value="{{ task.id }}">
                             <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
                           </form>
+                          <button type="button" class="todo-drag-handle" aria-label="Drag to reorder {{ task.title }}" title="Drag to reorder">⋮⋮</button>
                           <button
                             type="button"
                             class="todo-task-hit{% if task.completed %} is-completed{% endif %}"
@@ -2030,11 +2085,278 @@
       const inlineChecklistCheckboxes = Array.from(document.querySelectorAll('.todo-inline-checklist-checkbox'));
       const deleteButtons = Array.from(document.querySelectorAll('.todo-delete-btn'));
       const editButtons = Array.from(document.querySelectorAll('.todo-edit-btn'));
+      const dragHandles = Array.from(document.querySelectorAll('.todo-drag-handle'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
       const defaultStartDateValue = startDateInput ? startDateInput.value : '';
       const defaultEndDateValue = endDateInput ? endDateInput.value : '';
       let checklistState = [];
+      let activeDrag = null;
+
+      function ensureSectionList(column) {
+        if (!column) {
+          return null;
+        }
+
+        const body = column.querySelector('.todo-section-body');
+        if (!body) {
+          return null;
+        }
+
+        let list = body.querySelector('.todo-section-tasks');
+        if (!list) {
+          list = document.createElement('ul');
+          list.className = 'todo-section-tasks';
+          body.appendChild(list);
+        }
+
+        body.querySelectorAll('.todo-empty').forEach(function (emptyState) {
+          emptyState.remove();
+        });
+        return list;
+      }
+
+      function syncColumnEmptyState(column) {
+        if (!column) {
+          return;
+        }
+
+        const body = column.querySelector('.todo-section-body');
+        if (!body) {
+          return;
+        }
+
+        const list = body.querySelector('.todo-section-tasks');
+        const hasTasks = !!(list && list.querySelector('.todo-task[data-task-id]'));
+        const existingEmpty = body.querySelector('.todo-empty');
+
+        if (hasTasks) {
+          if (existingEmpty) {
+            existingEmpty.remove();
+          }
+          return;
+        }
+
+        if (list) {
+          list.remove();
+        }
+
+        if (!existingEmpty) {
+          const emptyState = document.createElement('div');
+          emptyState.className = 'todo-empty';
+          emptyState.textContent = 'No tasks yet. Click anywhere in this section to add one.';
+          body.appendChild(emptyState);
+        }
+      }
+
+      function updateTaskSection(taskEl, sectionKey) {
+        if (!taskEl || !sectionKey) {
+          return;
+        }
+
+        const taskBtn = taskEl.querySelector('.todo-task-hit');
+        taskEl.dataset.section = sectionKey;
+        if (taskBtn) {
+          taskBtn.dataset.section = sectionKey;
+        }
+      }
+
+      function getDragAfterTask(container, clientY) {
+        const tasks = Array.from(container.querySelectorAll('.todo-task[data-task-id]:not(.is-dragging)'));
+        let closest = null;
+        let closestOffset = Number.NEGATIVE_INFINITY;
+
+        tasks.forEach(function (task) {
+          const rect = task.getBoundingClientRect();
+          const offset = clientY - rect.top - (rect.height / 2);
+          if (offset < 0 && offset > closestOffset) {
+            closestOffset = offset;
+            closest = task;
+          }
+        });
+
+        return closest;
+      }
+
+      function clearDragHighlights() {
+        document.querySelectorAll('.todo-section-body.is-drag-target').forEach(function (body) {
+          body.classList.remove('is-drag-target');
+        });
+      }
+
+      async function persistTaskOrder() {
+        const csrfField = document.querySelector('#todo-entry-form [name="csrfmiddlewaretoken"]') || document.querySelector('[name="csrfmiddlewaretoken"]');
+        if (!csrfField) {
+          return;
+        }
+
+        const ordered = [];
+        sectionColumns.forEach(function (column) {
+          const sectionKey = column.dataset.sectionKey || 'planning';
+          const tasks = Array.from(column.querySelectorAll('.todo-task[data-task-id]'));
+          tasks.forEach(function (taskEl) {
+            const taskId = (taskEl.dataset.taskId || '').trim();
+            if (!taskId) {
+              return;
+            }
+            updateTaskSection(taskEl, sectionKey);
+            ordered.push({ id: taskId, section: sectionKey });
+          });
+          syncColumnEmptyState(column);
+        });
+
+        const payload = new FormData();
+        payload.append('csrfmiddlewaretoken', csrfField.value);
+        payload.append('form_type', 'reorder_todo_entries');
+        payload.append('ordered_task_ids_json', JSON.stringify(ordered));
+        payload.append('return_to', window.location.pathname + window.location.search);
+
+        try {
+          await fetch("{% url 'todo' %}", {
+            method: 'POST',
+            body: payload,
+            credentials: 'same-origin',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+        } catch (error) {
+          console.warn('Unable to save task order.', error);
+        }
+      }
+
+      function moveActiveDrag(clientX, clientY) {
+        if (!activeDrag) {
+          return;
+        }
+
+        const nextLeft = Math.min(
+          Math.max(8, clientX - (activeDrag.width / 2)),
+          Math.max(8, window.innerWidth - activeDrag.width - 8)
+        );
+        const nextTop = Math.max(8, clientY - activeDrag.offsetY);
+
+        activeDrag.taskEl.style.left = nextLeft + 'px';
+        activeDrag.taskEl.style.top = nextTop + 'px';
+
+        const hoveredElement = document.elementFromPoint(clientX, clientY);
+        const targetBody = hoveredElement ? hoveredElement.closest('.todo-section-body') : null;
+        if (!targetBody) {
+          return;
+        }
+
+        clearDragHighlights();
+        targetBody.classList.add('is-drag-target');
+
+        const targetColumn = targetBody.closest('.todo-section-column');
+        const targetList = ensureSectionList(targetColumn);
+        if (!targetList) {
+          return;
+        }
+
+        const afterTask = getDragAfterTask(targetList, clientY);
+        if (afterTask) {
+          targetList.insertBefore(activeDrag.placeholder, afterTask);
+        } else {
+          targetList.appendChild(activeDrag.placeholder);
+        }
+      }
+
+      function finishActiveDrag() {
+        if (!activeDrag) {
+          return;
+        }
+
+        const taskEl = activeDrag.taskEl;
+        const placeholder = activeDrag.placeholder;
+        const targetColumn = placeholder.closest('.todo-section-column');
+
+        if (placeholder.parentNode) {
+          placeholder.parentNode.insertBefore(taskEl, placeholder);
+        } else if (activeDrag.startParent) {
+          activeDrag.startParent.appendChild(taskEl);
+        }
+
+        if (placeholder.parentNode) {
+          placeholder.remove();
+        }
+
+        taskEl.classList.remove('is-dragging');
+        taskEl.style.position = '';
+        taskEl.style.left = '';
+        taskEl.style.top = '';
+        taskEl.style.width = '';
+        taskEl.style.zIndex = '';
+        taskEl.style.pointerEvents = '';
+        taskEl.style.margin = '';
+        document.body.style.userSelect = '';
+
+        if (targetColumn) {
+          updateTaskSection(taskEl, targetColumn.dataset.sectionKey || 'planning');
+        }
+
+        clearDragHighlights();
+        sectionColumns.forEach(syncColumnEmptyState);
+        activeDrag = null;
+        document.removeEventListener('pointermove', handleDragPointerMove);
+        document.removeEventListener('pointerup', handleDragPointerUp);
+        document.removeEventListener('pointercancel', handleDragPointerUp);
+        persistTaskOrder();
+      }
+
+      function handleDragPointerMove(event) {
+        if (!activeDrag) {
+          return;
+        }
+        event.preventDefault();
+        moveActiveDrag(event.clientX, event.clientY);
+      }
+
+      function handleDragPointerUp(event) {
+        if (!activeDrag) {
+          return;
+        }
+        event.preventDefault();
+        finishActiveDrag();
+      }
+
+      function startTaskDrag(taskEl, event) {
+        if (!taskEl || activeDrag) {
+          return;
+        }
+
+        const rect = taskEl.getBoundingClientRect();
+        const placeholder = document.createElement('li');
+        placeholder.className = 'todo-task-placeholder';
+        placeholder.style.height = rect.height + 'px';
+
+        if (taskEl.parentNode) {
+          taskEl.parentNode.insertBefore(placeholder, taskEl.nextSibling);
+        }
+
+        activeDrag = {
+          taskEl: taskEl,
+          placeholder: placeholder,
+          startParent: taskEl.parentNode,
+          width: rect.width,
+          offsetY: event.clientY - rect.top,
+        };
+
+        taskEl.classList.add('is-dragging');
+        taskEl.style.position = 'fixed';
+        taskEl.style.left = rect.left + 'px';
+        taskEl.style.top = rect.top + 'px';
+        taskEl.style.width = rect.width + 'px';
+        taskEl.style.zIndex = '3200';
+        taskEl.style.pointerEvents = 'none';
+        taskEl.style.margin = '0';
+        document.body.style.userSelect = 'none';
+
+        moveActiveDrag(event.clientX, event.clientY);
+        document.addEventListener('pointermove', handleDragPointerMove);
+        document.addEventListener('pointerup', handleDragPointerUp);
+        document.addEventListener('pointercancel', handleDragPointerUp);
+      }
 
       function openTodoPanel() {
         if (!panel || !panelBackdrop) {
@@ -2356,6 +2678,17 @@
             return;
           }
           openCreateMode(column.dataset.sectionKey || 'planning');
+        });
+      });
+
+      dragHandles.forEach(function (handle) {
+        handle.addEventListener('pointerdown', function (event) {
+          if (event.button !== undefined && event.button !== 0) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          startTaskDrag(handle.closest('.todo-task'), event);
         });
       });
 

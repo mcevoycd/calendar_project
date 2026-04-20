@@ -52,6 +52,7 @@ TODO_PRIORITY_RANK = {
     priority: index for index, priority in enumerate(TODO_PRIORITY_CHOICES.keys())
 }
 
+TODO_DEFAULT_SORT_ORDER = 1000000
 TODO_MAX_NOTES_LENGTH = 2000
 TODO_MAX_CHECKLIST_ITEMS = 30
 TODO_MAX_CHECKLIST_TEXT_LENGTH = 120
@@ -354,6 +355,12 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
 
     task_id = str(raw_item.get("id", "")).strip() or str(uuid4())
 
+    sort_order_raw = raw_item.get("sort_order", TODO_DEFAULT_SORT_ORDER)
+    try:
+        sort_order = max(0, int(sort_order_raw))
+    except (TypeError, ValueError):
+        sort_order = TODO_DEFAULT_SORT_ORDER
+
     return {
         "id": task_id,
         "title": title,
@@ -370,6 +377,7 @@ def normalize_todo_task_item(raw_item, default_day=None, default_section="planni
         "source": str(raw_item.get("source", "")).strip()[:40],
         "source_week": str(raw_item.get("source_week", "")).strip()[:10],
         "source_box_id": str(raw_item.get("source_box_id", "")).strip()[:80],
+        "sort_order": sort_order,
     }
 
 
@@ -392,7 +400,12 @@ def get_todo_task_sort_key(item):
     start_date = parse_task_date(item.get('start_date'))
     end_date = parse_task_date(item.get('end_date'))
     anchor = start_date or end_date
+    try:
+        sort_order = max(0, int(item.get('sort_order', TODO_DEFAULT_SORT_ORDER)))
+    except (TypeError, ValueError):
+        sort_order = TODO_DEFAULT_SORT_ORDER
     return (
+        sort_order,
         get_todo_priority_rank(item.get('priority')),
         anchor is None,
         anchor or datetime.max.date(),
@@ -591,7 +604,7 @@ def task_applies_to_day(task, day_name, day_date):
 def get_todo_task_items(request):
     db_available = False
     try:
-        db_items = TodoTask.objects.filter(user=request.user).order_by('created_at')
+        db_items = TodoTask.objects.filter(user=request.user).order_by('sort_order', 'created_at')
         db_available = True
         if db_items.exists():
             task_items = []
@@ -613,10 +626,13 @@ def get_todo_task_items(request):
                             "source": row.source,
                             "source_week": row.source_week,
                             "source_box_id": row.source_box_id,
+                            "sort_order": row.sort_order,
                         }
                     )
                 )
-            return [item for item in task_items if item]
+            task_items = [item for item in task_items if item]
+            task_items.sort(key=get_todo_task_sort_key)
+            return task_items
     except (OperationalError, ProgrammingError):
         pass
 
@@ -721,6 +737,7 @@ def set_todo_task_items(request, task_items):
                 source=item.get('source', ''),
                 source_week=item.get('source_week', ''),
                 source_box_id=item.get('source_box_id', ''),
+                sort_order=item.get('sort_order', TODO_DEFAULT_SORT_ORDER),
             )
         )
 
@@ -1375,6 +1392,49 @@ def todo_view(request):
         set_todo_section_titles(request, updated_titles)
         return HttpResponseRedirect(get_todo_return_url(request))
 
+    if request.method == 'POST' and request.POST.get('form_type') == 'reorder_todo_entries':
+        ordered_task_ids_json = request.POST.get('ordered_task_ids_json', '').strip()
+        try:
+            ordered_task_ids = json.loads(ordered_task_ids_json) if ordered_task_ids_json else []
+        except (TypeError, ValueError):
+            ordered_task_ids = []
+
+        task_items = get_todo_task_items(request)
+        if task_items and isinstance(ordered_task_ids, list):
+            task_by_id = {item.get('id'): dict(item) for item in task_items if item.get('id')}
+            valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
+            seen_ids = set()
+            reordered_items = []
+
+            for index, raw_entry in enumerate(ordered_task_ids):
+                if isinstance(raw_entry, dict):
+                    task_id = str(raw_entry.get('id', '')).strip()
+                    section_key = str(raw_entry.get('section', '')).strip().lower()
+                else:
+                    task_id = str(raw_entry).strip()
+                    section_key = ''
+
+                if not task_id or task_id in seen_ids or task_id not in task_by_id:
+                    continue
+
+                updated_item = dict(task_by_id[task_id])
+                if section_key in valid_sections:
+                    updated_item['section'] = section_key
+                updated_item['sort_order'] = index
+                reordered_items.append(updated_item)
+                seen_ids.add(task_id)
+
+            remaining_items = [item for item in task_items if item.get('id') not in seen_ids]
+            for offset, item in enumerate(remaining_items, start=len(reordered_items)):
+                fallback_item = dict(item)
+                fallback_item['sort_order'] = offset
+                reordered_items.append(fallback_item)
+
+            if reordered_items:
+                set_todo_task_items(request, reordered_items)
+
+        return HttpResponseRedirect(get_todo_return_url(request))
+
     if request.method == 'POST' and request.POST.get('form_type') == 'add_todo_entry':
         task_title = request.POST.get('task_title', '').strip()
         task_start_date_raw = request.POST.get('task_start_date', '').strip()
@@ -1430,6 +1490,7 @@ def todo_view(request):
             "end_day": task_end_day,
             "start_date": task_start_date.isoformat(),
             "end_date": task_end_date.isoformat(),
+            "sort_order": TODO_DEFAULT_SORT_ORDER,
         }
 
         task_items = get_todo_task_items(request)
@@ -1540,6 +1601,7 @@ def todo_view(request):
                 "source": existing_task.get('source', ''),
                 "source_week": existing_task.get('source_week', ''),
                 "source_box_id": existing_task.get('source_box_id', ''),
+                "sort_order": existing_task.get('sort_order', TODO_DEFAULT_SORT_ORDER),
             }
 
         normalized_items = []

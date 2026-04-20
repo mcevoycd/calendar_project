@@ -90,12 +90,13 @@ class TodoTask(models.Model):
     source = models.CharField(max_length=40, blank=True)
     source_week = models.CharField(max_length=10, blank=True)
     source_box_id = models.CharField(max_length=80, blank=True)
+    sort_order = models.IntegerField(default=1000000, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('user', 'task_id')
-        ordering = ['created_at']
+        ordering = ['sort_order', 'created_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.title}"
