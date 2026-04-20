@@ -44,7 +44,7 @@ DEFAULT_ALLOWED_HOSTS = [
     "www.fluidnotes.co.uk",
     "fluidnotes.co.uk",
     "web-production-c6c41.up.railway.app",
-    "https://fluidnotes.up.railway.app",
+    "fluidnotes.up.railway.app",
 ]
 
 railway_public_domain = normalize_host(os.getenv("RAILWAY_PUBLIC_DOMAIN", ""))
