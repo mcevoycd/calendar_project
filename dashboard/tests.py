@@ -100,6 +100,7 @@ class NotesViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-cmd="insertTable"')
         self.assertContains(response, 'data-cmd="insertHorizontalRule"')
+        self.assertContains(response, 'id="text-color-input"')
 
     def test_save_note_preserves_table_markup(self):
         note = NoteEntry.objects.create(user=self.user, title='Table note', body='<p>Old</p>')
@@ -121,6 +122,26 @@ class NotesViewTests(TestCase):
         self.assertIn('<table>', note.body)
         self.assertIn('<th>Head</th>', note.body)
         self.assertIn('<td>Cell</td>', note.body)
+
+    def test_save_note_preserves_text_color_markup(self):
+        note = NoteEntry.objects.create(user=self.user, title='Color note', body='<p>Old</p>')
+        colored_html = '<p><span style="color: rgb(255, 0, 0);">Important</span></p>'
+
+        response = self.client.post(
+            reverse('notes'),
+            {
+                'notes_action': 'save_note',
+                'note_id': str(note.id),
+                'title': 'Color note',
+                'body': colored_html,
+                'category_id': '',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        note.refresh_from_db()
+        self.assertIn('style="color: rgb(255, 0, 0);"', note.body)
+        self.assertIn('Important', note.body)
 
     def test_create_note_with_attachment(self):
         upload = SimpleUploadedFile('hello.txt', b'hello world', content_type='text/plain')

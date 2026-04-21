@@ -1070,6 +1070,53 @@
       min-width: 3rem;
     }
 
+    .tool-color-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.32rem;
+      border: 1px solid rgba(0, 194, 255, 0.38);
+      border-radius: 8px;
+      background: rgba(0, 194, 255, 0.12);
+      color: #E6F6FF;
+      padding: 0.22rem 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tool-color-control:hover,
+    .tool-color-control:focus-within {
+      border-color: #53B7E8;
+      background: rgba(0, 194, 255, 0.22);
+    }
+
+    .tool-color-input {
+      width: 1.1rem;
+      height: 1.1rem;
+      border: 1px solid rgba(83, 183, 232, 0.7);
+      border-radius: 999px;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .tool-color-input::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .tool-color-input::-webkit-color-swatch {
+      border: none;
+      border-radius: 999px;
+    }
+
+    .tool-color-input::-moz-color-swatch {
+      border: none;
+      border-radius: 999px;
+    }
+
     .editor-actions {
       display: flex;
       align-items: center;
@@ -2139,6 +2186,10 @@
             <button type="button" class="tool-btn" data-cmd="justifyRight" title="Align right">R</button>
             <button type="button" class="tool-btn" data-cmd="undo" title="Undo">↶</button>
             <button type="button" class="tool-btn" data-cmd="redo" title="Redo">↷</button>
+            <label class="tool-color-control" title="Text colour">
+              <span>Text</span>
+              <input type="color" class="tool-color-input" id="text-color-input" value="#e5e7eb" aria-label="Choose text colour">
+            </label>
             <button type="button" class="tool-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
           </div>
         </details>
@@ -2314,6 +2365,7 @@
         const hiddenBodyInput = document.getElementById('id_body_html');
         const saveForm = document.getElementById('note-editor-form');
         const toolbarButtons = Array.from(document.querySelectorAll('.tool-btn'));
+        const textColorInput = document.getElementById('text-color-input');
         const initialBody = '{{ selected_note.body|escapejs }}';
         const linkDialog = document.getElementById('link-dialog');
         const linkForm = document.getElementById('link-form');
@@ -2324,6 +2376,33 @@
         function closeLinkDialog() {
           if (!linkDialog) return;
           linkDialog.hidden = true;
+        }
+
+        function storeEditorSelection() {
+          if (!editor) {
+            return;
+          }
+          const selection = window.getSelection();
+          if (!selection || selection.rangeCount === 0) {
+            return;
+          }
+          const range = selection.getRangeAt(0);
+          if (!editor.contains(range.startContainer) || !editor.contains(range.endContainer)) {
+            return;
+          }
+          savedRange = range.cloneRange();
+        }
+
+        function restoreEditorSelection() {
+          if (!editor || !savedRange) {
+            return;
+          }
+          const selection = window.getSelection();
+          if (!selection) {
+            return;
+          }
+          selection.removeAllRanges();
+          selection.addRange(savedRange);
         }
 
         function openLinkDialog() {
@@ -2356,13 +2435,21 @@
           }
 
           editor.focus();
-          const selection = window.getSelection();
-          if (savedRange && selection) {
-            selection.removeAllRanges();
-            selection.addRange(savedRange);
-          }
+          restoreEditorSelection();
           document.execCommand('createLink', false, enteredUrl);
+          storeEditorSelection();
           closeLinkDialog();
+        }
+
+        function applyTextColor(colorValue) {
+          if (!editor || !colorValue) {
+            return;
+          }
+          editor.focus();
+          restoreEditorSelection();
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('foreColor', false, colorValue);
+          storeEditorSelection();
         }
 
         function placeCaretAtEnd(target) {
@@ -2503,23 +2590,28 @@
             if (checkbox) {
               event.stopPropagation();
             }
+            window.setTimeout(storeEditorSelection, 0);
           });
 
           editor.addEventListener('click', function (event) {
             const checkbox = event.target.closest('input[type="checkbox"]');
             if (!checkbox) {
+              storeEditorSelection();
               return;
             }
             event.stopPropagation();
             syncChecklistCheckboxes();
+            storeEditorSelection();
           });
 
           editor.addEventListener('change', function (event) {
             const checkbox = event.target.closest('input[type="checkbox"]');
             if (!checkbox) {
+              storeEditorSelection();
               return;
             }
             syncChecklistCheckboxes();
+            storeEditorSelection();
           });
 
           editor.addEventListener('keydown', function (event) {
@@ -2537,6 +2629,7 @@
               }
               event.preventDefault();
               document.execCommand(event.shiftKey ? 'outdent' : 'indent', false, null);
+              window.setTimeout(storeEditorSelection, 0);
               return;
             }
 
@@ -2561,7 +2654,12 @@
             }
 
             insertChecklistItem(checklistRow);
+            window.setTimeout(storeEditorSelection, 0);
           });
+
+          editor.addEventListener('keyup', storeEditorSelection);
+          editor.addEventListener('mouseup', storeEditorSelection);
+          editor.addEventListener('focus', storeEditorSelection);
         }
 
         toolbarButtons.forEach(function (button) {
@@ -2580,11 +2678,22 @@
             }
             if (cmd === 'insertTable') {
               insertTable();
+              storeEditorSelection();
               return;
             }
             document.execCommand(cmd, false, fixedValue);
+            storeEditorSelection();
           });
         });
+
+        if (textColorInput) {
+          textColorInput.addEventListener('input', function () {
+            applyTextColor(textColorInput.value);
+          });
+          textColorInput.addEventListener('change', function () {
+            applyTextColor(textColorInput.value);
+          });
+        }
 
         if (linkCancelBtn) {
           linkCancelBtn.addEventListener('click', closeLinkDialog);
