@@ -85,6 +85,24 @@ class TodoViewTests(TestCase):
         ordered_titles = [task['title'] for task in planning['tasks']]
         self.assertEqual(ordered_titles[:2], ['Low task', 'Urgent task'])
 
+    def test_todo_renders_clamped_notes_preview_with_expandable_full_notes(self):
+        TodoTask.objects.create(
+            user=self.user,
+            task_id='task-notes-preview',
+            title='Task with notes',
+            notes='Line one\nLine two\nLine three',
+            priority='medium',
+            section='planning',
+        )
+
+        response = self.client.get(reverse('todo'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="todo-task-notes"')
+        self.assertContains(response, 'class="todo-task-inline-notes"')
+        self.assertContains(response, 'data-has-details="true"')
+        self.assertContains(response, 'Line one\nLine two\nLine three')
+
 
 class NotesViewTests(TestCase):
     def setUp(self):

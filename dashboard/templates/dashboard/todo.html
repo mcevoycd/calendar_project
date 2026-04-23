@@ -522,9 +522,18 @@
     }
 
     .todo-task-title { font-weight: 600; color: #E5E7EB; }
-    .todo-task-notes { color: #9FB1C1; font-size: 0.76rem; white-space: pre-line; font-style: italic; }
+    .todo-task-notes {
+      color: #9FB1C1;
+      font-size: 0.76rem;
+      font-style: italic;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
     .todo-task-date { color: #9FB1C1; font-size: 0.72rem; letter-spacing: 0.03em; text-transform: uppercase; }
 
+    .todo-task-inline-notes,
     .todo-task-inline-checklist {
       margin-top: 0;
       border: 1px solid transparent;
@@ -539,6 +548,7 @@
       transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
     }
 
+    .todo-task.is-checklist-open .todo-task-inline-notes,
     .todo-task.is-checklist-open .todo-task-inline-checklist {
       margin-top: 0.38rem;
       border-color: #2D4660;
@@ -546,6 +556,22 @@
       max-height: 260px;
       opacity: 1;
       overflow: auto;
+    }
+
+    .todo-task-inline-notes {
+      color: #CDE0EF;
+      font-size: 0.76rem;
+      line-height: 1.5;
+      white-space: pre-line;
+      gap: 0.28rem;
+    }
+
+    .todo-task-inline-notes-label {
+      color: #8EC8AE;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .todo-inline-checklist-row {
@@ -603,12 +629,12 @@
       outline: none;
     }
 
-    .todo-task-hit[data-has-checklist='true'] {
+    .todo-task-hit[data-has-details='true'] {
       position: relative;
       padding-right: 5.15rem;
     }
 
-    .todo-task-hit[data-has-checklist='true']::after {
+    .todo-task-hit[data-has-details='true']::after {
       content: '▾';
       position: absolute;
       right: 0.75rem;
@@ -619,7 +645,7 @@
       transition: transform 0.2s ease;
     }
 
-    .todo-task.is-checklist-open .todo-task-hit[data-has-checklist='true']::after {
+    .todo-task.is-checklist-open .todo-task-hit[data-has-details='true']::after {
       transform: translateY(-50%) rotate(180deg);
     }
 
@@ -628,7 +654,7 @@
       box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.4);
     }
 
-    .todo-task-hit[data-has-checklist='false'] {
+    .todo-task-hit[data-has-details='false'] {
       cursor: default;
     }
 
@@ -1858,6 +1884,7 @@
                             data-notes="{{ task.notes|default:''|escape }}"
                             data-checklist='{{ task.checklist_json|escape }}'
                             data-has-checklist="{% if task.checklist %}true{% else %}false{% endif %}"
+                            data-has-details="{% if task.checklist or task.notes %}true{% else %}false{% endif %}"
                             data-priority="{{ task.priority|default:'medium' }}"
                             data-completed="{% if task.completed %}true{% else %}false{% endif %}"
                             data-start-date="{{ task.start_date }}"
@@ -1866,6 +1893,7 @@
                             data-add-to-diary="{% if task.source == 'todo_diary' %}true{% else %}false{% endif %}"
                             data-diary-category="{{ task.diary_category|default:'general' }}"
                             aria-expanded="false"
+                            aria-controls="task-details-{{ task.id }}"
                           >
                             <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
                             <span class="todo-task-title">{{ task.title }}</span>
@@ -1877,8 +1905,14 @@
                               <span class="todo-task-notes">{{ task.notes }}</span>
                             {% endif %}
                           </button>
+                          {% if task.notes %}
+                            <div class="todo-task-inline-notes" id="task-details-{{ task.id }}" aria-label="Notes for {{ task.title }}">
+                              <span class="todo-task-inline-notes-label">Notes</span>
+                              <span>{{ task.notes }}</span>
+                            </div>
+                          {% endif %}
                           {% if task.checklist %}
-                            <div class="todo-task-inline-checklist" aria-label="Checklist for {{ task.title }}">
+                            <div class="todo-task-inline-checklist" {% if not task.notes %}id="task-details-{{ task.id }}"{% endif %} aria-label="Checklist for {{ task.title }}">
                               {% for checklist_item in task.checklist %}
                                 <form method="post" action="{% url 'todo' %}" class="todo-inline-checklist-form">
                                   {% csrf_token %}
@@ -2596,9 +2630,10 @@
       taskButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
           const taskItem = btn.closest('.todo-task');
+          const notesPanel = taskItem ? taskItem.querySelector('.todo-task-inline-notes') : null;
           const checklistPanel = taskItem ? taskItem.querySelector('.todo-task-inline-checklist') : null;
 
-          if (!checklistPanel) {
+          if (!notesPanel && !checklistPanel) {
             btn.blur();
             return;
           }
