@@ -1435,6 +1435,23 @@ def todo_view(request):
 
         return HttpResponseRedirect(get_todo_return_url(request))
 
+    if request.method == 'POST' and request.POST.get('form_type') == 'clear_completed_todo_entries':
+        section_key = request.POST.get('section_key', '').strip().lower()
+        valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
+        if section_key not in valid_sections:
+            return HttpResponseRedirect(get_todo_return_url(request))
+
+        task_items = get_todo_task_items(request)
+        retained_items = []
+        for item in task_items:
+            if item.get('section') == section_key and bool(item.get('completed', False)):
+                remove_todo_task_diary_entry(request, item)
+                continue
+            retained_items.append(item)
+
+        set_todo_task_items(request, retained_items)
+        return HttpResponseRedirect(get_todo_return_url(request))
+
     if request.method == 'POST' and request.POST.get('form_type') == 'add_todo_entry':
         task_title = request.POST.get('task_title', '').strip()
         task_start_date_raw = request.POST.get('task_start_date', '').strip()
@@ -1672,7 +1689,8 @@ def todo_view(request):
 
         section_tasks.sort(key=get_todo_task_sort_key)
 
-        display_tasks = []
+        display_active_tasks = []
+        display_completed_tasks = []
         for task in section_tasks:
             start_date = parse_task_date(task.get('start_date'))
             end_date = parse_task_date(task.get('end_date'))
@@ -1688,14 +1706,18 @@ def todo_view(request):
                     linked_diary_category = diary_category_by_id.get(int(diary_id_raw), DIARY_DEFAULT_CATEGORY)
             display_task['diary_category'] = linked_diary_category
 
-            display_tasks.append(display_task)
+            if bool(display_task.get('completed', False)):
+                display_completed_tasks.append(display_task)
+            else:
+                display_active_tasks.append(display_task)
 
         section_lists.append(
             {
                 'name': section['title'],
                 'key': section['key'],
                 'class_name': section['class_name'],
-                'tasks': display_tasks,
+                'active_tasks': display_active_tasks,
+                'completed_tasks': display_completed_tasks,
             }
         )
 

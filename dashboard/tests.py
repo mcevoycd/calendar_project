@@ -38,8 +38,8 @@ class TodoViewTests(TestCase):
         get_response = self.client.get(reverse('todo'))
         self.assertEqual(get_response.status_code, 200)
         planning = next(section for section in get_response.context['section_lists'] if section['key'] == 'planning')
-        self.assertEqual(planning['tasks'][0]['priority'], 'urgent')
-        self.assertEqual(planning['tasks'][0]['priority_label'], 'Urgent')
+        self.assertEqual(planning['active_tasks'][0]['priority'], 'urgent')
+        self.assertEqual(planning['active_tasks'][0]['priority_label'], 'Urgent')
 
     def test_todo_is_sorted_by_priority(self):
         self.add_task('Low task', 'low')
@@ -50,7 +50,7 @@ class TodoViewTests(TestCase):
         response = self.client.get(reverse('todo'))
         self.assertEqual(response.status_code, 200)
         planning = next(section for section in response.context['section_lists'] if section['key'] == 'planning')
-        ordered_titles = [task['title'] for task in planning['tasks']]
+        ordered_titles = [task['title'] for task in planning['active_tasks']]
         self.assertEqual(ordered_titles[:4], ['Urgent task', 'High task', 'Medium task', 'Low task'])
 
     def test_todo_can_persist_manual_drag_drop_order(self):
@@ -82,8 +82,70 @@ class TodoViewTests(TestCase):
         get_response = self.client.get(reverse('todo'))
         self.assertEqual(get_response.status_code, 200)
         planning = next(section for section in get_response.context['section_lists'] if section['key'] == 'planning')
-        ordered_titles = [task['title'] for task in planning['tasks']]
+        ordered_titles = [task['title'] for task in planning['active_tasks']]
         self.assertEqual(ordered_titles[:2], ['Low task', 'Urgent task'])
+
+    def test_todo_completed_tasks_render_in_collapsed_archive(self):
+        active = TodoTask.objects.create(
+            user=self.user,
+            task_id='active-task',
+            title='Active task',
+            section='planning',
+            completed=False,
+        )
+        completed = TodoTask.objects.create(
+            user=self.user,
+            task_id='completed-task',
+            title='Completed task',
+            section='planning',
+            completed=True,
+        )
+
+        response = self.client.get(reverse('todo'))
+
+        self.assertEqual(response.status_code, 200)
+        planning = next(section for section in response.context['section_lists'] if section['key'] == 'planning')
+        self.assertEqual([task['id'] for task in planning['active_tasks']], [active.task_id])
+        self.assertEqual([task['id'] for task in planning['completed_tasks']], [completed.task_id])
+        self.assertContains(response, 'class="todo-archive"')
+        self.assertContains(response, 'Archive / Completed (1)')
+        self.assertContains(response, 'clear_completed_todo_entries')
+
+    def test_clear_completed_todo_entries_removes_only_target_section_completed_tasks(self):
+        keep_active = TodoTask.objects.create(
+            user=self.user,
+            task_id='keep-active',
+            title='Keep active',
+            section='planning',
+            completed=False,
+        )
+        remove_completed = TodoTask.objects.create(
+            user=self.user,
+            task_id='remove-completed',
+            title='Remove completed',
+            section='planning',
+            completed=True,
+        )
+        keep_completed_other_section = TodoTask.objects.create(
+            user=self.user,
+            task_id='keep-other-section',
+            title='Keep other section completed',
+            section='next',
+            completed=True,
+        )
+
+        response = self.client.post(
+            reverse('todo'),
+            {
+                'form_type': 'clear_completed_todo_entries',
+                'section_key': 'planning',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(TodoTask.objects.filter(user=self.user, task_id=keep_active.task_id).exists())
+        self.assertFalse(TodoTask.objects.filter(user=self.user, task_id=remove_completed.task_id).exists())
+        self.assertTrue(TodoTask.objects.filter(user=self.user, task_id=keep_completed_other_section.task_id).exists())
 
     def test_todo_renders_clamped_notes_preview_with_expandable_full_notes(self):
         TodoTask.objects.create(

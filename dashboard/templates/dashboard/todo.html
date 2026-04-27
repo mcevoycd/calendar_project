@@ -455,6 +455,71 @@
       padding: 0.2rem 0.1rem;
     }
 
+    .todo-archive {
+      margin-top: 0.6rem;
+      border-top: 1px solid rgba(83, 108, 129, 0.5);
+      padding-top: 0.55rem;
+    }
+
+    .todo-archive-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem;
+      color: #AFC0CF;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .todo-archive-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .todo-archive-summary::before {
+      content: '▸';
+      color: #8EC8AE;
+      margin-right: 0.35rem;
+      transition: transform 0.2s ease;
+    }
+
+    .todo-archive[open] .todo-archive-summary::before {
+      transform: rotate(90deg);
+    }
+
+    .todo-clear-completed-form {
+      margin-left: auto;
+    }
+
+    .todo-clear-completed-btn {
+      border: 1px solid rgba(251, 113, 133, 0.55);
+      background: rgba(190, 24, 93, 0.18);
+      color: #FECACA;
+      border-radius: 999px;
+      padding: 0.14rem 0.52rem;
+      font-size: 0.68rem;
+      line-height: 1.2;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .todo-clear-completed-btn:hover,
+    .todo-clear-completed-btn:focus {
+      border-color: rgba(252, 165, 165, 0.9);
+      color: #FFE4E6;
+      outline: none;
+    }
+
+    .todo-archive-list {
+      list-style: none;
+      margin: 0.45rem 0 0;
+      padding: 0;
+      display: grid;
+      gap: 0.5rem;
+    }
+
     .todo-task {
       position: relative;
       touch-action: none;
@@ -503,6 +568,11 @@
 
     .todo-drag-handle:active {
       cursor: grabbing;
+    }
+
+    .todo-drag-handle[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     .todo-task-hit {
@@ -1864,9 +1934,9 @@
                   </form>
                 </header>
                 <div class="todo-section-body">
-                  {% if section.tasks %}
+                  {% if section.active_tasks %}
                     <ul class="todo-section-tasks">
-                      {% for task in section.tasks %}
+                      {% for task in section.active_tasks %}
                         <li class="todo-task" data-task-id="{{ task.id }}">
                           <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
                             {% csrf_token %}
@@ -1943,7 +2013,98 @@
                       {% endfor %}
                     </ul>
                   {% else %}
-                    <div class="todo-empty">No tasks yet. Click anywhere in this section to add one.</div>
+                    <div class="todo-empty">No active tasks yet. Click anywhere in this section to add one.</div>
+                  {% endif %}
+
+                  {% if section.completed_tasks %}
+                    <details class="todo-archive" data-archive>
+                      <summary class="todo-archive-summary">
+                        <span>Archive / Completed ({{ section.completed_tasks|length }})</span>
+                        <form class="todo-clear-completed-form" method="post" action="{% url 'todo' %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="form_type" value="clear_completed_todo_entries">
+                          <input type="hidden" name="section_key" value="{{ section.key }}">
+                          <button type="submit" class="todo-clear-completed-btn" aria-label="Clear completed tasks in {{ section.name }}" title="Delete all completed tasks in this section">Clear</button>
+                        </form>
+                      </summary>
+                      <ul class="todo-archive-list" aria-label="Completed tasks in {{ section.name }}">
+                        {% for task in section.completed_tasks %}
+                          <li class="todo-task" data-task-id="{{ task.id }}">
+                            <form class="todo-complete-form" method="post" action="{% url 'todo' %}">
+                              {% csrf_token %}
+                              <input type="hidden" name="form_type" value="toggle_todo_completed">
+                              <input type="hidden" name="task_id" value="{{ task.id }}">
+                              <input type="hidden" name="return_task_id" value="{{ task.id }}">
+                              <input class="todo-complete-checkbox" type="checkbox" {% if task.completed %}checked{% endif %} aria-label="Toggle completed for {{ task.title }}">
+                            </form>
+                            <button type="button" class="todo-drag-handle" aria-label="Drag to reorder {{ task.title }}" title="Drag to reorder" disabled>⋮⋮</button>
+                            <button
+                              type="button"
+                              class="todo-task-hit{% if task.completed %} is-completed{% endif %}"
+                              data-id="{{ task.id }}"
+                              data-title="{{ task.title|escape }}"
+                              data-notes="{{ task.notes|default:''|escape }}"
+                              data-checklist='{{ task.checklist_json|escape }}'
+                              data-has-checklist="{% if task.checklist %}true{% else %}false{% endif %}"
+                              data-has-details="{% if task.checklist or task.notes %}true{% else %}false{% endif %}"
+                              data-priority="{{ task.priority|default:'medium' }}"
+                              data-completed="{% if task.completed %}true{% else %}false{% endif %}"
+                              data-start-date="{{ task.start_date }}"
+                              data-end-date="{{ task.end_date }}"
+                              data-section="{{ section.key }}"
+                              data-add-to-diary="{% if task.source == 'todo_diary' %}true{% else %}false{% endif %}"
+                              data-diary-category="{{ task.diary_category|default:'general' }}"
+                              aria-expanded="false"
+                              aria-controls="task-details-{{ task.id }}"
+                            >
+                              <span class="todo-priority todo-priority-{{ task.priority|default:'medium' }}">{{ task.priority_label|default:'Medium' }}</span>
+                              <span class="todo-task-title">{{ task.title }}</span>
+                              <span class="todo-task-date">{{ task.date_range_label }}</span>
+                              {% if task.checklist %}
+                                <span class="todo-task-checklist-meta">{{ task.checklist|length }} checklist item{{ task.checklist|length|pluralize }}</span>
+                              {% endif %}
+                              {% if task.notes %}
+                                <span class="todo-task-notes">{{ task.notes }}</span>
+                              {% endif %}
+                            </button>
+                            {% if task.notes %}
+                              <div class="todo-task-inline-notes" id="task-details-{{ task.id }}" aria-label="Notes for {{ task.title }}">
+                                <span class="todo-task-inline-notes-label">Notes</span>
+                                <span>{{ task.notes }}</span>
+                              </div>
+                            {% endif %}
+                            {% if task.checklist %}
+                              <div class="todo-task-inline-checklist" {% if not task.notes %}id="task-details-{{ task.id }}"{% endif %} aria-label="Checklist for {{ task.title }}">
+                                {% for checklist_item in task.checklist %}
+                                  <form method="post" action="{% url 'todo' %}" class="todo-inline-checklist-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_type" value="toggle_todo_checklist_item">
+                                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                                    <input type="hidden" name="return_task_id" value="{{ task.id }}">
+                                    <input type="hidden" name="checklist_index" value="{{ forloop.counter0 }}">
+                                    <label class="todo-inline-checklist-row">
+                                      <input class="todo-inline-checklist-checkbox" type="checkbox" {% if checklist_item.completed %}checked{% endif %} aria-label="Toggle checklist item {{ checklist_item.text }}">
+                                      <span class="todo-inline-checklist-text{% if checklist_item.completed %} is-completed{% endif %}">{{ checklist_item.text }}</span>
+                                    </label>
+                                  </form>
+                                {% endfor %}
+                              </div>
+                            {% endif %}
+                            <button type="button" class="todo-edit-btn" aria-label="Edit task" title="Edit task">
+                              <img class="fn-icon" src="{% static 'dashboard/icons/edit_yellow.svg' %}" alt="" aria-hidden="true">
+                            </button>
+                            <form class="todo-delete-form" method="post" action="{% url 'todo' %}">
+                              {% csrf_token %}
+                              <input type="hidden" name="form_type" value="delete_todo_entry">
+                              <input type="hidden" name="task_id" value="{{ task.id }}">
+                              <button type="submit" class="todo-delete-btn" aria-label="Delete task" title="Delete task">
+                                <img class="fn-icon" src="{% static 'dashboard/icons/delete_red.svg' %}" alt="" aria-hidden="true">
+                              </button>
+                            </form>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </details>
                   {% endif %}
                 </div>
               </article>
@@ -2119,7 +2280,7 @@
       const inlineChecklistCheckboxes = Array.from(document.querySelectorAll('.todo-inline-checklist-checkbox'));
       const deleteButtons = Array.from(document.querySelectorAll('.todo-delete-btn'));
       const editButtons = Array.from(document.querySelectorAll('.todo-edit-btn'));
-      const dragHandles = Array.from(document.querySelectorAll('.todo-drag-handle'));
+      const dragHandles = Array.from(document.querySelectorAll('.todo-drag-handle:not([disabled])'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
       const defaultStartDateValue = startDateInput ? startDateInput.value : '';
@@ -2141,7 +2302,12 @@
         if (!list) {
           list = document.createElement('ul');
           list.className = 'todo-section-tasks';
-          body.appendChild(list);
+          const archive = body.querySelector('.todo-archive');
+          if (archive) {
+            body.insertBefore(list, archive);
+          } else {
+            body.appendChild(list);
+          }
         }
 
         body.querySelectorAll('.todo-empty').forEach(function (emptyState) {
@@ -2178,8 +2344,13 @@
         if (!existingEmpty) {
           const emptyState = document.createElement('div');
           emptyState.className = 'todo-empty';
-          emptyState.textContent = 'No tasks yet. Click anywhere in this section to add one.';
-          body.appendChild(emptyState);
+          emptyState.textContent = 'No active tasks yet. Click anywhere in this section to add one.';
+          const archive = body.querySelector('.todo-archive');
+          if (archive) {
+            body.insertBefore(emptyState, archive);
+          } else {
+            body.appendChild(emptyState);
+          }
         }
       }
 
@@ -2709,7 +2880,7 @@
 
       sectionColumns.forEach(function (column) {
         column.addEventListener('click', function (event) {
-          if (event.target.closest('.todo-task, .todo-delete-form, .todo-complete-form, .todo-section-title-form, .todo-section-title-btn')) {
+          if (event.target.closest('.todo-task, .todo-delete-form, .todo-complete-form, .todo-section-title-form, .todo-section-title-btn, .todo-archive, .todo-clear-completed-form')) {
             return;
           }
           openCreateMode(column.dataset.sectionKey || 'planning');
