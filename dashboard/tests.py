@@ -542,3 +542,5 @@ class CanvasViewTests(TestCase):
         self.assertContains(response, 'Link Mode: Off')
         self.assertContains(response, 'id="toolbar-info"', html=False)
         self.assertContains(response, 'id="link-mode-hint"', html=False)
+        self.assertContains(response, 'id="canvas-todo-tip"', html=False)
+        self.assertContains(response, 'Choosing a To Do title adds that note and its details to the To Do section.')
