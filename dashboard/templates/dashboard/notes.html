@@ -533,6 +533,10 @@
       border: 1px solid rgba(0, 194, 255, 0.25);
       border-radius: 999px;
       padding: 0.32rem 0.65rem;
+      max-width: min(100%, 36rem);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .autosave-status {
@@ -612,6 +616,31 @@
       cursor: grab;
       scrollbar-width: none;
       -ms-overflow-style: none;
+    }
+
+    .link-mode-hint {
+      position: sticky;
+      top: 0.6rem;
+      z-index: 15;
+      margin: 0.6rem;
+      padding: 0.52rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 194, 255, 0.35);
+      background: rgba(6, 22, 34, 0.95);
+      color: #D9EDF8;
+      font-size: 0.76rem;
+      line-height: 1.35;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+      display: grid;
+      gap: 0.2rem;
+      pointer-events: none;
+    }
+
+    .link-mode-hint strong {
+      color: #7FE3FF;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .canvas-wrap::-webkit-scrollbar {
@@ -696,6 +725,11 @@
     .note-box.link-source {
       border-color: var(--accent-strong);
       box-shadow: 0 0 0 2px rgba(0, 194, 255, 0.25), 0 14px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .note-box.link-target {
+      border-color: rgba(127, 227, 255, 0.85);
+      box-shadow: 0 0 0 1px rgba(127, 227, 255, 0.32), 0 10px 24px rgba(0, 0, 0, 0.35);
     }
 
     .note-box.is-completed .box-text {
@@ -1786,7 +1820,7 @@
               <details class="toolbar-menu">
                 <summary class="btn-canvas toolbar-menu-trigger">Links ▾</summary>
                 <div class="toolbar-menu-panel">
-                  <button type="button" class="btn-canvas" id="link-mode-btn">Link Mode</button>
+                  <button type="button" class="btn-canvas" id="link-mode-btn" aria-pressed="false">Link Mode: Off</button>
                   <button type="button" class="btn-canvas" id="cancel-link-btn" disabled>Cancel Link</button>
                   <button type="button" class="btn-canvas" id="clear-links-btn">Clear Links</button>
                   <div class="toolbar-field">
@@ -1827,7 +1861,7 @@
               </div>
             </div>
             <div class="toolbar-right">
-              <!-- <span class="toolbar-info" id="toolbar-info">Drag boxes from their top bar. Click a box to select.</span> -->
+              <span class="toolbar-info" id="toolbar-info">Tip: turn on Link Mode, then click a source note and click a target note to connect them.</span>
               <span class="autosave-status" id="autosave-status">Auto-save on</span>
               <details class="toolbar-menu">
                 <summary class="btn-canvas toolbar-menu-trigger">Canvas Actions ▾</summary>
@@ -1841,6 +1875,10 @@
           </div>
 
           <div class="canvas-wrap" id="canvas-wrap">
+            <div class="link-mode-hint" id="link-mode-hint" hidden>
+              <strong>Link Mode</strong>
+              <span id="link-mode-hint-text">Click a source note, then click another note to link.</span>
+            </div>
             <div class="canvas-surface" id="canvas-surface">
               <svg class="canvas-links" id="canvas-links"></svg>
               <div id="boxes-layer"></div>
@@ -1959,6 +1997,8 @@
       const zoomResetBtn = document.getElementById('zoom-reset-btn');
       const zoomLevelEl = document.getElementById('zoom-level');
       const toolbarInfo = document.getElementById('toolbar-info');
+      const linkModeHint = document.getElementById('link-mode-hint');
+      const linkModeHintText = document.getElementById('link-mode-hint-text');
       const autoSaveStatus = document.getElementById('autosave-status');
       const notesActionInput = document.getElementById('notes-action-input');
       const confirmModal = document.getElementById('confirm-modal');
@@ -2375,7 +2415,38 @@
       }
 
       function updateToolbarInfo(text) {
+        if (!toolbarInfo) {
+          return;
+        }
         toolbarInfo.textContent = text;
+      }
+
+      function updateLinkModeUi() {
+        if (linkModeBtn) {
+          linkModeBtn.classList.toggle('active', linkMode);
+          linkModeBtn.textContent = linkMode ? 'Link Mode: On' : 'Link Mode: Off';
+          linkModeBtn.setAttribute('aria-pressed', linkMode ? 'true' : 'false');
+        }
+
+        if (!linkModeHint) {
+          return;
+        }
+
+        if (!linkMode) {
+          linkModeHint.hidden = true;
+          return;
+        }
+
+        linkModeHint.hidden = false;
+        if (!linkModeHintText) {
+          return;
+        }
+
+        if (linkSourceId) {
+          linkModeHintText.textContent = 'Source selected. Click another note to connect, or drag from the connector dot.';
+        } else {
+          linkModeHintText.textContent = 'Click a source note, then click another note to link. You can also drag from the connector dot.';
+        }
       }
 
       function placeCaretAtEnd(element) {
@@ -2467,6 +2538,7 @@
 
       function refreshLinkControls() {
         cancelLinkBtn.disabled = !(linkMode && (!!linkSourceId || linkDrag.active));
+        updateLinkModeUi();
       }
 
       function cancelPendingLink() {
@@ -2693,6 +2765,8 @@
           }
           if (linkSourceId === box.id) {
             boxEl.classList.add('link-source');
+          } else if (linkMode && linkSourceId) {
+            boxEl.classList.add('link-target');
           }
           if (box.completed) {
             boxEl.classList.add('is-completed');
@@ -3370,9 +3444,36 @@
             }
 
             event.stopPropagation();
+
+            if (!linkSourceId) {
+              linkSourceId = box.id;
+              selectedBoxId = box.id;
+              selectedLinkKey = null;
+              syncLinkControlInputs(null);
+              updateToolbarInfo('Link source selected. Click another note to connect it.');
+              refreshLinkControls();
+              render();
+              return;
+            }
+
+            if (linkSourceId === box.id) {
+              linkSourceId = null;
+              selectedBoxId = box.id;
+              selectedLinkKey = null;
+              syncLinkControlInputs(null);
+              updateToolbarInfo('Link source cleared. Click a source note to start linking.');
+              refreshLinkControls();
+              render();
+              return;
+            }
+
+            addLink(linkSourceId, box.id);
+            linkSourceId = box.id;
             selectedBoxId = box.id;
             selectedLinkKey = null;
             syncLinkControlInputs(null);
+            updateToolbarInfo('Link created. Click another note to keep linking from the latest note.');
+            refreshLinkControls();
             render();
           });
 
@@ -3809,10 +3910,9 @@
       linkModeBtn.addEventListener('click', function () {
         closeToolbarMenus();
         linkMode = !linkMode;
-        linkModeBtn.classList.toggle('active', linkMode);
         if (linkMode) {
           linkSourceId = selectedBoxId ? selectedBoxId : null;
-          updateToolbarInfo('Link mode is on. Drag from a note handle and drop on another note.');
+          updateToolbarInfo('Link mode is on. Click a source note, then click a target note to connect.');
         } else {
           linkDrag.active = false;
           linkDrag.sourceId = null;
@@ -4007,7 +4107,7 @@
 
         if (linkMode) {
           cancelPendingLink();
-          updateToolbarInfo('Link mode: drag from a note handle and release on another note.');
+          updateToolbarInfo('Link mode is on. Click a source note, then click another note to link.');
           render();
           return;
         }
@@ -4090,7 +4190,6 @@
           linkDrag.active = false;
           linkDrag.sourceId = null;
           linkMode = false;
-          linkModeBtn.classList.remove('active');
           updateToolbarInfo('Link mode off. Drag boxes from their top bar. Click a box to select.');
         }
 
@@ -4103,6 +4202,7 @@
       window.addEventListener('beforeunload', immediateSaveOnLeave);
 
       refreshLinkControls();
+      updateLinkModeUi();
       updateZoomUi();
       lastSavedPayload = JSON.stringify(buildCanvasPayload());
       updateAutoSaveStatus('All changes saved', false);

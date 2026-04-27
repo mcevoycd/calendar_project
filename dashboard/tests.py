@@ -533,3 +533,12 @@ class CanvasViewTests(TestCase):
         self.assertIn('"end": "arrow"', canvas_data)
         self.assertIn('"color": "#ff8844"', canvas_data)
         self.assertIn('"w": 140', canvas_data)
+
+    def test_canvas_exposes_link_mode_guidance_ui(self):
+        response = self.client.get(reverse('canvas'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="link-mode-btn"', html=False)
+        self.assertContains(response, 'Link Mode: Off')
+        self.assertContains(response, 'id="toolbar-info"', html=False)
+        self.assertContains(response, 'id="link-mode-hint"', html=False)
