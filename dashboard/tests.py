@@ -318,6 +318,30 @@ class DashboardViewTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, 'updated@example.com')
 
+    def test_dashboard_todo_board_hides_completed_tasks(self):
+        TodoTask.objects.create(
+            user=self.user,
+            task_id='todo-active-dashboard',
+            title='Active dashboard task',
+            priority='high',
+            section='planning',
+            completed=False,
+        )
+        TodoTask.objects.create(
+            user=self.user,
+            task_id='todo-done-dashboard',
+            title='Done dashboard task',
+            priority='high',
+            section='planning',
+            completed=True,
+        )
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Active dashboard task')
+        self.assertNotContains(response, 'Done dashboard task')
+
 
 class SettingsViewTests(TestCase):
     def setUp(self):

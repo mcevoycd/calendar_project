@@ -1053,7 +1053,11 @@ def dashboard_view(request):
         section_tasks = [
             item
             for item in task_items
-            if item["section"] == section["key"] and item.get("priority") in {"urgent", "high", "medium"}
+            if (
+                item["section"] == section["key"]
+                and item.get("priority") in {"urgent", "high", "medium"}
+                and not bool(item.get("completed", False))
+            )
         ]
         section_tasks.sort(key=get_todo_task_sort_key)
 
