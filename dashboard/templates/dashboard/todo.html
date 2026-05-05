@@ -2231,10 +2231,26 @@
           </div>
 
           <nav class="todo-local-section-nav" id="todo-local-section-nav" aria-label="To Do sections">
-            <button type="button" class="todo-local-section-btn todo-local-section-btn--next is-active" data-local-section-btn data-section-key="next" aria-pressed="true">Next Up</button>
-            <button type="button" class="todo-local-section-btn todo-local-section-btn--progress" data-local-section-btn data-section-key="progress" aria-pressed="false">In Progress</button>
-            <button type="button" class="todo-local-section-btn todo-local-section-btn--done" data-local-section-btn data-section-key="done" aria-pressed="false">Done</button>
-            <button type="button" class="todo-local-section-btn todo-local-section-btn--planning" data-local-section-btn data-section-key="planning" aria-pressed="false">Backlog</button>
+            {% for section in section_lists %}
+              {% if section.key == 'next' %}
+                <button type="button" class="todo-local-section-btn todo-local-section-btn--next is-active" data-local-section-btn data-section-key="next" aria-pressed="true">{{ section.name }}</button>
+              {% endif %}
+            {% endfor %}
+            {% for section in section_lists %}
+              {% if section.key == 'progress' %}
+                <button type="button" class="todo-local-section-btn todo-local-section-btn--progress" data-local-section-btn data-section-key="progress" aria-pressed="false">{{ section.name }}</button>
+              {% endif %}
+            {% endfor %}
+            {% for section in section_lists %}
+              {% if section.key == 'done' %}
+                <button type="button" class="todo-local-section-btn todo-local-section-btn--done" data-local-section-btn data-section-key="done" aria-pressed="false">{{ section.name }}</button>
+              {% endif %}
+            {% endfor %}
+            {% for section in section_lists %}
+              {% if section.key == 'planning' %}
+                <button type="button" class="todo-local-section-btn todo-local-section-btn--planning" data-local-section-btn data-section-key="planning" aria-pressed="false">{{ section.name }}</button>
+              {% endif %}
+            {% endfor %}
           </nav>
         </section>
       </div>
