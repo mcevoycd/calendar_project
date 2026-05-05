@@ -20,6 +20,7 @@
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
       --page-bottom-gap: 16px;
       --top-nav-height: 82px;
+      --todo-local-tabs-height: 48px;
     }
 
     html {
@@ -313,6 +314,54 @@
       padding-bottom: 0.3rem;
       flex: 1;
       min-height: 0;
+    }
+
+    .todo-local-section-nav {
+      display: none;
+    }
+
+    .todo-local-section-btn {
+      width: 100%;
+      border: 0;
+      border-top: 2px solid transparent;
+      border-right: 1px solid rgba(122, 146, 165, 0.28);
+      background: rgba(11, 25, 39, 0.96);
+      color: #C7D5E1;
+      border-radius: 0;
+      padding: 0.5rem 0.35rem;
+      min-height: var(--todo-local-tabs-height);
+      font-size: 0.76rem;
+      font-weight: 600;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .todo-local-section-btn:last-child {
+      border-right: 0;
+    }
+
+    .todo-local-section-btn--planning { color: #A8DFF5; }
+    .todo-local-section-btn--next { color: #D8F4A4; }
+    .todo-local-section-btn--progress { color: #FFE4A0; }
+    .todo-local-section-btn--done { color: #AEEED2; }
+
+    .todo-local-section-btn--planning.is-active { background: #173448; border-top-color: #38BDF8; color: #EAF6FF; font-weight: 700; }
+    .todo-local-section-btn--next.is-active { background: #273A1A; border-top-color: #A3E635; color: #F4FBE7; font-weight: 700; }
+    .todo-local-section-btn--progress.is-active { background: #3A3016; border-top-color: #FACC15; color: #FFF8E7; font-weight: 700; }
+    .todo-local-section-btn--done.is-active { background: #17372E; border-top-color: #34D399; color: #E9FBF4; font-weight: 700; }
+
+    .todo-local-section-btn:focus {
+      outline: none;
+      box-shadow: inset 0 0 0 2px rgba(83, 183, 232, 0.25);
+    }
+
+    .todo-local-section-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     .todo-section-column {
@@ -1443,13 +1492,83 @@
       }
 
       .todo-sections-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-template-columns: 1fr !important;
+      }
+
+      /* left-rail: no bottom nav, tabs flush to viewport bottom */
+      .todo-local-section-nav {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2055;
+        margin-top: 0;
+        padding: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        border-bottom: none;
+        border-radius: 0;
+        background: rgba(8, 20, 32, 0.96);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      /* bottom-nav layout: tabs sit directly on top of the global nav */
+      body.nav-position-bottom .todo-local-section-nav {
+        bottom: calc(60px + env(safe-area-inset-bottom));
+      }
+
+      .content-grid {
+        padding-bottom: calc(var(--todo-local-tabs-height) + 1rem);
+      }
+
+      body.nav-position-bottom .content-grid {
+        padding-bottom: calc(60px + var(--todo-local-tabs-height) + env(safe-area-inset-bottom) + 1rem);
+      }
+
+      .todo-section-column.is-local-hidden {
+        display: none !important;
       }
     }
 
     @media (max-width: 599px) {
       .todo-sections-grid {
         grid-template-columns: 1fr !important;
+      }
+
+      .content-grid {
+        padding-bottom: calc(58px + var(--todo-local-tabs-height) + env(safe-area-inset-bottom) + 1.2rem);
+      }
+
+      .todo-local-section-nav {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: calc(58px + env(safe-area-inset-bottom));
+        z-index: 2055;
+        margin-top: 0;
+        padding: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0;
+        background: rgba(8, 20, 32, 0.96);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .todo-local-section-btn {
+        min-height: var(--todo-local-tabs-height);
+        font-size: 0.71rem;
+        padding: 0.4rem 0.2rem;
+      }
+
+      .todo-section-column.is-local-hidden {
+        display: none !important;
       }
     }
     /* Shared left-rail sidebar override for desktop and tablet */
@@ -2110,6 +2229,13 @@
               </article>
             {% endfor %}
           </div>
+
+          <nav class="todo-local-section-nav" id="todo-local-section-nav" aria-label="To Do sections">
+            <button type="button" class="todo-local-section-btn todo-local-section-btn--next is-active" data-local-section-btn data-section-key="next" aria-pressed="true">Next Up</button>
+            <button type="button" class="todo-local-section-btn todo-local-section-btn--progress" data-local-section-btn data-section-key="progress" aria-pressed="false">In Progress</button>
+            <button type="button" class="todo-local-section-btn todo-local-section-btn--done" data-local-section-btn data-section-key="done" aria-pressed="false">Done</button>
+            <button type="button" class="todo-local-section-btn todo-local-section-btn--planning" data-local-section-btn data-section-key="planning" aria-pressed="false">Backlog</button>
+          </nav>
         </section>
       </div>
     </main>
@@ -2273,6 +2399,8 @@
       const panelFab = document.getElementById('open-todo-panel-fab');
       const mobileQuickAddBtn = document.getElementById('mobile-quick-add-btn');
       const sectionColumns = Array.from(document.querySelectorAll('.todo-section-column'));
+      const localSectionNav = document.getElementById('todo-local-section-nav');
+      const localSectionButtons = Array.from(document.querySelectorAll('[data-local-section-btn]'));
       const sectionTitleTriggers = Array.from(document.querySelectorAll('[data-section-title-trigger]'));
       const sectionTitleForms = Array.from(document.querySelectorAll('[data-section-title-form]'));
       const taskButtons = Array.from(document.querySelectorAll('.todo-task-hit'));
@@ -2285,8 +2413,71 @@
       const requestedTaskId = (params.get('task_id') || '').trim();
       const defaultStartDateValue = startDateInput ? startDateInput.value : '';
       const defaultEndDateValue = endDateInput ? endDateInput.value : '';
+      const compactSectionDefault = 'next';
       let checklistState = [];
       let activeDrag = null;
+      let activeSection = compactSectionDefault;
+
+      function isCompactSectionViewport() {
+        return window.matchMedia('(max-width: 1199px)').matches;
+      }
+
+      function getColumnBySectionKey(sectionKey) {
+        if (!sectionKey) {
+          return null;
+        }
+        return sectionColumns.find(function (column) {
+          return (column.dataset.sectionKey || '').trim() === sectionKey;
+        }) || null;
+      }
+
+      function getFirstAvailableSectionKey() {
+        const preferredOrder = ['next', 'progress', 'done', 'planning'];
+        for (let idx = 0; idx < preferredOrder.length; idx += 1) {
+          const key = preferredOrder[idx];
+          if (getColumnBySectionKey(key)) {
+            return key;
+          }
+        }
+        return sectionColumns.length ? (sectionColumns[0].dataset.sectionKey || 'planning') : 'planning';
+      }
+
+      function updateLocalSectionMenuState() {
+        localSectionButtons.forEach(function (button) {
+          const matches = (button.dataset.sectionKey || '') === activeSection;
+          button.classList.toggle('is-active', matches);
+          button.setAttribute('aria-pressed', matches ? 'true' : 'false');
+          button.disabled = !getColumnBySectionKey(button.dataset.sectionKey || '');
+        });
+      }
+
+      function setActiveSection(nextSection, options) {
+        const opts = options || {};
+        const resolvedSection = getColumnBySectionKey(nextSection) ? nextSection : getFirstAvailableSectionKey();
+        activeSection = resolvedSection;
+
+        const compact = isCompactSectionViewport();
+        sectionColumns.forEach(function (column) {
+          const shouldShow = !compact || (column.dataset.sectionKey || '') === activeSection;
+          column.classList.toggle('is-local-hidden', !shouldShow);
+          if (shouldShow) {
+            column.removeAttribute('hidden');
+          } else {
+            column.setAttribute('hidden', 'hidden');
+          }
+        });
+
+        updateLocalSectionMenuState();
+
+        if (compact && sectionInput && !opts.keepFormSection) {
+          sectionInput.value = activeSection;
+          updatePanelCopy(formTypeInput.value === 'edit_todo_entry');
+        }
+      }
+
+      function syncCompactSectionMode() {
+        setActiveSection(activeSection, { keepFormSection: true });
+      }
 
       function ensureSectionList(column) {
         if (!column) {
@@ -2752,8 +2943,9 @@
         if (endDateInput) {
           endDateInput.value = defaultEndDateValue;
         }
-        if (sectionInput && sectionKey) {
-          sectionInput.value = sectionKey;
+        const resolvedSection = sectionKey || (isCompactSectionViewport() ? activeSection : '');
+        if (sectionInput && resolvedSection) {
+          sectionInput.value = resolvedSection;
         }
         checklistState = [];
         renderChecklistEditor();
@@ -2762,7 +2954,8 @@
       }
 
       function openCreateMode(sectionKey) {
-        setAddMode(sectionKey);
+        const resolvedSection = sectionKey || (isCompactSectionViewport() ? activeSection : (sectionInput ? sectionInput.value : ''));
+        setAddMode(resolvedSection);
         setEntryTab('notes');
         openTodoPanel();
         if (titleInput) {
@@ -2862,7 +3055,7 @@
 
       if (panelFab) {
         panelFab.addEventListener('click', function () {
-          openCreateMode(sectionInput ? sectionInput.value : '');
+          openCreateMode(isCompactSectionViewport() ? activeSection : (sectionInput ? sectionInput.value : ''));
         });
       }
 
@@ -2874,9 +3067,24 @@
 
       if (sectionInput) {
         sectionInput.addEventListener('change', function () {
+          if (isCompactSectionViewport()) {
+            setActiveSection(sectionInput.value, { keepFormSection: true });
+          }
           updatePanelCopy(formTypeInput.value === 'edit_todo_entry');
         });
       }
+
+      localSectionButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const nextSection = (button.dataset.sectionKey || '').trim();
+          if (!nextSection) {
+            return;
+          }
+          setActiveSection(nextSection);
+        });
+      });
+
+      window.addEventListener('resize', syncCompactSectionMode);
 
       sectionColumns.forEach(function (column) {
         column.addEventListener('click', function (event) {
@@ -3022,7 +3230,12 @@
         });
       });
 
-      setAddMode(sectionInput ? sectionInput.value : '');
+      activeSection = getColumnBySectionKey(compactSectionDefault)
+        ? compactSectionDefault
+        : getFirstAvailableSectionKey();
+      syncCompactSectionMode();
+
+      setAddMode(isCompactSectionViewport() ? activeSection : (sectionInput ? sectionInput.value : ''));
       renderChecklistEditor();
       setEntryTab('notes');
 

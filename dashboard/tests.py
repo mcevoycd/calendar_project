@@ -165,6 +165,15 @@ class TodoViewTests(TestCase):
         self.assertContains(response, 'data-has-details="true"')
         self.assertContains(response, 'Line one\nLine two\nLine three')
 
+    def test_todo_compact_local_section_menu_defaults_to_next_up(self):
+        response = self.client.get(reverse('todo'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="todo-local-section-nav"', html=False)
+        self.assertContains(response, 'data-section-key="next"', html=False)
+        self.assertContains(response, 'Next Up')
+        self.assertContains(response, 'todo-local-section-btn--next is-active', html=False)
+
 
 class NotesViewTests(TestCase):
     def setUp(self):
