@@ -96,7 +96,7 @@ def pwa_service_worker(request):
 
 def pwa_icon(request, filename):
     safe_name = Path(str(filename)).name
-    allowed_icons = {'icon-192.png', 'icon-512.png'}
+    allowed_icons = {'icon-180.png', 'icon-192.png', 'icon-512.png'}
     if safe_name not in allowed_icons:
         raise Http404('icon not found')
 

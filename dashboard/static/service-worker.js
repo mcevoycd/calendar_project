@@ -1,7 +1,8 @@
-const CACHE_NAME = 'fluid-notes-shell-v1';
+const CACHE_NAME = 'fluid-notes-shell-v2';
 const CORE_ASSETS = [
   '/',
   '/manifest.json',
+  '/icons/icon-180.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];
