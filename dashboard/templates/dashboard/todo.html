@@ -571,7 +571,7 @@
 
     .todo-task {
       position: relative;
-      touch-action: none;
+      touch-action: pan-y;
     }
 
     .todo-task.is-dragging {
@@ -606,6 +606,7 @@
       z-index: 4;
       font-size: 0.92rem;
       line-height: 1;
+      touch-action: none;
     }
 
     .todo-drag-handle:hover,
