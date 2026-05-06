@@ -1,6 +1,6 @@
 {% load static %}
 <div class="mobile-bottom-bar" data-mobile-nav aria-label="Primary navigation">
-  <a class="mobile-bottom-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}" aria-label="Dashboard">
+  <a class="mobile-bottom-link mobile-bottom-link-dashboard {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}" aria-label="Dashboard">
     <span class="mobile-bottom-icon" aria-hidden="true">
       <img src="{% static 'dashboard/icons/dashboard_white.svg' %}" alt="">
     </span>

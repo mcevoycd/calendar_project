@@ -3757,6 +3757,11 @@
 
   <script>
     (function () {
+      if (window.matchMedia('(max-width: 599px)').matches) {
+        window.location.replace('{% url "diary" %}');
+        return;
+      }
+
       function renderWorldClockFallback() {
         const container = document.getElementById('worldclock-container');
         if (!container || container.querySelector('.clock-item, .header-clock-item')) {
