@@ -1023,6 +1023,23 @@
       padding-right: 0.2rem;
     }
 
+    @media (min-width: 1200px) {
+      .calendar-scroll-wrapper {
+        flex: 0 0 auto;
+        height: auto;
+        max-height: none;
+        overflow-y: visible;
+      }
+
+      #calendar,
+      #calendar .fc,
+      #calendar .fc-media-screen,
+      #calendar .fc-view-harness {
+        min-height: 0;
+        height: auto;
+      }
+    }
+
     .custom-selected-day-item {
       border: 1px solid rgba(53, 84, 109, 0.8);
       border-radius: 10px;
