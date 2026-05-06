@@ -1084,6 +1084,7 @@ def dashboard_view(request):
 
         todo_columns.append(
             {
+                "key": section["key"],
                 "title": section["title"],
                 "list_class": f"todo-list-{section['key']}",
                 "tasks": display_tasks,
