@@ -5839,6 +5839,8 @@
     <input type="hidden" name="calendar_date" id="diary-quick-delete-calendar-date" value="">
   </form>
 
+  {{ offline_diary_payload|json_script:"offline-diary-data" }}
+
   {% include 'dashboard/_mobile_bottom_nav.html' %}
 </body>
 </html>

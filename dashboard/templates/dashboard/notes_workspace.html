@@ -3055,5 +3055,6 @@
   </script>
 
   {% include 'dashboard/_mobile_bottom_nav.html' %}
+  {{ offline_notes_payload|json_script:"offline-notes-data" }}
 </body>
 </html>

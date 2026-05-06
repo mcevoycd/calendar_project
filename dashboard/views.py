@@ -1264,6 +1264,24 @@ def diary_view(request):
         "iphone_month_entries": iphone_month_entries,
         "diary_category_options": get_diary_category_options(),
         "note_categories": note_categories,
+        "offline_diary_payload": {
+            "generated_at": datetime.now().isoformat(),
+            "entries": [
+                {
+                    "id": entry.id,
+                    "title": entry.title,
+                    "category": normalize_diary_category(getattr(entry, "category", DIARY_DEFAULT_CATEGORY)),
+                    "date": entry.date.isoformat() if entry.date else "",
+                    "end_date": entry.end_date.isoformat() if entry.end_date else "",
+                    "start_time": entry.start_time.strftime('%H:%M') if entry.start_time else "",
+                    "end_time": entry.end_time.strftime('%H:%M') if entry.end_time else "",
+                    "content": entry.content,
+                    "updated_at": entry.updated_at.isoformat() if entry.updated_at else "",
+                }
+                for entry in diary_entries[:500]
+            ],
+            "categories": get_diary_category_options(),
+        },
         "default_diary_view": preferences.default_diary_view,
         "nav_layout": preferences.nav_layout,
     }
@@ -1795,6 +1813,11 @@ def todo_view(request):
             "nav_layout": preferences.nav_layout,
             "diary_category_options": get_diary_category_options(),
             "note_categories": list(NoteCategory.objects.filter(user=request.user).order_by('name')),
+            "offline_todo_payload": {
+                "generated_at": datetime.now().isoformat(),
+                "today_iso": default_date,
+                "sections": section_lists,
+            },
         },
     )
 
@@ -1979,6 +2002,31 @@ def notes_view(request):
         'selected_category_id': selected_category_id,
         'search_query': search_query,
         'nav_layout': preferences.nav_layout,
+        'offline_notes_payload': {
+            'generated_at': datetime.now().isoformat(),
+            'selected_category_id': selected_category_id,
+            'selected_note_id': str(selected_note.id) if selected_note else '',
+            'search_query': search_query,
+            'categories': [
+                {
+                    'id': category.id,
+                    'name': category.name,
+                }
+                for category in categories
+            ],
+            'notes': [
+                {
+                    'id': note.id,
+                    'title': note.title,
+                    'category_id': note.category_id,
+                    'category_name': note.category.name if note.category else '',
+                    'is_pinned': bool(note.is_pinned),
+                    'updated_at': note.updated_at.isoformat() if note.updated_at else '',
+                    'body': note.body,
+                }
+                for note in notes[:400]
+            ],
+        },
     }
     return render(request, 'dashboard/notes_workspace.html', context)
 

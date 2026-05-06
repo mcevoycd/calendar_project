@@ -414,6 +414,150 @@
       font-size: 0.9rem;
     }
 
+    .offline-setup-card {
+      display: grid;
+      gap: 0.85rem;
+      padding: 0.95rem 1rem;
+      border: 1px solid #1F4F70;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(7, 25, 40, 0.92) 0%, rgba(9, 27, 42, 0.82) 100%);
+    }
+
+    .offline-setup-summary {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .offline-setup-summary p {
+      margin: 0.2rem 0 0;
+      color: #9EB0C2;
+      font-size: 0.88rem;
+    }
+
+    .offline-ready-inline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 79, 112, 0.92);
+      background: rgba(10, 26, 42, 0.88);
+      color: #D3DEE8;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .offline-ready-inline[data-tone="ready"] {
+      border-color: rgba(74, 222, 128, 0.42);
+      background: rgba(8, 43, 30, 0.92);
+      color: #D5F7DE;
+    }
+
+    .offline-ready-inline[data-tone="partial"] {
+      border-color: rgba(250, 204, 21, 0.46);
+      background: rgba(55, 43, 13, 0.94);
+      color: #FFF0BF;
+    }
+
+    .offline-ready-inline[data-tone="missing"] {
+      border-color: rgba(248, 113, 113, 0.42);
+      background: rgba(60, 19, 24, 0.94);
+      color: #FFD6D6;
+    }
+
+    .offline-seed-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .offline-seed-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 12px;
+      border: 1px solid rgba(31, 79, 112, 0.72);
+      background: rgba(8, 19, 31, 0.72);
+    }
+
+    .offline-seed-item strong {
+      color: #E5E7EB;
+      font-size: 0.92rem;
+    }
+
+    .offline-seed-item span {
+      color: #9EB0C2;
+      font-size: 0.82rem;
+    }
+
+    .offline-seed-state {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 6.4rem;
+      padding: 0.2rem 0.58rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 79, 112, 0.72);
+      background: rgba(10, 26, 42, 0.9);
+      color: #D3DEE8;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .offline-seed-state[data-state="ready"] {
+      border-color: rgba(74, 222, 128, 0.42);
+      color: #D5F7DE;
+      background: rgba(8, 43, 30, 0.92);
+    }
+
+    .offline-seed-state[data-state="loading"] {
+      border-color: rgba(0, 194, 255, 0.42);
+      color: #D8F4FF;
+      background: rgba(8, 37, 55, 0.92);
+    }
+
+    .offline-seed-state[data-state="missing"] {
+      border-color: rgba(248, 113, 113, 0.42);
+      color: #FFD6D6;
+      background: rgba(60, 19, 24, 0.94);
+    }
+
+    .offline-seed-status {
+      margin: 0;
+      color: #9EB0C2;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .offline-seed-status[data-state="error"] {
+      color: #FCA5A5;
+    }
+
+    .offline-seed-status[data-state="success"] {
+      color: #86EFAC;
+    }
+
+    .offline-seed-frame {
+      width: 0;
+      height: 0;
+      border: 0;
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .version-pill {
       display: inline-flex;
       padding: 0.25rem 0.6rem;
@@ -1302,6 +1446,51 @@
           </div>
         </section>
 
+        <section class="settings-section" aria-labelledby="offline-setup-heading">
+          <h2 id="offline-setup-heading" class="title-inline">Offline setup <span class="title-blurb">Prime Diary, To Do, and Notes before you switch your iPhone offline.</span></h2>
+          <div class="offline-setup-card">
+            <div class="offline-setup-summary">
+              <div>
+                <strong>Seed offline data</strong>
+                <p>Use this while online to load the three core sections once and store their latest local snapshots.</p>
+              </div>
+              <span class="offline-ready-inline" id="offline-ready-inline" data-tone="missing">Checking</span>
+            </div>
+
+            <ul class="offline-seed-list" id="offline-seed-list">
+              <li class="offline-seed-item" data-section="diary">
+                <div>
+                  <strong>Diary</strong>
+                  <span>Calendar entries and selected-day data.</span>
+                </div>
+                <span class="offline-seed-state" id="offline-seed-state-diary" data-state="missing">Missing</span>
+              </li>
+              <li class="offline-seed-item" data-section="todo">
+                <div>
+                  <strong>To Do</strong>
+                  <span>Section board, active tasks, and archive snapshot.</span>
+                </div>
+                <span class="offline-seed-state" id="offline-seed-state-todo" data-state="missing">Missing</span>
+              </li>
+              <li class="offline-seed-item" data-section="notes">
+                <div>
+                  <strong>Notes</strong>
+                  <span>Categories, note list, and selected note preview.</span>
+                </div>
+                <span class="offline-seed-state" id="offline-seed-state-notes" data-state="missing">Missing</span>
+              </li>
+            </ul>
+
+            <div class="settings-actions">
+              <button type="button" class="btn-save" id="seed-offline-btn">Seed offline now</button>
+              <button type="button" class="btn-outline" id="refresh-offline-btn">Refresh status</button>
+              <button type="button" class="btn-outline" id="open-offline-diagnostics-btn">Open diagnostics</button>
+            </div>
+            <p class="offline-seed-status" id="offline-seed-status">Checking your current offline readiness.</p>
+            <iframe title="Offline setup loader" id="offline-seed-frame" class="offline-seed-frame" tabindex="-1" aria-hidden="true"></iframe>
+          </div>
+        </section>
+
         <section class="settings-section" aria-labelledby="about-heading">
           <h2 id="about-heading">About</h2>
           <p>Version ID: <span class="version-pill">{{ app_version }}</span></p>
@@ -1339,6 +1528,222 @@
       const resetClocksBtn = document.getElementById('reset-clocks-btn');
       const clockStatus = document.getElementById('clock-settings-status');
       const defaultClocks = ['Europe/London', 'Asia/Manila', 'America/Chicago'];
+      const offlineSeedFrame = document.getElementById('offline-seed-frame');
+      const offlineSeedBtn = document.getElementById('seed-offline-btn');
+      const refreshOfflineBtn = document.getElementById('refresh-offline-btn');
+      const openOfflineDiagnosticsBtn = document.getElementById('open-offline-diagnostics-btn');
+      const offlineSeedStatus = document.getElementById('offline-seed-status');
+      const offlineReadyInline = document.getElementById('offline-ready-inline');
+      const offlineSectionStateNodes = {
+        diary: document.getElementById('offline-seed-state-diary'),
+        todo: document.getElementById('offline-seed-state-todo'),
+        notes: document.getElementById('offline-seed-state-notes')
+      };
+      const offlineSeedTargets = [
+        { key: 'diary', label: 'Diary', url: '{% url "diary" %}' },
+        { key: 'todo', label: 'To Do', url: '{% url "todo" %}' },
+        { key: 'notes', label: 'Notes', url: '{% url "notes" %}' }
+      ];
+      let offlineSeeding = false;
+
+      function canUseIndexedDb() {
+        return 'indexedDB' in window;
+      }
+
+      function openOfflineSnapshotDb() {
+        return new Promise(function (resolve, reject) {
+          if (!canUseIndexedDb()) {
+            reject(new Error('IndexedDB unavailable'));
+            return;
+          }
+
+          const request = indexedDB.open('fluid-notes-offline-db', 1);
+          request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('snapshots')) {
+              const store = db.createObjectStore('snapshots', { keyPath: 'section' });
+              store.createIndex('updatedAt', 'updatedAt', { unique: false });
+            }
+          };
+          request.onsuccess = function () {
+            resolve(request.result);
+          };
+          request.onerror = function () {
+            reject(request.error || new Error('Unable to open offline snapshot database'));
+          };
+        });
+      }
+
+      function readOfflineSnapshots() {
+        return openOfflineSnapshotDb().then(function (db) {
+          return new Promise(function (resolve, reject) {
+            const tx = db.transaction('snapshots', 'readonly');
+            const store = tx.objectStore('snapshots');
+            const request = store.getAll();
+            request.onsuccess = function () {
+              resolve(Array.isArray(request.result) ? request.result : []);
+            };
+            request.onerror = function () {
+              reject(request.error || new Error('Unable to read offline snapshots'));
+            };
+            tx.oncomplete = function () {
+              db.close();
+            };
+          });
+        });
+      }
+
+      function setOfflineSeedStatus(message, state) {
+        if (!offlineSeedStatus) return;
+        offlineSeedStatus.textContent = message;
+        offlineSeedStatus.setAttribute('data-state', state || 'idle');
+      }
+
+      function updateOfflineSectionState(sectionKey, state, label) {
+        const node = offlineSectionStateNodes[sectionKey];
+        if (!node) return;
+        node.setAttribute('data-state', state);
+        node.textContent = label;
+      }
+
+      function setInlineReadiness(tone, label) {
+        if (!offlineReadyInline) return;
+        offlineReadyInline.setAttribute('data-tone', tone);
+        offlineReadyInline.textContent = label;
+      }
+
+      function setSeedButtonState(isBusy) {
+        if (!offlineSeedBtn) return;
+        offlineSeedBtn.disabled = isBusy;
+        offlineSeedBtn.textContent = isBusy ? 'Seeding…' : 'Seed offline now';
+      }
+
+      async function refreshOfflineHelperStatus() {
+        if (!offlineReadyInline) {
+          return;
+        }
+
+        try {
+          const rows = await readOfflineSnapshots();
+          const snapshotMap = new Map();
+          rows.forEach(function (row) {
+            if (row && row.section) {
+              snapshotMap.set(row.section, row);
+            }
+          });
+
+          let readyCount = 0;
+          offlineSeedTargets.forEach(function (target) {
+            const row = snapshotMap.get(target.key);
+            if (row && row.updatedAt) {
+              readyCount += 1;
+              const stamp = new Date(row.updatedAt);
+              const timeLabel = Number.isNaN(stamp.getTime())
+                ? 'Ready'
+                : ('Saved ' + stamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+              updateOfflineSectionState(target.key, 'ready', timeLabel);
+            } else {
+              updateOfflineSectionState(target.key, 'missing', 'Missing');
+            }
+          });
+
+          if (readyCount === offlineSeedTargets.length) {
+            setInlineReadiness('ready', 'Offline ready');
+            setOfflineSeedStatus('All three sections have local snapshots. You can switch offline and test on your iPhone now.', 'success');
+          } else if (readyCount > 0) {
+            setInlineReadiness('partial', 'Offline partial');
+            setOfflineSeedStatus('Some offline data is saved. Run the seed step again or open the missing sections once while online.', 'idle');
+          } else {
+            setInlineReadiness('missing', 'Setup needed');
+            setOfflineSeedStatus('No local snapshots found yet. While online, run the seeding step to load Diary, To Do, and Notes once.', 'idle');
+          }
+
+          if (window.FluidNotesOfflineDiagnostics && typeof window.FluidNotesOfflineDiagnostics.refreshStatus === 'function') {
+            window.FluidNotesOfflineDiagnostics.refreshStatus();
+          }
+        } catch (error) {
+          setInlineReadiness('missing', 'Unavailable');
+          setOfflineSeedStatus('Offline status could not be read on this device right now.', 'error');
+        }
+      }
+
+      function loadSeedTarget(target) {
+        return new Promise(function (resolve, reject) {
+          if (!offlineSeedFrame) {
+            reject(new Error('Offline seed frame unavailable'));
+            return;
+          }
+
+          let settled = false;
+          const timeoutId = window.setTimeout(function () {
+            cleanup();
+            reject(new Error('Timed out while loading ' + target.label));
+          }, 12000);
+
+          function cleanup() {
+            window.clearTimeout(timeoutId);
+            offlineSeedFrame.removeEventListener('load', handleLoad);
+            offlineSeedFrame.removeEventListener('error', handleError);
+          }
+
+          function finish(callback) {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            cleanup();
+            callback();
+          }
+
+          function handleLoad() {
+            finish(function () {
+              window.setTimeout(resolve, 350);
+            });
+          }
+
+          function handleError() {
+            finish(function () {
+              reject(new Error('Unable to load ' + target.label));
+            });
+          }
+
+          offlineSeedFrame.addEventListener('load', handleLoad);
+          offlineSeedFrame.addEventListener('error', handleError);
+          offlineSeedFrame.src = target.url + (target.url.indexOf('?') === -1 ? '?' : '&') + 'offline_seed=' + Date.now();
+        });
+      }
+
+      async function seedOfflineData() {
+        if (offlineSeeding) {
+          return;
+        }
+
+        if (!navigator.onLine) {
+          setOfflineSeedStatus('Reconnect first. Seeding only works while the app is online.', 'error');
+          return;
+        }
+
+        offlineSeeding = true;
+        setSeedButtonState(true);
+        setInlineReadiness('partial', 'Seeding');
+
+        try {
+          for (const target of offlineSeedTargets) {
+            updateOfflineSectionState(target.key, 'loading', 'Loading');
+            setOfflineSeedStatus('Loading ' + target.label + ' and saving its local snapshot…', 'idle');
+            await loadSeedTarget(target);
+            await refreshOfflineHelperStatus();
+          }
+
+          setOfflineSeedStatus('Offline seeding completed. Refreshing readiness state now.', 'success');
+          await refreshOfflineHelperStatus();
+        } catch (error) {
+          setOfflineSeedStatus(error && error.message ? error.message : 'Offline seeding failed.', 'error');
+        } finally {
+          offlineSeeding = false;
+          setSeedButtonState(false);
+        }
+      }
 
       function updateSidebarDateTime() {
         if (!dateTimeEl) return;
@@ -1428,6 +1833,36 @@
           setOpen(shouldOpen);
         });
       }
+
+      if (offlineSeedBtn) {
+        offlineSeedBtn.addEventListener('click', function () {
+          seedOfflineData();
+        });
+      }
+
+      if (refreshOfflineBtn) {
+        refreshOfflineBtn.addEventListener('click', function () {
+          refreshOfflineHelperStatus();
+        });
+      }
+
+      if (openOfflineDiagnosticsBtn) {
+        openOfflineDiagnosticsBtn.addEventListener('click', function () {
+          if (window.FluidNotesOfflineDiagnostics && typeof window.FluidNotesOfflineDiagnostics.openPanel === 'function') {
+            try {
+              localStorage.setItem('fluid-notes-offline-debug', '1');
+            } catch (error) {
+              // Ignore local storage failures.
+            }
+            window.FluidNotesOfflineDiagnostics.refreshStatus();
+            window.FluidNotesOfflineDiagnostics.openPanel();
+            return;
+          }
+          setOfflineSeedStatus('Offline diagnostics is not available yet on this page load.', 'error');
+        });
+      }
+
+      refreshOfflineHelperStatus();
     });
   </script>
 
