@@ -374,7 +374,7 @@
 
     .mini-month {
       background: #111d30;
-      border: 1px solid #1F4F70;
+        border: none;
       border-radius: 16px;
       padding: 0.9rem;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -447,13 +447,13 @@
       color: #9EB0C2;
       font-weight: 700;
       letter-spacing: 0.02em;
-      border: 1px solid rgba(44, 91, 124, 0.34);
+        border: none;
       background: rgba(9, 22, 36, 0.28);
     }
 
     .mini-month-cell {
       color: #D5E2EC;
-      border: 1px solid rgba(44, 91, 124, 0.32);
+        border: none;
       min-height: 1.75rem;
       display: grid;
       place-items: center;
@@ -965,7 +965,7 @@
 
     .custom-selected-day-panel {
       margin-top: 0.7rem;
-      border: 1px solid rgba(53, 84, 109, 0.82);
+        border: none;
       border-radius: 14px;
       background: rgba(9, 22, 36, 0.68);
       padding: 0.72rem;
@@ -1170,9 +1170,24 @@
         letter-spacing: 0.02em;
       }
 
-      .custom-month-event-pill,
-      .custom-selected-day-panel {
+      .custom-month-event-pill {
         display: none !important;
+      }
+
+      .custom-selected-day-item-top .custom-month-event-pill {
+        display: inline-flex !important;
+      }
+
+      .custom-selected-day-panel {
+        margin-top: 0.62rem;
+        padding: 0.62rem;
+        border-radius: 12px;
+        background: rgba(9, 22, 36, 0.56);
+      }
+
+      .custom-selected-day-list {
+        max-height: 38vh;
+        overflow-y: auto;
       }
     }
 
@@ -2898,7 +2913,7 @@
         margin: 0 !important;
         padding: 0 !important;
         background: linear-gradient(180deg, rgba(7, 25, 43, 0.98) 0%, rgba(5, 20, 34, 0.98) 100%) !important;
-        border: 1px solid rgba(38, 86, 122, 0.72) !important;
+        border: none !important;
         border-radius: 18px !important;
         box-shadow: 0 14px 30px rgba(3, 12, 24, 0.22) !important;
         overflow: hidden !important;
@@ -2908,7 +2923,7 @@
         padding: 0.72rem 0.75rem 0.68rem !important;
         background: linear-gradient(180deg, rgba(10, 31, 50, 0.96) 0%, rgba(15, 36, 57, 0.96) 100%) !important;
         border-radius: 18px !important;
-        border: 1px solid rgba(83, 183, 232, 0.16) !important;
+        border: none !important;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -3095,14 +3110,14 @@
       }
 
       .iphone-diary-events-panel {
-        display: flex !important;
+        display: none !important;
         flex-direction: column;
         min-height: 0;
         overflow: hidden;
         margin-top: 0 !important;
         padding: 0.8rem 0.8rem calc(0.5rem + env(safe-area-inset-bottom)) !important;
         background: linear-gradient(180deg, rgba(7, 25, 43, 0.98) 0%, rgba(4, 18, 32, 0.98) 100%) !important;
-        border: 1px solid rgba(38, 86, 122, 0.72) !important;
+        border: none !important;
         border-radius: 18px !important;
         box-shadow: 0 14px 30px rgba(3, 12, 24, 0.22) !important;
         touch-action: pan-y;
@@ -4904,7 +4919,7 @@
           return;
         }
 
-        if (isIphoneLayout() || window.calendar.view.type !== 'dayGridMonth') {
+        if (window.calendar.view.type !== 'dayGridMonth') {
           customSelectedDayPanel.hidden = true;
           clearCustomSelectedDaySheetMode();
           return;
@@ -4929,14 +4944,17 @@
         customSelectedDaySubtitle.textContent = `${selectedDayEvents.length} event${selectedDayEvents.length === 1 ? '' : 's'}`;
         customSelectedDayList.innerHTML = '';
 
+        customSelectedDayPanel.hidden = false;
+        customSelectedDaySheetMode = 'expanded';
+
         if (!selectedDayEvents.length) {
-          customSelectedDayPanel.hidden = true;
+          const empty = document.createElement('div');
+          empty.className = 'custom-selected-day-empty';
+          empty.textContent = 'No entries yet for this date.';
+          customSelectedDayList.appendChild(empty);
           clearCustomSelectedDaySheetMode();
           return;
         }
-
-        customSelectedDayPanel.hidden = false;
-        customSelectedDaySheetMode = 'expanded';
 
         selectedDayEvents.forEach(function (eventObj) {
           const item = document.createElement('button');

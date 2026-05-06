@@ -1046,6 +1046,23 @@ def dashboard_view(request):
         entry.category_label = DIARY_CATEGORY_LABELS.get(category_key, DIARY_CATEGORY_LABELS[DIARY_DEFAULT_CATEGORY])
         entry.category_color = DIARY_CATEGORY_COLORS.get(category_key, DIARY_CATEGORY_COLORS[DIARY_DEFAULT_CATEGORY])
 
+    # iPhone diary: filter to current month only
+    current_month_start = today.replace(day=1)
+    if today.month == 12:
+        current_month_end = current_month_start.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+    else:
+        current_month_end = current_month_start.replace(month=today.month + 1, day=1) - timedelta(days=1)
+    
+    iphone_diary_entries = [
+        entry for entry in upcoming_entries 
+        if current_month_start <= entry.date <= current_month_end
+    ][:6]
+    for entry in iphone_diary_entries:
+        category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
+        entry.category_key = category_key
+        entry.category_label = DIARY_CATEGORY_LABELS.get(category_key, DIARY_CATEGORY_LABELS[DIARY_DEFAULT_CATEGORY])
+        entry.category_color = DIARY_CATEGORY_COLORS.get(category_key, DIARY_CATEGORY_COLORS[DIARY_DEFAULT_CATEGORY])
+
     todo_sections = get_todo_sections(request)
     task_items = get_todo_task_items(request)
     todo_columns = []
@@ -1107,6 +1124,7 @@ def dashboard_view(request):
 
     context = {
         'diary_entries': diary_entries,
+        'iphone_diary_entries': iphone_diary_entries,
         'todo_columns': todo_columns,
         'todo_sections': todo_sections,
         'recent_notes': recent_notes,

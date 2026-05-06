@@ -901,6 +901,13 @@
       border-bottom: none;
     }
 
+    @media (max-width: 599px) {
+      .dashboard-diary-row {
+        border-bottom: none !important;
+        padding: 0.35rem 0 !important;
+      }
+    }
+
     .dashboard-diary-row:hover,
     .dashboard-diary-row:focus {
       color: #F2F8FF;
@@ -2647,13 +2654,39 @@
         display: none !important;
       }
 
+      #todo-panel {
+        display: block !important;
+      }
+
+      #notes-placeholder-panel {
+        display: none !important;
+      }
+
+      #diary {
+        display: none !important;
+      }
+
+      #diary-iphone {
+        display: block !important;
+      }
+
       #todo-panel .todo-board {
         grid-template-columns: 1fr !important;
       }
 
+      #todo-panel .todo-list {
+        padding: 0.45rem 0.55rem !important;
+      }
+
+      #todo-panel .todo-list h3 {
+        font-size: 0.75rem !important;
+        padding: 0.28rem 0.55rem !important;
+        margin-bottom: 0.35rem !important;
+      }
+
       #todo-panel .todo-item {
-        font-size: 0.8rem;
-        padding: 0.34rem 0;
+        font-size: 0.75rem;
+        padding: 0.2rem 0;
       }
 
       #todo-panel .todo-task-title {
@@ -2665,15 +2698,34 @@
         max-height: 2.5em;
       }
 
-      #diary .dashboard-diary-list {
+      #diary-iphone .dashboard-diary-list {
         width: 100%;
         overflow: visible;
       }
 
-      #diary .dashboard-diary-row {
+      #diary-iphone .dashboard-diary-row {
         gap: 0.42rem;
         padding: 0.24rem 0;
         align-items: flex-start;
+        border-bottom: none !important;
+      }
+
+      #diary-iphone .dashboard-diary-date,
+      #diary-iphone .dashboard-diary-time {
+        font-size: 0.72rem;
+      }
+
+      #diary-iphone .dashboard-diary-date {
+        width: 2.9rem;
+      }
+
+      #diary-iphone .dashboard-diary-title {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-clamp: 2;
+        max-height: 2.5em;
       }
 
       #diary .dashboard-diary-date,
@@ -3122,8 +3174,6 @@
         margin-bottom: 0.8rem !important;
       }
 
-      .dashboard-todo-panel,
-      #todo-panel,
       #worldclocks-panel,
       #calendar-hub,
       .dashboard-footer {
@@ -3143,10 +3193,27 @@
         padding: 0 !important;
       }
 
-      .dashboard-diary-panel,
-      #notes-placeholder-panel {
+      .dashboard-diary-panel {
         display: block !important;
         width: 100% !important;
+      }
+
+      .dashboard-todo-panel,
+      #todo-panel {
+        display: block !important;
+        width: 100% !important;
+      }
+
+      #todo-panel .todo-board {
+        grid-template-columns: 1fr !important;
+      }
+
+      #notes-placeholder-panel {
+        display: none !important;
+      }
+
+      #diary-iphone {
+        display: block !important;
       }
     }
 
@@ -3274,6 +3341,32 @@
         max-width: none;
       }
     }
+
+    /* Dashboard focus mode: keep only workspace header + To Do board */
+    .dashboard-layout {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .dashboard-primary {
+      grid-template-rows: minmax(0, 1fr) !important;
+    }
+
+    .dashboard-secondary,
+    #diary,
+    #diary-iphone,
+    #worldclocks-panel,
+    #calendar-hub,
+    #notes-placeholder-panel,
+    .dashboard-footer {
+      display: none !important;
+    }
+
+    #todo-panel,
+    .dashboard-todo-panel {
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
   </style>
   <link href="{% static 'dashboard/css/mobile-bottom-nav.css' %}" rel="stylesheet">
   <script defer src="{% static 'dashboard/js/mobile-bottom-nav.js' %}"></script>
@@ -3365,6 +3458,30 @@
                 </a>
               {% empty %}
                 <p class="dashboard-diary-empty">No diary entries yet. <a class="dashboard-diary-open-link" href="{% url 'diary' %}">Add your first entry</a></p>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="panel dashboard-panel dashboard-diary-panel" id="diary-iphone" style="display: none;">
+            <h2 class="title-inline">Diary Entries</h2>
+            <div class="dashboard-diary-list" role="list" aria-label="Current month diary entries">
+              {% for entry in iphone_diary_entries %}
+                <a class="dashboard-diary-row" role="listitem" href="{% url 'diary' %}?date={{ entry.date|date:'Y-m-d' }}&entry_id={{ entry.id }}" aria-label="Open diary entry {{ entry.title }}">
+                  <span class="dashboard-diary-date">{{ entry.date|date:"j M" }}</span>
+                  <span class="dashboard-diary-title">{{ entry.title }}</span>
+                  <span class="dashboard-diary-time">
+                    {% if entry.start_time %}
+                      {{ entry.start_time|time:"g:i A" }}
+                      {% if entry.end_time %}
+                        - {{ entry.end_time|time:"g:i A" }}
+                      {% endif %}
+                    {% else %}
+                      All day
+                    {% endif %}
+                  </span>
+                </a>
+              {% empty %}
+                <p class="dashboard-diary-empty">No diary entries this month. <a class="dashboard-diary-open-link" href="{% url 'diary' %}">Open diary</a></p>
               {% endfor %}
             </div>
           </section>
