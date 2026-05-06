@@ -966,6 +966,128 @@
       outline: none;
     }
 
+    .dashboard-diary-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    .dashboard-diary-column {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0.62rem 0.68rem;
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 0.45rem;
+    }
+
+    .dashboard-diary-column h3 {
+      margin: 0;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      border-radius: 999px;
+      display: inline-block;
+      padding: 0.35rem 0.7rem;
+      color: #06111E;
+    }
+
+    .dashboard-diary-column-general h3 {
+      background: #38BDF8;
+    }
+
+    .dashboard-diary-column-work h3 {
+      background: #A3E635;
+    }
+
+    .dashboard-diary-column-personal h3 {
+      background: #FACC15;
+    }
+
+    .dashboard-diary-column-health h3 {
+      background: #FB7185;
+    }
+
+    .dashboard-diary-column-travel h3 {
+      background: #34D399;
+    }
+
+    .dashboard-diary-column-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: block;
+      align-content: start;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .dashboard-diary-column-item {
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      border-radius: 0;
+      padding: 0.3rem 0;
+      color: #D3DEE8;
+      font-size: 0.8rem;
+      line-height: 1.24;
+      min-width: 0;
+    }
+
+    .dashboard-diary-column-item:last-child {
+      border-bottom: none;
+    }
+
+    .dashboard-diary-column-item-placeholder {
+      color: #8fa3b7;
+      font-style: italic;
+    }
+
+    .dashboard-diary-column-link {
+      color: inherit;
+      text-decoration: none;
+      display: grid;
+      gap: 0.16rem;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .dashboard-diary-column-link:hover,
+    .dashboard-diary-column-link:focus {
+      color: inherit;
+      text-decoration: none;
+      opacity: 0.96;
+      outline: none;
+    }
+
+    .dashboard-diary-column-meta {
+      color: #9ED2EE;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dashboard-diary-column-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #EAF4FF;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
     .todo-board {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2066,7 +2188,7 @@
     }
 
     .dashboard-footer {
-      margin-top: 0.45rem;
+      margin-top: 0.2rem;
       border: 1px solid rgba(31, 79, 112, 0.7);
       border-radius: 12px;
       padding: 0.46rem 0.72rem;
@@ -2566,6 +2688,16 @@
         padding-bottom: 0 !important;
       }
 
+      body.dashboard-page.nav-position-bottom {
+        padding-bottom: 0 !important;
+      }
+
+      body.dashboard-page.nav-position-bottom .main {
+        height: calc(100vh - var(--top-nav-height) - 60px - env(safe-area-inset-bottom)) !important;
+        min-height: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
       body .sidebar {
         display: flex !important;
         position: sticky !important;
@@ -2640,6 +2772,58 @@
 
       #diary .dashboard-diary-title {
         font-size: 0.76rem;
+      }
+
+      #diary {
+        overflow-y: auto !important;
+      }
+
+      #diary .dashboard-diary-board {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+        align-items: start !important;
+      }
+
+      #diary .dashboard-diary-column {
+        padding: 0.42rem 0.46rem;
+        gap: 0.3rem;
+        height: auto;
+        grid-template-rows: auto auto;
+      }
+
+      #diary .dashboard-diary-column h3 {
+        display: block;
+        width: 100%;
+        font-size: 0.84rem;
+        padding: 0.35rem 0.7rem;
+        letter-spacing: 0.08em;
+      }
+
+      #diary .dashboard-diary-column-list {
+        overflow: visible !important;
+        max-height: none !important;
+      }
+
+      #diary .dashboard-diary-column-item {
+        padding: 0.18rem 0;
+        font-size: 0.72rem;
+      }
+
+      #diary .dashboard-diary-column-link {
+        display: flex;
+        align-items: baseline;
+        gap: 0.3rem;
+      }
+
+      #diary .dashboard-diary-column-meta {
+        font-size: 0.61rem;
+        flex: 0 0 auto;
+        max-width: 5.3rem;
+      }
+
+      #diary .dashboard-diary-column-title {
+        font-size: 0.74rem;
+        line-height: 1.15;
       }
     }
 
@@ -2939,11 +3123,11 @@
 
       .content-grid.dashboard-layout {
         display: grid;
-        grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr) !important;
+        grid-template-columns: minmax(0, 1fr) !important;
         grid-template-areas:
-          'clocks clocks'
-          'todo diary'
-          'notes notes';
+          'clocks'
+          'todo'
+          'diary';
         gap: 1rem;
         row-gap: 1rem;
         align-items: start;
@@ -2982,6 +3166,10 @@
         width: 100%;
       }
 
+      #notes-placeholder-panel {
+        display: none !important;
+      }
+
       #calendar-hub {
         display: none !important;
       }
@@ -3011,49 +3199,15 @@
         padding: 0.58rem 0.72rem;
       }
 
-      #todo-panel {
-        overflow: hidden;
-      }
-
-      #todo-panel .todo-board {
-        min-width: 0;
-        overflow: hidden;
-      }
-
+      #todo-panel,
       #diary {
         overflow: hidden;
       }
 
-      #diary .dashboard-diary-list {
-        min-height: 0;
-        overflow-y: auto;
-      }
-
-      #diary .dashboard-diary-row {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
-        gap: 0.45rem;
-        align-items: center;
-      }
-
-      #diary .dashboard-diary-title,
-      .dashboard-notes-title {
+      #todo-panel .todo-board,
+      #diary .dashboard-diary-board {
         min-width: 0;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .dashboard-notes-row {
-        display: grid;
-        grid-template-columns: 8rem minmax(0, 1fr);
-        align-items: center;
-      }
-
-      .dashboard-notes-list {
-        min-height: 0;
-        overflow-y: auto;
-        max-height: calc(7 * 2.3rem);
       }
     }
 
@@ -3098,6 +3252,9 @@
       .dashboard-layout {
         grid-template-columns: 1fr !important;
         grid-template-rows: auto 1fr !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
       }
 
       .dashboard-secondary {
@@ -3132,8 +3289,59 @@
       }
 
       .dashboard-primary {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 1rem !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
         grid-column: 1 / -1;
         grid-row: 2;
+      }
+
+      #todo-panel,
+      #diary {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        min-height: 0 !important;
+      }
+
+      #todo-panel .todo-board,
+      #diary .dashboard-diary-board {
+        flex: 1 1 auto;
+        height: 100% !important;
+        min-height: 0 !important;
+      }
+
+      #todo-panel .todo-list,
+      #diary .dashboard-diary-column {
+        height: 100% !important;
+        min-height: 0 !important;
+      }
+
+      #todo-panel .todo-list ul,
+      #diary .dashboard-diary-column-list {
+        min-height: 0 !important;
+        overflow-y: auto !important;
+      }
+
+      #diary .dashboard-diary-column {
+        display: block !important;
+        height: auto !important;
+      }
+
+      #diary .dashboard-diary-column-list {
+        overflow: visible !important;
+      }
+
+      #todo-panel .todo-board {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+
+      #diary .dashboard-diary-board {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
       }
 
       .mobile-bottom-bar,
@@ -3339,11 +3547,142 @@
       }
     }
 
+    @media (min-width: 900px) and (max-width: 1366px) and (orientation: landscape) and (pointer: coarse) {
+      body.dashboard-page.nav-position-bottom {
+        padding-bottom: 0 !important;
+      }
+
+      body .main {
+        height: calc(100vh - var(--top-nav-height)) !important;
+        min-height: 0 !important;
+        padding: 0.75rem 0.85rem 0 !important;
+      }
+
+      body.dashboard-page.nav-position-bottom .main {
+        height: calc(100vh - var(--top-nav-height) - 60px - env(safe-area-inset-bottom)) !important;
+        padding-bottom: 0 !important;
+      }
+
+      .content-grid.dashboard-layout {
+        height: 100% !important;
+        min-height: 0 !important;
+        gap: 0.55rem !important;
+        padding-bottom: 0 !important;
+      }
+
+      .dashboard-primary {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 0.55rem !important;
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+
+      #worldclocks-panel,
+      #todo-panel,
+      #diary {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0.35rem 0.15rem !important;
+      }
+
+      #todo-panel,
+      #diary {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        min-height: 0 !important;
+      }
+
+      #worldclocks-panel .title-inline,
+      #todo-panel .title-inline,
+      #diary .title-inline {
+        margin: 0 0 0.45rem !important;
+      }
+
+      #worldclocks-panel #worldclock-container,
+      #todo-panel .todo-board,
+      #diary .dashboard-diary-board {
+        height: 100%;
+        min-height: 0;
+      }
+
+      #todo-panel .todo-board,
+      #diary .dashboard-diary-board {
+        flex: 1 1 auto;
+        margin-top: 0.35rem;
+        gap: 0.75rem;
+      }
+
+      #todo-panel .todo-list,
+      #diary .dashboard-diary-column {
+        height: 100%;
+        min-height: 0;
+      }
+
+      #todo-panel .todo-list ul,
+      #diary .dashboard-diary-column-list {
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      #diary .dashboard-diary-column {
+        display: block !important;
+        height: auto !important;
+      }
+
+      #diary .dashboard-diary-column-list {
+        overflow: visible !important;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .content-grid.dashboard-layout {
+        grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) !important;
+        align-content: stretch !important;
+        min-height: 0 !important;
+      }
+
+      #todo-panel,
+      #diary {
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+
+      #todo-panel .todo-board,
+      #diary .dashboard-diary-board {
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+    }
+
+    @media (min-width: 600px) and (max-width: 1199px) {
+      body.dashboard-page .dashboard-layout {
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        align-content: stretch !important;
+      }
+
+      body.dashboard-page .dashboard-primary {
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+
+      body.dashboard-page #diary {
+        min-height: 0 !important;
+      }
+
+      body.dashboard-page #diary .dashboard-diary-board {
+        min-height: 0 !important;
+        height: 100% !important;
+      }
+    }
+
   </style>
   <link href="{% static 'dashboard/css/mobile-bottom-nav.css' %}" rel="stylesheet">
   <script defer src="{% static 'dashboard/js/mobile-bottom-nav.js' %}"></script>
 </head>
-<body class="nav-position-{{ nav_layout|default:'top' }}">
+<body class="dashboard-page nav-position-{{ nav_layout|default:'top' }}">
   <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar-brand">
@@ -3412,24 +3751,27 @@
 
           <section class="panel dashboard-panel dashboard-diary-panel" id="diary">
             <h2 class="title-inline">Diary Entries</h2>
-            <div class="dashboard-diary-list" role="list" aria-label="Upcoming diary entries">
-              {% for entry in diary_entries %}
-                <a class="dashboard-diary-row" role="listitem" href="{% url 'diary' %}?date={{ entry.date|date:'Y-m-d' }}&entry_id={{ entry.id }}" aria-label="Open diary entry {{ entry.title }}">
-                  <span class="dashboard-diary-date">{{ entry.date|date:"j M" }}</span>
-                  <span class="dashboard-diary-title">{{ entry.title }}</span>
-                  <span class="dashboard-diary-time">
-                    {% if entry.start_time %}
-                      {{ entry.start_time|time:"g:i A" }}
-                      {% if entry.end_time %}
-                        - {{ entry.end_time|time:"g:i A" }}
+            <div class="dashboard-diary-board" aria-label="Upcoming diary entries by category">
+              {% for column in diary_columns %}
+                <section class="dashboard-diary-column {{ column.list_class }}" aria-label="{{ column.title }} diary entries">
+                  <h3>{{ column.title }}</h3>
+                  <ul class="dashboard-diary-column-list">
+                    {% for entry in column.entries %}
+                      {% if entry.is_placeholder %}
+                        <li class="dashboard-diary-column-item dashboard-diary-column-item-placeholder">{{ entry.title }}</li>
+                      {% else %}
+                        <li class="dashboard-diary-column-item">
+                          <a class="dashboard-diary-column-link" href="{% url 'diary' %}?date={{ entry.date|date:'Y-m-d' }}&entry_id={{ entry.id }}">
+                            <span class="dashboard-diary-column-meta">
+                              {{ entry.date|date:"j M" }}
+                            </span>
+                            <span class="dashboard-diary-column-title">{{ entry.title }}</span>
+                          </a>
+                        </li>
                       {% endif %}
-                    {% else %}
-                      All day
-                    {% endif %}
-                  </span>
-                </a>
-              {% empty %}
-                <p class="dashboard-diary-empty">No diary entries yet. <a class="dashboard-diary-open-link" href="{% url 'diary' %}">Add your first entry</a></p>
+                    {% endfor %}
+                  </ul>
+                </section>
               {% endfor %}
             </div>
           </section>

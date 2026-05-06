@@ -1039,12 +1039,52 @@ def dashboard_view(request):
         if effective_end_time and effective_end_time >= current_time:
             upcoming_entries.append(entry)
 
-    diary_entries = upcoming_entries[:6]
-    for entry in diary_entries:
+    for entry in upcoming_entries:
         category_key = normalize_diary_category(getattr(entry, 'category', DIARY_DEFAULT_CATEGORY))
         entry.category_key = category_key
         entry.category_label = DIARY_CATEGORY_LABELS.get(category_key, DIARY_CATEGORY_LABELS[DIARY_DEFAULT_CATEGORY])
         entry.category_color = DIARY_CATEGORY_COLORS.get(category_key, DIARY_CATEGORY_COLORS[DIARY_DEFAULT_CATEGORY])
+
+    diary_entries = upcoming_entries[:6]
+
+    dashboard_diary_categories = DIARY_CATEGORY_CONFIG[:4]
+    diary_columns = []
+    for category_key, category_label, _ in dashboard_diary_categories:
+        category_entries = [entry for entry in upcoming_entries if entry.category_key == category_key]
+        display_entries = []
+
+        for entry in category_entries:
+            display_entries.append(
+                {
+                    "id": entry.id,
+                    "title": entry.title,
+                    "date": entry.date,
+                    "start_time": entry.start_time,
+                    "end_time": entry.end_time,
+                    "is_placeholder": False,
+                }
+            )
+
+        if not display_entries:
+            display_entries = [
+                {
+                    "id": "",
+                    "title": "No entries yet",
+                    "date": None,
+                    "start_time": None,
+                    "end_time": None,
+                    "is_placeholder": True,
+                }
+            ]
+
+        diary_columns.append(
+            {
+                "key": category_key,
+                "title": category_label,
+                "list_class": f"dashboard-diary-column-{category_key}",
+                "entries": display_entries,
+            }
+        )
 
     # iPhone diary: filter to current month only
     current_month_start = today.replace(day=1)
@@ -1124,6 +1164,7 @@ def dashboard_view(request):
 
     context = {
         'diary_entries': diary_entries,
+        'diary_columns': diary_columns,
         'iphone_diary_entries': iphone_diary_entries,
         'todo_columns': todo_columns,
         'todo_sections': todo_sections,
