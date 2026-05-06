@@ -1476,6 +1476,16 @@
 
       .notes-shell {
         grid-template-columns: minmax(0, 1fr);
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+      }
+
+      .notes-pane {
+        width: 100%;
+        min-width: 0;
       }
     }
     /* Shared left-rail sidebar override for desktop and tablet */
@@ -1875,6 +1885,11 @@
         grid-template-columns: 1fr !important;
         gap: 0.8rem !important;
         margin-top: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
       }
 
       .categories-pane {
@@ -1884,6 +1899,10 @@
       .notes-pane {
         width: 100%;
         min-width: 0;
+      }
+
+      .notes-pane .pane-scroll {
+        max-height: none !important;
       }
 
       #categories-drawer.editor-drawer {
@@ -1928,7 +1947,6 @@
       }
 
       .notes-pane .pane-scroll {
-        max-height: calc(6 * 6.1rem + 5 * 0.65rem);
         overflow-y: auto !important;
       }
 
