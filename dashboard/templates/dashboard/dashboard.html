@@ -2655,7 +2655,7 @@
       }
 
       #todo-panel {
-        display: block !important;
+        display: none !important;
       }
 
       #notes-placeholder-panel {
@@ -2668,6 +2668,13 @@
 
       #diary-iphone {
         display: block !important;
+      }
+
+      #diary-iphone,
+      #diary-iphone.panel {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
       }
 
       #todo-panel .todo-board {
@@ -3198,16 +3205,6 @@
         width: 100% !important;
       }
 
-      .dashboard-todo-panel,
-      #todo-panel {
-        display: block !important;
-        width: 100% !important;
-      }
-
-      #todo-panel .todo-board {
-        grid-template-columns: 1fr !important;
-      }
-
       #notes-placeholder-panel {
         display: none !important;
       }
@@ -3342,31 +3339,6 @@
       }
     }
 
-    /* Dashboard focus mode: keep only workspace header + To Do board */
-    .dashboard-layout {
-      grid-template-columns: minmax(0, 1fr) !important;
-    }
-
-    .dashboard-primary {
-      grid-template-rows: minmax(0, 1fr) !important;
-    }
-
-    .dashboard-secondary,
-    #diary,
-    #diary-iphone,
-    #worldclocks-panel,
-    #calendar-hub,
-    #notes-placeholder-panel,
-    .dashboard-footer {
-      display: none !important;
-    }
-
-    #todo-panel,
-    .dashboard-todo-panel {
-      border: none !important;
-      box-shadow: none !important;
-      background: transparent !important;
-    }
   </style>
   <link href="{% static 'dashboard/css/mobile-bottom-nav.css' %}" rel="stylesheet">
   <script defer src="{% static 'dashboard/js/mobile-bottom-nav.js' %}"></script>
@@ -3396,7 +3368,7 @@
     <main class="main">
       <header class="utility-bar dashboard-workspace-row">
         <div>
-          <h1 class="utility-title">Dashsboard Workspace</h1>
+          <h1 class="utility-title">Fluid Notes</h1>
           <!-- <p class="utility-subtitle">Premium command center for scheduling, planning, and daily flow.</p> -->
         </div>
         <div class="utility-actions">
