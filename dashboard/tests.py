@@ -404,6 +404,22 @@ class SettingsViewTests(TestCase):
         self.assertNotContains(response, 'mobile-bottom-btn-primary', html=False)
 
 
+class DiaryViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='diary_tester', password='pass12345')
+        self.client.login(username='diary_tester', password='pass12345')
+
+    def test_diary_renders_custom_month_calendar_shell(self):
+        response = self.client.get(reverse('diary'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="custom-month-calendar"', html=False)
+        self.assertContains(response, 'id="custom-month-grid"', html=False)
+        self.assertContains(response, 'data-weekday="mon"', html=False)
+        self.assertContains(response, 'function openAddEventModal(dateValue)', html=False)
+
+
 class CanvasViewTests(TestCase):
     def setUp(self):
         self.client = Client()

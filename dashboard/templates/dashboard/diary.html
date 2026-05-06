@@ -737,6 +737,445 @@
       min-height: 0 !important;
     }
 
+    .calendar-scroll-wrapper.custom-month-active {
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .custom-month-calendar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      animation: custom-month-fade 0.18s ease;
+    }
+
+    .custom-month-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.35rem;
+    }
+
+    .custom-month-weekday {
+      text-align: center;
+      color: #8FA6B9;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.28rem 0;
+    }
+
+    .custom-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.35rem;
+      align-content: start;
+    }
+
+    .custom-month-day {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(13, 30, 46, 0.72);
+      color: #EAF4FF;
+      border-radius: 14px;
+      min-height: 92px;
+      padding: 0.52rem 0.48rem 0.42rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.45rem;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+
+    .custom-month-day:hover,
+    .custom-month-day:focus {
+      border-color: rgba(83, 183, 232, 0.52);
+      background: rgba(18, 40, 61, 0.92);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .custom-month-day.is-today {
+      border-color: rgba(10, 132, 255, 0.52);
+      box-shadow: inset 0 0 0 1px rgba(10, 132, 255, 0.18);
+    }
+
+    .custom-month-day.is-selected {
+      border-color: rgba(246, 195, 92, 0.6);
+      background: rgba(246, 195, 92, 0.14);
+    }
+
+    .custom-month-day.is-blank {
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .custom-month-day-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      min-height: 2rem;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .custom-month-day.is-today .custom-month-day-number {
+      background: linear-gradient(180deg, #0A84FF 0%, #007AFF 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 18px rgba(10, 132, 255, 0.22);
+    }
+
+    .custom-month-events {
+      min-height: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .custom-month-day-add {
+      position: absolute;
+      top: 0.38rem;
+      right: 0.36rem;
+      border: 1px solid rgba(122, 197, 236, 0.58);
+      background: rgba(15, 38, 58, 0.95);
+      color: #DDF4FF;
+      border-radius: 999px;
+      padding: 0.14rem 0.46rem;
+      font-size: 0.64rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-2px);
+      transition: opacity 0.16s ease, transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .custom-month-day-add:hover,
+    .custom-month-day-add:focus {
+      background: rgba(31, 74, 106, 0.96);
+      border-color: rgba(122, 197, 236, 0.9);
+      outline: none;
+    }
+
+    .custom-month-day-add.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .custom-month-day:hover .custom-month-day-add,
+      .custom-month-day:focus-within .custom-month-day-add {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+    }
+
+    .custom-month-event-pill {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 0.12rem 0.46rem;
+      font-size: 0.64rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      cursor: pointer;
+      transition: filter 0.15s ease;
+    }
+
+    .custom-month-event-pill:hover,
+    .custom-month-event-pill:focus {
+      filter: brightness(1.08);
+      outline: none;
+    }
+
+    .custom-month-event-dot {
+      width: 0.34rem;
+      height: 0.34rem;
+      border-radius: 999px;
+      background: #53B7E8;
+      opacity: 0.92;
+      flex-shrink: 0;
+    }
+
+    .custom-month-event-more {
+      color: #8FA6B9;
+      font-size: 0.67rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .custom-tone-general {
+      background: linear-gradient(135deg, #7DD3FC, #38BDF8);
+      border-color: #7DD3FC;
+      color: #04111C;
+    }
+
+    .custom-tone-work {
+      background: linear-gradient(135deg, #BEF264, #A3E635);
+      border-color: #BEF264;
+      color: #06111E;
+    }
+
+    .custom-tone-personal {
+      background: linear-gradient(135deg, #FDE047, #FACC15);
+      border-color: #FDE047;
+      color: #06111E;
+    }
+
+    .custom-tone-health {
+      background: linear-gradient(135deg, #FDA4AF, #FB7185);
+      border-color: #FDA4AF;
+      color: #06111E;
+    }
+
+    .custom-tone-travel {
+      background: linear-gradient(135deg, #6EE7B7, #34D399);
+      border-color: #6EE7B7;
+      color: #06111E;
+    }
+
+    .custom-tone-bank-holiday {
+      background: linear-gradient(135deg, #F6C35C, #F59E0B);
+      border-color: #F6C35C;
+      color: #06111E;
+    }
+
+    .custom-selected-day-panel {
+      margin-top: 0.7rem;
+      border: 1px solid rgba(53, 84, 109, 0.82);
+      border-radius: 14px;
+      background: rgba(9, 22, 36, 0.68);
+      padding: 0.72rem;
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .custom-selected-day-drag-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 0.1rem 0 0.18rem;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .custom-selected-day-drag-handle::before {
+      content: '';
+      width: 46px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(143, 166, 185, 0.7);
+    }
+
+    .custom-selected-day-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .custom-selected-day-title {
+      margin: 0;
+      color: #EAF4FF;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .custom-selected-day-subtitle {
+      color: #8FA6B9;
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+
+    .custom-selected-day-list {
+      display: grid;
+      gap: 0.42rem;
+      max-height: min(220px, 28vh);
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .custom-selected-day-item {
+      border: 1px solid rgba(53, 84, 109, 0.8);
+      border-radius: 10px;
+      background: rgba(6, 17, 30, 0.7);
+      color: #EAF4FF;
+      width: 100%;
+      text-align: left;
+      padding: 0.48rem 0.56rem;
+      display: grid;
+      gap: 0.2rem;
+      cursor: pointer;
+    }
+
+    .custom-selected-day-item:hover,
+    .custom-selected-day-item:focus {
+      border-color: rgba(83, 183, 232, 0.56);
+      background: rgba(12, 30, 48, 0.85);
+      outline: none;
+    }
+
+    .custom-selected-day-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .custom-selected-day-time {
+      color: #9ED2EE;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .custom-selected-day-item-title {
+      color: #F5F9FF;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .custom-selected-day-empty {
+      color: #8FA6B9;
+      font-size: 0.8rem;
+      font-style: italic;
+      padding: 0.2rem 0.1rem;
+    }
+
+    @keyframes custom-month-fade {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .custom-month-day {
+        min-height: 76px;
+        border-radius: 12px;
+        padding: 0.45rem 0.38rem 0.34rem;
+      }
+
+      .custom-month-weekday {
+        font-size: 0.69rem;
+      }
+
+      .custom-selected-day-panel {
+        margin-top: 0.58rem;
+        padding: 0.58rem;
+      }
+    }
+
+    @media (min-width: 900px) and (max-width: 1366px) and (orientation: landscape) and (pointer: coarse) {
+      .custom-selected-day-panel {
+        display: none !important;
+      }
+
+      .calendar-glass-shell {
+        position: static;
+        overflow: visible;
+      }
+
+      .custom-selected-day-panel {
+        margin-top: 0.58rem;
+        position: static;
+        max-height: none;
+        transform: none;
+      }
+
+      .custom-selected-day-panel.is-drag-sheet {
+        transition: background 0.2s ease;
+      }
+
+      .custom-selected-day-panel.is-dragging {
+        transition: none;
+      }
+
+      .custom-selected-day-panel.is-sheet-collapsed .custom-selected-day-list {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        padding-right: 0;
+      }
+
+      .custom-selected-day-panel.is-sheet-collapsed .custom-selected-day-subtitle {
+        opacity: 0.78;
+      }
+
+      .custom-selected-day-drag-handle {
+        display: inline-flex;
+      }
+
+      .custom-selected-day-list {
+        max-height: min(34vh, 240px);
+        transition: max-height 0.2s ease, opacity 0.2s ease;
+      }
+    }
+
+    @media (max-width: 599px) {
+      .custom-month-grid,
+      .custom-month-weekdays {
+        gap: 0.22rem;
+      }
+
+      .custom-month-day {
+        min-height: 58px;
+        border-radius: 10px;
+        padding: 0.34rem 0.26rem 0.24rem;
+      }
+
+      .custom-month-day-number {
+        min-width: 1.7rem;
+        min-height: 1.7rem;
+        font-size: 0.86rem;
+      }
+
+      .custom-month-weekday {
+        font-size: 0.62rem;
+        letter-spacing: 0.02em;
+      }
+
+      .custom-month-event-pill,
+      .custom-selected-day-panel {
+        display: none !important;
+      }
+    }
+
     /* Add Diary Entry Form */
     .diary-form {
       margin-bottom: 0;
@@ -2371,6 +2810,41 @@
       box-shadow: 0 8px 18px rgba(10, 132, 255, 0.24);
     }
 
+    .ipad-day-events-dialog {
+      width: min(560px, 100%);
+      padding-bottom: 0.85rem;
+    }
+
+    .ipad-day-events-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .ipad-day-events-meta {
+      color: #AFC0CF;
+      font-size: 0.83rem;
+      font-weight: 600;
+    }
+
+    .ipad-day-events-list {
+      margin-top: 0.7rem;
+      display: grid;
+      gap: 0.45rem;
+      max-height: min(52vh, 380px);
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .ipad-day-events-empty {
+      margin-top: 0.65rem;
+      color: #AFC0CF;
+      font-size: 0.86rem;
+      font-style: italic;
+    }
+
     @media (max-width: 599px) {
       body {
         padding-top: env(safe-area-inset-top) !important;
@@ -2813,7 +3287,27 @@
             </div>
             <div class="calendar-scroll-wrapper" id="calendar-scroll-wrapper">
               <div id="calendar"></div>
+              <section class="custom-month-calendar" id="custom-month-calendar" aria-label="Diary month calendar" hidden>
+                <div class="custom-month-weekdays" aria-hidden="true">
+                  <span class="custom-month-weekday" data-weekday="mon">Mon</span>
+                  <span class="custom-month-weekday" data-weekday="tue">Tue</span>
+                  <span class="custom-month-weekday" data-weekday="wed">Wed</span>
+                  <span class="custom-month-weekday" data-weekday="thu">Thu</span>
+                  <span class="custom-month-weekday" data-weekday="fri">Fri</span>
+                  <span class="custom-month-weekday" data-weekday="sat">Sat</span>
+                  <span class="custom-month-weekday" data-weekday="sun">Sun</span>
+                </div>
+                <div class="custom-month-grid" id="custom-month-grid"></div>
+              </section>
             </div>
+            <section class="custom-selected-day-panel" id="custom-selected-day-panel" aria-live="polite" hidden>
+              <button type="button" class="custom-selected-day-drag-handle" id="custom-selected-day-drag-handle" aria-label="Drag event list up or down"></button>
+              <div class="custom-selected-day-header">
+                <h3 class="custom-selected-day-title" id="custom-selected-day-title">Selected day</h3>
+                <span class="custom-selected-day-subtitle" id="custom-selected-day-subtitle">Events</span>
+              </div>
+              <div class="custom-selected-day-list" id="custom-selected-day-list"></div>
+            </section>
           </div>
         </div>
 
@@ -3157,6 +3651,21 @@
     </div>
   </div>
 
+  <div class="app-modal" id="ipad-day-events-modal" hidden>
+    <div class="app-modal-dialog ipad-day-events-dialog" role="dialog" aria-modal="true" aria-labelledby="ipad-day-events-title" aria-describedby="ipad-day-events-meta">
+      <div class="ipad-day-events-head">
+        <h2 class="app-modal-title" id="ipad-day-events-title">Selected day</h2>
+        <span class="ipad-day-events-meta" id="ipad-day-events-meta">0 events</span>
+      </div>
+      <div class="ipad-day-events-list" id="ipad-day-events-list"></div>
+      <p class="ipad-day-events-empty" id="ipad-day-events-empty" hidden>No events for this day.</p>
+      <div class="app-modal-actions">
+        <button type="button" class="btn-modal" id="ipad-day-events-close">Close</button>
+        <button type="button" class="btn-modal btn-modal-primary" id="ipad-day-events-add">+ Add</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const bodyEl = document.body;
@@ -3211,6 +3720,13 @@
       const mobileCalendarPrev = document.getElementById('mobile-calendar-prev');
       const mobileCalendarNext = document.getElementById('mobile-calendar-next');
       const calendarScrollWrapper = document.getElementById('calendar-scroll-wrapper');
+      const customMonthCalendarEl = document.getElementById('custom-month-calendar');
+      const customMonthGridEl = document.getElementById('custom-month-grid');
+      const customSelectedDayPanel = document.getElementById('custom-selected-day-panel');
+      const customSelectedDayDragHandle = document.getElementById('custom-selected-day-drag-handle');
+      const customSelectedDayTitle = document.getElementById('custom-selected-day-title');
+      const customSelectedDaySubtitle = document.getElementById('custom-selected-day-subtitle');
+      const customSelectedDayList = document.getElementById('custom-selected-day-list');
       const rightTitle = document.getElementById('diary-right-title');
       const viewSwitchButtons = Array.from(document.querySelectorAll('[data-diary-view]'));
       const iphoneEventsTitle = document.getElementById('iphone-events-title');
@@ -3222,6 +3738,13 @@
       const iphoneMonthPickerClose = document.getElementById('iphone-month-picker-close');
       const iphoneMonthPickerPrevYear = document.getElementById('iphone-month-picker-prev-year');
       const iphoneMonthPickerNextYear = document.getElementById('iphone-month-picker-next-year');
+      const ipadDayEventsModal = document.getElementById('ipad-day-events-modal');
+      const ipadDayEventsTitle = document.getElementById('ipad-day-events-title');
+      const ipadDayEventsMeta = document.getElementById('ipad-day-events-meta');
+      const ipadDayEventsList = document.getElementById('ipad-day-events-list');
+      const ipadDayEventsEmpty = document.getElementById('ipad-day-events-empty');
+      const ipadDayEventsClose = document.getElementById('ipad-day-events-close');
+      const ipadDayEventsAdd = document.getElementById('ipad-day-events-add');
       let requestedEntryLoaded = false;
       let allowDeleteSubmit = false;
       let lastCalendarScrollTop = 1;
@@ -3234,6 +3757,13 @@
       let iphoneSwipeStartX = 0;
       let iphoneSwipeStartY = 0;
       let ignoreNextIphoneDateClick = false;
+      let customSelectedDaySheetMode = 'expanded';
+      let customSelectedDayDragActive = false;
+      let customSelectedDayDragPointerId = null;
+      let customSelectedDayDragStartY = 0;
+      let customSelectedDayDragLastDeltaY = 0;
+      let customSelectedDayDragMoved = false;
+      let ipadDayEventsModalDate = '';
       const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(queryDate || '') ? queryDate : '';
       const defaultViewMap = {
         year: 'dayGridMonth',
@@ -3255,6 +3785,183 @@
 
       function isIphoneLayout() {
         return window.matchMedia('(max-width: 599px)').matches;
+      }
+
+      function isIpadLandscapeLayout() {
+        return window.matchMedia('(min-width: 900px) and (max-width: 1366px) and (orientation: landscape) and (pointer: coarse)').matches;
+      }
+
+      function shouldUseCustomSelectedDaySheet() {
+        return Boolean(
+          customSelectedDayPanel &&
+          window.calendar &&
+          window.calendar.view &&
+          window.calendar.view.type === 'dayGridMonth' &&
+          !isIphoneLayout() &&
+          isIpadLandscapeLayout()
+        );
+      }
+
+      function shouldUseIpadDayEventsModal() {
+        return Boolean(
+          window.calendar &&
+          window.calendar.view &&
+          window.calendar.view.type === 'dayGridMonth' &&
+          isIpadLandscapeLayout() &&
+          !isIphoneLayout()
+        );
+      }
+
+      function closeIpadDayEventsModal() {
+        if (!ipadDayEventsModal) {
+          return;
+        }
+        ipadDayEventsModal.hidden = true;
+      }
+
+      function openIpadDayEventsModal(dateKey, dayEvents) {
+        if (!ipadDayEventsModal || !ipadDayEventsTitle || !ipadDayEventsMeta || !ipadDayEventsList || !ipadDayEventsEmpty || !dateKey) {
+          return;
+        }
+
+        const dateObj = new Date(`${dateKey}T12:00:00`);
+        ipadDayEventsModalDate = dateKey;
+        ipadDayEventsTitle.textContent = new Intl.DateTimeFormat('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long'
+        }).format(dateObj);
+
+        const events = Array.isArray(dayEvents) ? dayEvents.slice() : [];
+        ipadDayEventsMeta.textContent = `${events.length} event${events.length === 1 ? '' : 's'}`;
+        ipadDayEventsList.innerHTML = '';
+
+        if (!events.length) {
+          ipadDayEventsEmpty.hidden = false;
+        } else {
+          ipadDayEventsEmpty.hidden = true;
+          events.forEach(function (eventObj) {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'custom-selected-day-item';
+            item.addEventListener('click', function () {
+              closeIpadDayEventsModal();
+              openExistingEventFromCalendar(eventObj, dateKey);
+            });
+
+            const top = document.createElement('div');
+            top.className = 'custom-selected-day-item-top';
+
+            const time = document.createElement('span');
+            time.className = 'custom-selected-day-time';
+            time.textContent = formatPhoneEventTime(eventObj);
+
+            const tone = document.createElement('span');
+            tone.className = `custom-month-event-pill ${getEventToneClass(eventObj)}`;
+            tone.textContent = getEventToneKey(eventObj).replace('-', ' ');
+
+            top.appendChild(time);
+            top.appendChild(tone);
+
+            const title = document.createElement('div');
+            title.className = 'custom-selected-day-item-title';
+            title.textContent = eventObj.title || 'Untitled event';
+
+            item.appendChild(top);
+            item.appendChild(title);
+            ipadDayEventsList.appendChild(item);
+          });
+        }
+
+        ipadDayEventsModal.hidden = false;
+      }
+
+      function clearCustomSelectedDaySheetMode() {
+        if (!customSelectedDayPanel) {
+          return;
+        }
+
+        customSelectedDayPanel.classList.remove('is-drag-sheet', 'is-dragging', 'is-sheet-collapsed');
+      }
+
+      function applyCustomSelectedDaySheetMode(animate) {
+        if (!customSelectedDayPanel || customSelectedDayPanel.hidden || !shouldUseCustomSelectedDaySheet()) {
+          clearCustomSelectedDaySheetMode();
+          return;
+        }
+
+        customSelectedDayPanel.classList.add('is-drag-sheet');
+        if (animate) {
+          customSelectedDayPanel.classList.remove('is-dragging');
+        }
+        customSelectedDayPanel.classList.toggle('is-sheet-collapsed', customSelectedDaySheetMode !== 'expanded');
+      }
+
+      function beginCustomSelectedDayDrag(event) {
+        if (!shouldUseCustomSelectedDaySheet() || !customSelectedDayPanel || !customSelectedDayDragHandle || customSelectedDayPanel.hidden) {
+          return;
+        }
+
+        event.preventDefault();
+        customSelectedDayDragActive = true;
+        customSelectedDayDragPointerId = event.pointerId;
+        customSelectedDayDragStartY = event.clientY;
+        customSelectedDayDragLastDeltaY = 0;
+        customSelectedDayDragMoved = false;
+        customSelectedDayPanel.classList.add('is-dragging');
+
+        if (typeof customSelectedDayDragHandle.setPointerCapture === 'function') {
+          customSelectedDayDragHandle.setPointerCapture(event.pointerId);
+        }
+      }
+
+      function continueCustomSelectedDayDrag(event) {
+        if (!customSelectedDayDragActive || event.pointerId !== customSelectedDayDragPointerId || !customSelectedDayPanel) {
+          return;
+        }
+
+        const deltaY = event.clientY - customSelectedDayDragStartY;
+        if (Math.abs(deltaY) > 5) {
+          customSelectedDayDragMoved = true;
+        }
+        customSelectedDayDragLastDeltaY = deltaY;
+      }
+
+      function endCustomSelectedDayDrag(event) {
+        if (!customSelectedDayDragActive || event.pointerId !== customSelectedDayDragPointerId || !customSelectedDayPanel) {
+          return;
+        }
+
+        if (customSelectedDayDragLastDeltaY < -14) {
+          customSelectedDaySheetMode = 'expanded';
+        } else if (customSelectedDayDragLastDeltaY > 14) {
+          customSelectedDaySheetMode = 'collapsed';
+        }
+
+        customSelectedDayDragActive = false;
+        customSelectedDayDragPointerId = null;
+        customSelectedDayPanel.classList.remove('is-dragging');
+        applyCustomSelectedDaySheetMode(true);
+      }
+
+      function handleCustomMonthDayClick(dateKey, dayEvents) {
+        if (!dateKey) {
+          return;
+        }
+
+        activePhoneSelectedDate = dateKey;
+        updateSelectedCalendarDay();
+        renderIphoneEventList();
+        if (isIphoneLayout()) {
+          scrollIphoneEventListToDate(dateKey);
+        }
+
+        if (shouldUseIpadDayEventsModal() && Array.isArray(dayEvents) && dayEvents.length) {
+          openIpadDayEventsModal(dateKey, dayEvents);
+          return;
+        }
+
+        closeIpadDayEventsModal();
       }
 
       function getResponsiveCalendarHeight() {
@@ -3481,35 +4188,69 @@
         };
       }
 
-      function getVisibleEventDateForMonth(eventObj, monthAnchor) {
+      function getVisibleEventDatesForMonth(eventObj, monthAnchor) {
         if (!eventObj || !eventObj.start || !monthAnchor) {
+          return [];
+        }
+
+        const monthRange = getMonthRange(monthAnchor);
+        const eventStart = new Date(eventObj.start);
+        let eventEnd = eventObj.end ? new Date(eventObj.end) : null;
+        if (!eventEnd) {
+          eventEnd = new Date(eventStart.getTime() + (eventObj.allDay ? 24 * 60 * 60 * 1000 : 1));
+        }
+
+        const overlapStart = eventStart > monthRange.start ? eventStart : monthRange.start;
+        const overlapEnd = eventEnd < monthRange.end ? eventEnd : monthRange.end;
+        if (overlapEnd <= overlapStart) {
+          return [];
+        }
+
+        const firstDay = new Date(overlapStart);
+        firstDay.setHours(0, 0, 0, 0);
+
+        const lastMoment = new Date(overlapEnd.getTime() - 1);
+        const lastDay = new Date(lastMoment);
+        lastDay.setHours(0, 0, 0, 0);
+
+        const visibleDates = [];
+        for (let cursor = new Date(firstDay); cursor <= lastDay; cursor.setDate(cursor.getDate() + 1)) {
+          visibleDates.push(formatDateForInput(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), 12, 0, 0)));
+        }
+
+        return visibleDates;
+      }
+
+      function getVisibleEventDateForMonth(eventObj, monthAnchor) {
+        const visibleDates = getVisibleEventDatesForMonth(eventObj, monthAnchor);
+        if (!visibleDates.length) {
           return null;
         }
-
-        const range = getMonthRange(monthAnchor);
-        const start = new Date(eventObj.start);
-        let end = eventObj.end ? new Date(eventObj.end) : new Date(start);
-
-        if (eventObj.allDay && end) {
-          end = new Date(end.getTime() - 1);
-        }
-
-        if (end < range.start || start >= range.end) {
-          return null;
-        }
-
-        return start < range.start ? new Date(range.start) : start;
+        return new Date(`${visibleDates[0]}T12:00:00`);
       }
 
       function updateSelectedCalendarDay() {
-        if (!calendarEl) {
-          return;
+        if (calendarEl) {
+          const dayCells = calendarEl.querySelectorAll('.fc-daygrid-day');
+          dayCells.forEach(function (cell) {
+            cell.classList.remove('ios-selected-day');
+          });
         }
 
-        const dayCells = calendarEl.querySelectorAll('.fc-daygrid-day');
-        dayCells.forEach(function (cell) {
-          cell.classList.remove('ios-selected-day');
-        });
+        if (customMonthCalendarEl) {
+          const customDayCells = customMonthCalendarEl.querySelectorAll('.custom-month-day[data-custom-date]');
+          customDayCells.forEach(function (cell) {
+            const isSelected = Boolean(activePhoneSelectedDate) && cell.dataset.customDate === activePhoneSelectedDate;
+            cell.classList.toggle('is-selected', isSelected);
+
+            const addButton = cell.querySelector('.custom-month-day-add');
+            if (addButton) {
+              addButton.classList.toggle('is-visible', isSelected);
+            }
+          });
+        }
+
+        renderSelectedDayEventList();
       }
 
       function scrollIphoneEventListToDate(dateKey) {
@@ -3564,15 +4305,13 @@
 
         const eventsByDate = new Map();
         monthEvents.forEach(function (eventObj) {
-          const visibleDate = getVisibleEventDateForMonth(eventObj, monthAnchor);
-          const dateKey = visibleDate ? formatDateForInput(visibleDate) : '';
-          if (!dateKey) {
-            return;
-          }
-          if (!eventsByDate.has(dateKey)) {
-            eventsByDate.set(dateKey, []);
-          }
-          eventsByDate.get(dateKey).push(eventObj);
+          const dateKeys = getVisibleEventDatesForMonth(eventObj, monthAnchor);
+          dateKeys.forEach(function (dateKey) {
+            if (!eventsByDate.has(dateKey)) {
+              eventsByDate.set(dateKey, []);
+            }
+            eventsByDate.get(dateKey).push(eventObj);
+          });
         });
 
         Array.from(eventsByDate.keys()).sort().forEach(function (dateKey) {
@@ -3990,6 +4729,10 @@
         });
 
         updateSelectedCalendarDay();
+        if (window.calendar) {
+          renderCustomMonthCalendar(window.calendar.getDate());
+        }
+        closeIpadDayEventsModal();
         renderIphoneEventList();
       }
 
@@ -4016,6 +4759,333 @@
         const viewTitle = window.calendar.view.title || 'Calendar';
         mobileCalendarLabel.textContent = viewTitle;
         mobileCalendarLabel.setAttribute('aria-label', `Choose month for ${viewTitle}`);
+      }
+
+      function openAddEventModal(dateValue) {
+        if (!dateValue) {
+          return;
+        }
+
+        const anchorDate = new Date(`${dateValue}T12:00:00`);
+        activePhoneSelectedDate = dateValue;
+        updateSelectedCalendarDay();
+        renderIphoneEventList();
+        scrollIphoneEventListToDate(dateValue);
+
+        if (typeof prefillFromDate === 'function') {
+          prefillFromDate(anchorDate, true, anchorDate);
+        }
+        if (typeof openDiaryPanel === 'function') {
+          openDiaryPanel({ date: dateValue, mode: 'new' });
+        }
+      }
+
+      function getEventToneKey(eventObj) {
+        const source = (eventObj.extendedProps && eventObj.extendedProps.source) || '';
+        if (source === 'uk-bank-holiday') {
+          return 'bank-holiday';
+        }
+        return getEventFilterCategory(eventObj);
+      }
+
+      function getEventToneClass(eventObj) {
+        return `custom-tone-${getEventToneKey(eventObj)}`;
+      }
+
+      function formatEventPillText(eventObj) {
+        const title = eventObj.title || 'Untitled';
+        if (!eventObj.start || eventObj.allDay) {
+          return title;
+        }
+
+        const time = new Intl.DateTimeFormat('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).format(eventObj.start);
+        return `${time} ${title}`;
+      }
+
+      function openExistingEventFromCalendar(eventObj, dateKey) {
+        if (!eventObj) {
+          return;
+        }
+
+        activePhoneSelectedDate = dateKey || (eventObj.start ? formatDateForInput(eventObj.start) : activePhoneSelectedDate);
+        updateSelectedCalendarDay();
+        renderIphoneEventList();
+        renderSelectedDayEventList();
+
+        if ((eventObj.extendedProps && eventObj.extendedProps.source) === 'uk-bank-holiday') {
+          if (selectionHint) {
+            selectionHint.textContent = `${eventObj.title} is a read-only UK bank holiday.`;
+          }
+          return;
+        }
+
+        loadEntryIntoForm({
+          id: String(eventObj.id || ''),
+          title: eventObj.title || '',
+          category: eventObj.extendedProps.formCategory || 'general',
+          date: eventObj.start ? formatDateForInput(eventObj.start) : '',
+          endDate: eventObj.extendedProps.formEndDate || '',
+          startTime: eventObj.extendedProps.formStartTime || '',
+          endTime: eventObj.extendedProps.formEndTime || '',
+          content: eventObj.extendedProps.description || ''
+        });
+
+        if (typeof openDiaryPanel === 'function') {
+          openDiaryPanel({
+            title: eventObj.title || '',
+            date: eventObj.start ? formatDateForInput(eventObj.start) : '',
+            content: eventObj.extendedProps.description || '',
+            mode: 'edit'
+          });
+        }
+      }
+
+      function getMonthEventsByDate(anchorDate) {
+        const eventsByDate = new Map();
+        if (!window.calendar || !anchorDate) {
+          return eventsByDate;
+        }
+
+        window.calendar.getEvents().forEach(function (eventObj) {
+          if (!eventMatchesActiveFilter(eventObj)) {
+            return;
+          }
+
+          const dateKeys = getVisibleEventDatesForMonth(eventObj, anchorDate);
+          dateKeys.forEach(function (dateKey) {
+            if (!eventsByDate.has(dateKey)) {
+              eventsByDate.set(dateKey, []);
+            }
+            eventsByDate.get(dateKey).push(eventObj);
+          });
+        });
+
+        eventsByDate.forEach(function (items) {
+          items.sort(function (left, right) {
+            const leftTime = left.start ? left.start.getTime() : 0;
+            const rightTime = right.start ? right.start.getTime() : 0;
+            return leftTime - rightTime;
+          });
+        });
+
+        return eventsByDate;
+      }
+
+      function eventOccursOnDate(eventObj, dateKey) {
+        if (!eventObj || !eventObj.start || !dateKey) {
+          return false;
+        }
+
+        const dayStart = new Date(`${dateKey}T00:00:00`);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+
+        const eventStart = new Date(eventObj.start);
+        let eventEnd = eventObj.end ? new Date(eventObj.end) : null;
+        if (!eventEnd) {
+          eventEnd = new Date(eventStart.getTime() + (eventObj.allDay ? 24 * 60 * 60 * 1000 : 1));
+        }
+
+        return eventStart < dayEnd && eventEnd > dayStart;
+      }
+
+      function renderSelectedDayEventList() {
+        if (!customSelectedDayPanel || !customSelectedDayList || !customSelectedDayTitle || !customSelectedDaySubtitle || !window.calendar) {
+          return;
+        }
+
+        if (shouldUseIpadDayEventsModal()) {
+          customSelectedDayPanel.hidden = true;
+          clearCustomSelectedDaySheetMode();
+          return;
+        }
+
+        if (isIphoneLayout() || window.calendar.view.type !== 'dayGridMonth') {
+          customSelectedDayPanel.hidden = true;
+          clearCustomSelectedDaySheetMode();
+          return;
+        }
+
+        const selectedDateKey = activePhoneSelectedDate || formatDateForInput(window.calendar.getDate());
+        const selectedDateObj = new Date(`${selectedDateKey}T12:00:00`);
+        customSelectedDayTitle.textContent = new Intl.DateTimeFormat('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long'
+        }).format(selectedDateObj);
+
+        const selectedDayEvents = window.calendar.getEvents().filter(function (eventObj) {
+          return eventMatchesActiveFilter(eventObj) && eventOccursOnDate(eventObj, selectedDateKey);
+        }).sort(function (left, right) {
+          const leftTime = left.start ? left.start.getTime() : 0;
+          const rightTime = right.start ? right.start.getTime() : 0;
+          return leftTime - rightTime;
+        });
+
+        customSelectedDaySubtitle.textContent = `${selectedDayEvents.length} event${selectedDayEvents.length === 1 ? '' : 's'}`;
+        customSelectedDayList.innerHTML = '';
+
+        if (!selectedDayEvents.length) {
+          customSelectedDayPanel.hidden = true;
+          clearCustomSelectedDaySheetMode();
+          return;
+        }
+
+        customSelectedDayPanel.hidden = false;
+        customSelectedDaySheetMode = 'expanded';
+
+        selectedDayEvents.forEach(function (eventObj) {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'custom-selected-day-item';
+          item.addEventListener('click', function () {
+            openExistingEventFromCalendar(eventObj, selectedDateKey);
+          });
+
+          const top = document.createElement('div');
+          top.className = 'custom-selected-day-item-top';
+
+          const time = document.createElement('span');
+          time.className = 'custom-selected-day-time';
+          time.textContent = formatPhoneEventTime(eventObj);
+
+          const tone = document.createElement('span');
+          tone.className = `custom-month-event-pill ${getEventToneClass(eventObj)}`;
+          tone.textContent = getEventToneKey(eventObj).replace('-', ' ');
+
+          top.appendChild(time);
+          top.appendChild(tone);
+
+          const title = document.createElement('div');
+          title.className = 'custom-selected-day-item-title';
+          title.textContent = eventObj.title || 'Untitled event';
+
+          item.appendChild(top);
+          item.appendChild(title);
+          customSelectedDayList.appendChild(item);
+        });
+
+        applyCustomSelectedDaySheetMode(true);
+      }
+
+      function renderCustomMonthCalendar(anchorDate) {
+        if (!customMonthCalendarEl || !customMonthGridEl || !anchorDate) {
+          return;
+        }
+
+        const monthDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
+        const year = monthDate.getFullYear();
+        const month = monthDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const firstDayOffset = (firstDay.getDay() + 6) % 7;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const totalCells = Math.ceil((firstDayOffset + daysInMonth) / 7) * 7;
+        const todayKey = formatDateForInput(new Date());
+        const selectedKey = activePhoneSelectedDate;
+        const eventsByDate = getMonthEventsByDate(monthDate);
+
+        customMonthGridEl.innerHTML = '';
+
+        for (let index = 0; index < totalCells; index += 1) {
+          if (index < firstDayOffset || index >= firstDayOffset + daysInMonth) {
+            const blankCell = document.createElement('div');
+            blankCell.className = 'custom-month-day is-blank';
+            blankCell.setAttribute('aria-hidden', 'true');
+            customMonthGridEl.appendChild(blankCell);
+            continue;
+          }
+
+          const dayNumber = index - firstDayOffset + 1;
+          const dateObj = new Date(year, month, dayNumber, 12, 0, 0);
+          const dateKey = formatDateForInput(dateObj);
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = 'custom-month-day';
+          cell.dataset.customDate = dateKey;
+          cell.setAttribute('aria-label', `Add event for ${dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`);
+
+          if (dateKey === todayKey) {
+            cell.classList.add('is-today');
+          }
+
+          if (selectedKey && dateKey === selectedKey) {
+            cell.classList.add('is-selected');
+          }
+
+          const addButton = document.createElement('button');
+          addButton.type = 'button';
+          addButton.className = 'custom-month-day-add';
+          addButton.textContent = '+ add';
+          addButton.classList.toggle('is-visible', Boolean(selectedKey && dateKey === selectedKey));
+          addButton.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            openAddEventModal(dateKey);
+          });
+
+          const number = document.createElement('span');
+          number.className = 'custom-month-day-number';
+          number.textContent = String(dayNumber);
+
+          const eventHook = document.createElement('div');
+          eventHook.className = 'custom-month-events';
+          eventHook.dataset.eventHook = dateKey;
+
+          const dayEvents = eventsByDate.get(dateKey) || [];
+          if (dayEvents.length) {
+            if (isIphoneLayout()) {
+              const visibleDots = Math.min(dayEvents.length, 3);
+              for (let dotIndex = 0; dotIndex < visibleDots; dotIndex += 1) {
+                const dot = document.createElement('span');
+                dot.className = `custom-month-event-dot ${getEventToneClass(dayEvents[dotIndex])}`;
+                eventHook.appendChild(dot);
+              }
+
+              if (dayEvents.length > 3) {
+                const more = document.createElement('span');
+                more.className = 'custom-month-event-more';
+                more.textContent = `+${dayEvents.length - 3}`;
+                eventHook.appendChild(more);
+              }
+            } else {
+              const visiblePills = Math.min(dayEvents.length, 2);
+              for (let pillIndex = 0; pillIndex < visiblePills; pillIndex += 1) {
+                const eventObj = dayEvents[pillIndex];
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = `custom-month-event-pill ${getEventToneClass(eventObj)}`;
+                pill.textContent = formatEventPillText(eventObj);
+                pill.addEventListener('click', function (event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  openExistingEventFromCalendar(eventObj, dateKey);
+                });
+                eventHook.appendChild(pill);
+              }
+
+              if (dayEvents.length > 2) {
+                const more = document.createElement('span');
+                more.className = 'custom-month-event-more';
+                more.textContent = `+${dayEvents.length - 2} more`;
+                eventHook.appendChild(more);
+              }
+            }
+          }
+
+          cell.appendChild(addButton);
+          cell.appendChild(number);
+          cell.appendChild(eventHook);
+          cell.addEventListener('click', function () {
+            handleCustomMonthDayClick(dateKey, dayEvents);
+          });
+          customMonthGridEl.appendChild(cell);
+        }
+
+        renderSelectedDayEventList();
       }
 
       function useScrollMonthNavigation() {
@@ -4059,12 +5129,27 @@
         const isMonthView = viewType === 'dayGridMonth';
         const isWeekView = viewType === 'timeGridWeek';
         if (calendarEl) {
+          calendarEl.hidden = isMonthView;
           calendarEl.classList.toggle('is-month-view', isMonthView);
           calendarEl.classList.toggle('is-week-view', isWeekView);
         }
+        if (customMonthCalendarEl) {
+          customMonthCalendarEl.hidden = !isMonthView;
+        }
+        if (customSelectedDayPanel) {
+          customSelectedDayPanel.hidden = !isMonthView || isIphoneLayout();
+        }
+        if (!isMonthView) {
+          clearCustomSelectedDaySheetMode();
+        }
         if (!calendarScrollWrapper) {
+          if (isMonthView && window.calendar) {
+            renderCustomMonthCalendar(window.calendar.getDate());
+          }
           return;
         }
+
+        calendarScrollWrapper.classList.toggle('custom-month-active', isMonthView);
 
         const allowMonthScrollNavigation = isMonthView && useScrollMonthNavigation();
 
@@ -4072,7 +5157,11 @@
         calendarScrollWrapper.classList.toggle('week-scroll-active', isWeekView);
 
         if (window.calendar) {
-          applyResponsiveCalendarHeight();
+          if (!isMonthView) {
+            applyResponsiveCalendarHeight();
+          } else {
+            renderCustomMonthCalendar(window.calendar.getDate());
+          }
         }
 
         if (allowMonthScrollNavigation) {
@@ -4273,6 +5362,7 @@
           tryLoadRequestedEntry(events);
           applyDiaryCategoryFilter();
           updateSelectedCalendarDay();
+          renderCustomMonthCalendar(window.calendar.getDate());
           renderIphoneEventList();
         },
         datesSet: function (info) {
@@ -4287,6 +5377,7 @@
           renderMiniMonth(activeDate, activeDate);
           syncDiaryUrlState();
           syncMobileCalendarNav();
+          renderCustomMonthCalendar(activeDate);
 
           const monthPrefix = formatDateForInput(activeDate).slice(0, 7);
           if (!activePhoneSelectedDate || activePhoneSelectedDate.slice(0, 7) !== monthPrefix) {
@@ -4451,6 +5542,9 @@
         syncMobileCalendarNav();
         applyResponsiveCalendarHeight();
         syncIphoneDiaryLayout();
+        if (!shouldUseIpadDayEventsModal()) {
+          closeIpadDayEventsModal();
+        }
       });
 
       if (mobileCalendarLabel) {
@@ -4487,9 +5581,32 @@
         });
       }
 
+      if (ipadDayEventsModal) {
+        ipadDayEventsModal.addEventListener('click', function (event) {
+          if (event.target === ipadDayEventsModal) {
+            closeIpadDayEventsModal();
+          }
+        });
+      }
+
+      if (ipadDayEventsClose) {
+        ipadDayEventsClose.addEventListener('click', closeIpadDayEventsModal);
+      }
+
+      if (ipadDayEventsAdd) {
+        ipadDayEventsAdd.addEventListener('click', function () {
+          if (!ipadDayEventsModalDate) {
+            return;
+          }
+          closeIpadDayEventsModal();
+          openAddEventModal(ipadDayEventsModalDate);
+        });
+      }
+
       document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
           closeIphoneMonthPicker();
+          closeIpadDayEventsModal();
         }
       });
 
@@ -4498,9 +5615,30 @@
         calendarScrollWrapper.addEventListener('wheel', handleCalendarWheelNavigation, { passive: false });
       }
 
+      if (customSelectedDayDragHandle) {
+        customSelectedDayDragHandle.addEventListener('pointerdown', beginCustomSelectedDayDrag);
+        customSelectedDayDragHandle.addEventListener('pointermove', continueCustomSelectedDayDrag);
+        customSelectedDayDragHandle.addEventListener('pointerup', endCustomSelectedDayDrag);
+        customSelectedDayDragHandle.addEventListener('pointercancel', endCustomSelectedDayDrag);
+        customSelectedDayDragHandle.addEventListener('click', function () {
+          if (customSelectedDayDragMoved || !shouldUseCustomSelectedDaySheet()) {
+            customSelectedDayDragMoved = false;
+            return;
+          }
+
+          customSelectedDaySheetMode = customSelectedDaySheetMode === 'expanded' ? 'collapsed' : 'expanded';
+          applyCustomSelectedDaySheetMode(true);
+        });
+      }
+
       if (calendarEl) {
         calendarEl.addEventListener('touchstart', handleIphoneSwipeStart, { passive: true });
         calendarEl.addEventListener('touchend', handleIphoneSwipeEnd, { passive: true });
+      }
+
+      if (customMonthCalendarEl) {
+        customMonthCalendarEl.addEventListener('touchstart', handleIphoneSwipeStart, { passive: true });
+        customMonthCalendarEl.addEventListener('touchend', handleIphoneSwipeEnd, { passive: true });
       }
 
       if (miniPrevButton) {
