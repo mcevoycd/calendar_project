@@ -1877,6 +1877,7 @@
               <details class="toolbar-menu">
                 <summary class="btn-canvas toolbar-menu-trigger">Canvas Actions ▾</summary>
                 <div class="toolbar-menu-panel toolbar-menu-panel--right">
+                  <button type="button" class="btn-canvas" id="new-canvas-btn">New Canvas</button>
                   <button type="button" class="btn-canvas" id="open-canvas-btn">Open Canvas</button>
                   <button type="button" class="btn-canvas" id="save-later-btn">Save Canvas for Later</button>
                   <button type="submit" class="btn-save">Save Canvas</button>
@@ -2005,6 +2006,7 @@
       const clearCanvasBtn = document.getElementById('clear-canvas-btn');
       const canvasNameInput = document.getElementById('canvas-name-input');
       const savedCanvasIdInput = document.getElementById('saved-canvas-id-input');
+      const newCanvasBtn = document.getElementById('new-canvas-btn');
       const openCanvasBtn = document.getElementById('open-canvas-btn');
       const saveLaterBtn = document.getElementById('save-later-btn');
       const zoomOutBtn = document.getElementById('zoom-out-btn');
@@ -4043,6 +4045,31 @@
           }
           if (notesActionInput) {
             notesActionInput.value = 'load_saved_canvas';
+          }
+          notesForm.submit();
+        });
+      }
+
+      if (newCanvasBtn) {
+        newCanvasBtn.addEventListener('click', async function () {
+          closeToolbarMenus();
+          const confirmed = await showConfirmModal(
+            'Create a new canvas? Your current weekly canvas will be replaced.',
+            'New Canvas'
+          );
+          if (!confirmed) {
+            return;
+          }
+
+          state.canvas_name = '';
+          if (canvasNameInput) {
+            canvasNameInput.value = '';
+          }
+          if (savedCanvasIdInput) {
+            savedCanvasIdInput.value = '';
+          }
+          if (notesActionInput) {
+            notesActionInput.value = 'new_canvas';
           }
           notesForm.submit();
         });

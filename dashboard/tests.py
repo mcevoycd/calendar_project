@@ -511,6 +511,32 @@ class CanvasViewTests(TestCase):
         self.assertIn('"title": "Roadmap"', get_response.context['canvas_data_json'])
         self.assertIn('"canvas_name": "Sprint Plan"', get_response.context['canvas_data_json'])
 
+    def test_canvas_new_canvas_action_resets_to_fresh_state(self):
+        payload = self.get_canvas_payload()
+        self.client.post(
+            reverse('canvas'),
+            {
+                'canvas_data': json.dumps(payload),
+                'canvas_name': 'Working Canvas',
+            },
+        )
+
+        reset_response = self.client.post(
+            reverse('canvas'),
+            {
+                'notes_action': 'new_canvas',
+            },
+        )
+        self.assertEqual(reset_response.status_code, 302)
+
+        get_response = self.client.get(reverse('canvas'))
+        self.assertEqual(get_response.status_code, 200)
+        canvas_state = json.loads(get_response.context['canvas_data_json'])
+        self.assertEqual(canvas_state.get('canvas_name', ''), '')
+        self.assertEqual(len(canvas_state.get('boxes', [])), 1)
+        self.assertEqual(canvas_state['boxes'][0].get('title', ''), '')
+        self.assertEqual(canvas_state.get('links', []), [])
+
     def test_canvas_preserves_box_colour_and_link_style(self):
         payload = self.get_canvas_payload()
         payload['boxes'][0]['color'] = '#ff6b6b'
