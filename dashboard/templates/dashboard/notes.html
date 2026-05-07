@@ -1197,6 +1197,19 @@
       filter: brightness(1.05);
     }
 
+    .app-modal-dialog { position: relative; }
+    .app-modal-close-x {
+      position: absolute; top: 0.7rem; right: 0.75rem;
+      width: 1.75rem; height: 1.75rem;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: #9EB0C2;
+      font-size: 1.1rem; line-height: 1; cursor: pointer;
+      border-radius: 6px; padding: 0; z-index: 2;
+    }
+    .app-modal-close-x:hover,
+    .app-modal-close-x:focus { color: #EAF4FF; background: rgba(255,255,255,.08); outline: none; }
+    .app-modal-actions .btn-modal { flex: 1; }
+
     @media (max-width: 1100px) {
       .app-shell {
         grid-template-columns: 1fr;
@@ -1907,6 +1920,7 @@
 
   <div class="app-modal" id="confirm-modal" hidden>
     <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
+      <button type="button" class="app-modal-close-x" id="confirm-modal-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="app-modal-title" id="confirm-modal-title">Confirm action</h2>
       <p class="app-modal-message" id="confirm-modal-message"></p>
       <div class="app-modal-actions">
@@ -1918,6 +1932,7 @@
 
   <div class="app-modal" id="save-canvas-modal" hidden>
     <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="save-canvas-modal-title">
+      <button type="button" class="app-modal-close-x" id="save-canvas-modal-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="app-modal-title" id="save-canvas-modal-title">Save canvas for later</h2>
       <p class="app-modal-message">Give this canvas a name so you can reopen it later.</p>
       <input type="text" class="canvas-name-input" id="modal-canvas-name-input" maxlength="120" placeholder="Canvas name">
@@ -1930,6 +1945,7 @@
 
   <div class="app-modal" id="open-canvas-modal" hidden>
     <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="open-canvas-modal-title">
+      <button type="button" class="app-modal-close-x" id="open-canvas-modal-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="app-modal-title" id="open-canvas-modal-title">Open canvas</h2>
       <p class="app-modal-message">Choose one of your previously saved canvases.</p>
       <select class="canvas-save-select" id="modal-saved-canvas-select" aria-label="Saved canvases">
@@ -4273,6 +4289,22 @@
 
       updateSidebarDateTime();
       setInterval(updateSidebarDateTime, 30000);
+    })();
+  </script>
+
+  <script>
+    (function () {
+      function px(xId, closeBtnId) {
+        var x = document.getElementById(xId);
+        if (!x) return;
+        x.addEventListener('click', function () {
+          var btn = document.getElementById(closeBtnId);
+          if (btn) btn.click();
+        });
+      }
+      px('confirm-modal-close-x', 'confirm-modal-cancel-btn');
+      px('save-canvas-modal-close-x', 'save-canvas-modal-cancel-btn');
+      px('open-canvas-modal-close-x', 'open-canvas-modal-cancel-btn');
     })();
   </script>
   <script>

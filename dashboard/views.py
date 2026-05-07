@@ -560,6 +560,12 @@ def get_todo_return_url(request):
     if query_parts:
         return f"{reverse('todo')}?{'&'.join(query_parts)}"
 
+    # Preserve the active section so the page returns to the same column
+    section_key = request.POST.get('section_key', '').strip().lower()
+    valid_sections = {key for key, _, _ in TODO_SECTION_CONFIG}
+    if section_key in valid_sections:
+        return f"{reverse('todo')}?section={section_key}"
+
     return reverse('todo')
 
 

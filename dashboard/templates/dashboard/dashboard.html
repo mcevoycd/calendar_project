@@ -875,6 +875,19 @@
       filter: brightness(1.05);
     }
 
+    .app-modal-dialog { position: relative; }
+    .app-modal-close-x {
+      position: absolute; top: 0.7rem; right: 0.75rem;
+      width: 1.75rem; height: 1.75rem;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: #9EB0C2;
+      font-size: 1.1rem; line-height: 1; cursor: pointer;
+      border-radius: 6px; padding: 0; z-index: 2;
+    }
+    .app-modal-close-x:hover,
+    .app-modal-close-x:focus { color: #EAF4FF; background: rgba(255,255,255,.08); outline: none; }
+    .app-modal-actions .btn-modal { flex: 1; }
+
     .dashboard-diary-list {
       width: 100%;
       flex: 1;
@@ -2330,7 +2343,12 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+    }
+
+    .quick-add-submit-row .btn-modal {
+      flex: 1;
+      min-height: 44px;
     }
 
     .quick-add-helper {
@@ -3853,6 +3871,7 @@
 
   <div class="app-modal" id="quick-add-modal" hidden>
     <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-add-title" aria-describedby="quick-add-message">
+      <button type="button" class="app-modal-close-x" id="quick-add-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="app-modal-title" id="quick-add-title">Quick Add</h2>
       <p class="app-modal-message" id="quick-add-message">Create diary entries, tasks, and notes directly from the dashboard.</p>
       <div class="quick-add-shell">
@@ -3899,7 +3918,7 @@
               </label>
               <div class="quick-add-submit-row">
                 <button type="submit" class="btn-modal btn-modal-primary">Save Diary Entry</button>
-                <a class="quick-add-secondary-link" href="{% url 'diary' %}">Open full diary</a>
+                <button type="button" class="btn-modal" data-quick-close>Close</button>
               </div>
             </form>
           </section>
@@ -3952,7 +3971,7 @@
               <p class="quick-add-helper">Tasks are added immediately to your board and routed back here.</p>
               <div class="quick-add-submit-row">
                 <button type="submit" class="btn-modal btn-modal-primary">Add Task</button>
-                <a class="quick-add-secondary-link" href="{% url 'todo' %}">Open full board</a>
+                <button type="button" class="btn-modal" data-quick-close>Close</button>
               </div>
             </form>
           </section>
@@ -3984,20 +4003,18 @@
               <p class="quick-add-helper">This creates a new note instantly without leaving the dashboard flow.</p>
               <div class="quick-add-submit-row">
                 <button type="submit" class="btn-modal btn-modal-primary">Create Note</button>
-                <a class="quick-add-secondary-link" href="{% url 'notes' %}">Open notes workspace</a>
+                <button type="button" class="btn-modal" data-quick-close>Close</button>
               </div>
             </form>
           </section>
         </div>
-      </div>
-      <div class="app-modal-actions">
-        <button type="button" class="btn-modal" id="quick-add-close-btn">Close</button>
       </div>
     </div>
   </div>
 
   <div class="app-modal" id="account-modal" {% if not open_account %}hidden{% endif %}>
     <div class="app-modal-dialog account-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="account-modal-title" aria-describedby="account-modal-message">
+      <button type="button" class="app-modal-close-x" id="account-modal-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="app-modal-title" id="account-modal-title">Account</h2>
       <p class="app-modal-message" id="account-modal-message">Manage your sign-in details directly from the dashboard.</p>
       <div class="account-modal-stack">
@@ -4331,11 +4348,20 @@
 
     (function () {
       const openBtn = document.getElementById('quick-add-open-btn');
-      const closeBtn = document.getElementById('quick-add-close-btn');
+      const closeButtons = [];
       const modal = document.getElementById('quick-add-modal');
-      if (!openBtn || !closeBtn || !modal) {
+      if (!openBtn || !modal) {
         return;
       }
+
+      const closeXBtn = document.getElementById('quick-add-close-x');
+      if (closeXBtn) {
+        closeButtons.push(closeXBtn);
+      }
+
+      modal.querySelectorAll('[data-quick-close]').forEach(function (button) {
+        closeButtons.push(button);
+      });
 
       const tabs = Array.from(modal.querySelectorAll('[data-quick-tab]'));
       const panels = Array.from(modal.querySelectorAll('[data-quick-panel]'));
@@ -4387,7 +4413,9 @@
         window.history.replaceState({}, '', nextUrl);
       }
 
-      closeBtn.addEventListener('click', closeModal);
+      closeButtons.forEach(function (button) {
+        button.addEventListener('click', closeModal);
+      });
       modal.addEventListener('click', function (event) {
         if (event.target === modal) {
           closeModal();
@@ -4437,6 +4465,18 @@
       if (shouldOpenOnLoad) {
         openModal();
       }
+    })();
+
+    (function () {
+      function px(xId, closeBtnId) {
+        var x = document.getElementById(xId);
+        if (!x) return;
+        x.addEventListener('click', function () {
+          var btn = document.getElementById(closeBtnId);
+          if (btn) btn.click();
+        });
+      }
+      px('account-modal-close-x', 'account-close-btn');
     })();
   </script>
 

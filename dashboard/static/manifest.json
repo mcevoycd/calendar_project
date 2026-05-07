@@ -2,7 +2,7 @@
   "name": "Fluid Notes",
   "short_name": "Fluid Notes",
   "display": "standalone",
-  "start_url": "/",
+  "start_url": "/diary/",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [

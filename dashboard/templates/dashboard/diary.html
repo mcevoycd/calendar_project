@@ -1874,6 +1874,20 @@
       filter: brightness(1.05);
     }
 
+    .app-modal-dialog { position: relative; }
+    .app-modal-close-x {
+      position: absolute; top: 0.7rem; right: 0.75rem;
+      width: 1.75rem; height: 1.75rem;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: #9EB0C2;
+      font-size: 1.1rem; line-height: 1; cursor: pointer;
+      border-radius: 6px; padding: 0; z-index: 2;
+    }
+    .app-modal-close-x:hover,
+    .app-modal-close-x:focus { color: #EAF4FF; background: rgba(255,255,255,.08); outline: none; }
+    .app-modal-actions .btn-modal { flex: 1; }
+    .event-modal-actions .btn { flex: 1; }
+
     @media (min-width: 600px) and (max-width: 1199px) {
       .app-shell {
         grid-template-columns: 220px minmax(0, 1fr);
@@ -3374,7 +3388,7 @@
 
   <div id="event-modal" class="event-modal" aria-hidden="true">
     <div id="event-modal-content" class="event-modal-content" aria-modal="true" role="dialog" aria-labelledby="diary-panel-title">
-      <button class="event-modal-close" id="diary-panel-close" aria-label="Close"><img class="fn-icon" src="{% static 'dashboard/icons/close_grey.svg' %}" alt="" aria-hidden="true"></button>
+      <button class="event-modal-close" id="diary-panel-close" aria-label="Close">&#x2715;</button>
     <form id="diary-entry-form" method="post" action="{% url 'add_diary_entry' %}">
             <input type="hidden" name="redirect_date" id="diary-delete-redirect-date">
           <input type="hidden" name="entry_id" id="entry-id-input">
@@ -3419,7 +3433,7 @@
         <textarea id="entry-content" name="content" class="form-control" rows="5"></textarea>
       </div>
       <div class="event-modal-actions">
-        <button type="button" class="btn btn-outline-secondary" id="diary-modal-close-btn">Close</button>
+        <button type="submit" class="btn btn-primary" id="diary-submit-btn">Add Diary Entry</button>
         <button
           type="submit"
           formmethod="post"
@@ -3433,7 +3447,7 @@
         >
           Delete Entry
         </button>
-        <button type="submit" class="btn btn-primary" id="diary-submit-btn">Add Diary Entry</button>
+        <button type="button" class="btn btn-outline-secondary" id="diary-modal-close-btn">Close</button>
       </div>
     </form>
     </div>
@@ -3457,6 +3471,7 @@
   }
 
   .event-modal-content {
+    position: relative;
     width: min(560px, 100%);
     max-height: min(88vh, 740px);
     background: rgba(14, 27, 42, 0.96);
@@ -3506,15 +3521,12 @@
     display: flex;
     gap: 0.55rem;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 0.72rem;
   }
 
   .event-modal-actions .btn {
     min-height: 42px;
-  }
-
-  #diary-submit-btn {
     flex: 1;
   }
 
@@ -3559,15 +3571,10 @@
       gap: 0;
     }
 
-    .event-modal-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
     #diary-submit-btn,
     #diary-delete-btn,
     #diary-modal-close-btn {
-      width: 100%;
+      width: auto;
     }
   }
   </style>
@@ -3659,6 +3666,7 @@
 
   <div class="app-modal" id="confirm-modal" hidden>
     <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
+      <button type="button" class="app-modal-close-x" id="confirm-modal-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="app-modal-title" id="confirm-modal-title">Confirm action</h2>
       <p class="app-modal-message" id="confirm-modal-message"></p>
       <div class="app-modal-actions">
@@ -3670,6 +3678,7 @@
 
   <div class="app-modal iphone-month-picker-modal" id="iphone-month-picker-modal" hidden>
     <div class="app-modal-dialog iphone-month-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="iphone-month-picker-title">
+      <button type="button" class="app-modal-close-x" id="iphone-month-picker-close-x" aria-label="Close">&#x2715;</button>
       <div class="iphone-month-picker-head">
         <button type="button" class="btn-modal" id="iphone-month-picker-prev-year" aria-label="Previous year">‹</button>
         <h2 class="app-modal-title" id="iphone-month-picker-title">Choose month</h2>
@@ -3685,6 +3694,7 @@
 
   <div class="app-modal" id="ipad-day-events-modal" hidden>
     <div class="app-modal-dialog ipad-day-events-dialog" role="dialog" aria-modal="true" aria-labelledby="ipad-day-events-title" aria-describedby="ipad-day-events-meta">
+      <button type="button" class="app-modal-close-x" id="ipad-day-events-close-x" aria-label="Close">&#x2715;</button>
       <div class="ipad-day-events-head">
         <h2 class="app-modal-title" id="ipad-day-events-title">Selected day</h2>
         <span class="ipad-day-events-meta" id="ipad-day-events-meta">0 events</span>
@@ -5831,6 +5841,23 @@
       setInterval(updateSidebarDateTime, 30000);
     })();
   </script>
+
+  <script>
+    (function () {
+      function px(xId, closeBtnId) {
+        var x = document.getElementById(xId);
+        if (!x) return;
+        x.addEventListener('click', function () {
+          var btn = document.getElementById(closeBtnId);
+          if (btn) btn.click();
+        });
+      }
+      px('confirm-modal-close-x', 'confirm-modal-cancel-btn');
+      px('iphone-month-picker-close-x', 'iphone-month-picker-close');
+      px('ipad-day-events-close-x', 'ipad-day-events-close');
+    })();
+  </script>
+
   <form id="diary-quick-delete-form" method="post" action="{% url 'delete_diary_entry' %}" style="display:none;">
     {% csrf_token %}
     <input type="hidden" name="entry_id" id="diary-quick-delete-entry-id" value="">

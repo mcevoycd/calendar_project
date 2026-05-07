@@ -1366,6 +1366,22 @@
       filter: brightness(1.05);
     }
 
+    .dialog-card { position: relative; }
+    .dialog-close-x {
+      position: absolute; top: 0.7rem; right: 0.75rem;
+      width: 1.75rem; height: 1.75rem;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: #9EB0C2;
+      font-size: 1.1rem; line-height: 1; cursor: pointer;
+      border-radius: 6px; padding: 0; z-index: 2;
+    }
+    .dialog-close-x:hover,
+    .dialog-close-x:focus { color: #EAF4FF; background: rgba(255,255,255,.08); outline: none; }
+    .dialog-actions .dialog-btn { flex: 1; }
+    .editor-actions .pill-btn { flex: 1; }
+      filter: brightness(1.05);
+    }
+
     @media (max-width: 1250px) {
       .notes-shell {
         grid-template-columns: minmax(320px, 1fr);
@@ -2298,6 +2314,7 @@
 
   <div class="dialog" id="new-category-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="new-category-title">
+      <button type="button" class="dialog-close-x" id="new-category-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="dialog-title" id="new-category-title">Create category</h2>
       <p class="dialog-message">Add a category name to organize your notes.</p>
       <form method="post" action="{% url 'notes' %}" id="new-category-form">
@@ -2314,6 +2331,7 @@
 
   <div class="dialog" id="new-note-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="new-note-title">
+      <button type="button" class="dialog-close-x" id="new-note-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="dialog-title" id="new-note-title">New note</h2>
       <p class="dialog-message">Create a note and optionally assign a category.</p>
       <form method="post" action="{% url 'notes' %}" id="new-note-form">
@@ -2336,6 +2354,7 @@
 
   <div class="dialog" id="link-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="link-title">
+      <button type="button" class="dialog-close-x" id="link-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="dialog-title" id="link-title">Insert link</h2>
       <p class="dialog-message">Enter a URL for the selected text.</p>
       <form id="link-form">
@@ -2350,6 +2369,7 @@
 
   <div class="dialog" id="delete-note-dialog" hidden>
     <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="delete-note-title">
+      <button type="button" class="dialog-close-x" id="delete-note-close-x" aria-label="Close">&#x2715;</button>
       <h2 class="dialog-title" id="delete-note-title">Delete note</h2>
       <p class="dialog-message">Are you sure you want to delete this note? This action cannot be undone.</p>
       <div class="dialog-actions">
@@ -3051,6 +3071,23 @@
 
       updateSidebarDateTime();
       setInterval(updateSidebarDateTime, 30000);
+    })();
+  </script>
+
+  <script>
+    (function () {
+      function px(xId, closeBtnId) {
+        var x = document.getElementById(xId);
+        if (!x) return;
+        x.addEventListener('click', function () {
+          var btn = document.getElementById(closeBtnId);
+          if (btn) btn.click();
+        });
+      }
+      px('new-category-close-x', 'cancel-category-btn');
+      px('new-note-close-x', 'cancel-note-btn');
+      px('link-close-x', 'link-cancel-btn');
+      px('delete-note-close-x', 'delete-note-cancel-btn');
     })();
   </script>
 

@@ -865,6 +865,7 @@
 
     .todo-form-actions .btn {
       min-height: 42px;
+      flex: 1;
     }
 
     #todo-submit-btn {
@@ -2428,9 +2429,10 @@
       const dragHandles = Array.from(document.querySelectorAll('.todo-drag-handle:not([disabled])'));
       const params = new URLSearchParams(window.location.search);
       const requestedTaskId = (params.get('task_id') || '').trim();
+      const requestedSection = (params.get('section') || '').trim();
       const defaultStartDateValue = startDateInput ? startDateInput.value : '';
       const defaultEndDateValue = endDateInput ? endDateInput.value : '';
-      const compactSectionDefault = 'next';
+      const compactSectionDefault = requestedSection || 'next';
       let checklistState = [];
       let activeDrag = null;
       let activeSection = compactSectionDefault;
