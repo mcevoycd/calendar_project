@@ -1,8 +1,9 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `fluid-notes-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `fluid-notes-pages-${CACHE_VERSION}`;
 const API_CACHE = `fluid-notes-api-${CACHE_VERSION}`;
-const ALL_CACHES = [STATIC_CACHE, PAGE_CACHE, API_CACHE];
+const CDN_CACHE = `fluid-notes-cdn-${CACHE_VERSION}`;
+const ALL_CACHES = [STATIC_CACHE, PAGE_CACHE, API_CACHE, CDN_CACHE];
 
 const CORE_ASSETS = [
   '/manifest.json',
@@ -103,14 +104,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const url = new URL(request.url);
+
+  // Cache CDN assets (Bootstrap, FullCalendar, etc.) with stale-while-revalidate
+  if (url.hostname === 'cdn.jsdelivr.net') {
+    event.respondWith(staleWhileRevalidate(request, CDN_CACHE));
+    return;
+  }
+
   if (!isSameOrigin(request.url)) {
     return;
   }
 
-  const url = new URL(request.url);
-
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, PAGE_CACHE, '/static/dashboard/offline.html'));
+    return;
+  }
+
+  // Offline fallback for events API: return empty array so calendar renders
+  if (url.pathname === '/api/events/') {
+    event.respondWith(
+      networkFirst(request, API_CACHE).catch(() =>
+        new Response('[]', { status: 200, headers: { 'Content-Type': 'application/json' } })
+      )
+    );
     return;
   }
 

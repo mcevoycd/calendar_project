@@ -50,12 +50,44 @@
       color: var(--muted);
       line-height: 1.45;
     }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .nav-links a {
+      flex: 1 1 auto;
+      text-align: center;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(246, 195, 92, 0.12);
+      border: 1px solid rgba(246, 195, 92, 0.3);
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      background: rgba(246, 195, 92, 0.22);
+      outline: none;
+    }
   </style>
 </head>
 <body>
   <article class="card" aria-live="polite">
     <h1>Offline mode</h1>
     <p>Fluid Notes is currently offline. Previously visited Diary, Notes, and To Do pages remain available until your next sync.</p>
+    <nav class="nav-links" aria-label="Cached pages">
+      <a href="/diary/">Diary</a>
+      <a href="/notes/">Notes</a>
+      <a href="/todo/">To Do</a>
+    </nav>
   </article>
 </body>
 </html>
