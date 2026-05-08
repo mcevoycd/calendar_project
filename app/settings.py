@@ -1,6 +1,8 @@
 """Django settings for app project."""
 
 import os
+import ipaddress
+import socket
 from pathlib import Path
 
 import dj_database_url
@@ -32,6 +34,38 @@ def normalize_host(value):
     return host.strip()
 
 
+def discover_local_ipv4_hosts():
+    hosts = set()
+
+    def add_if_private(ip):
+        try:
+            candidate = ipaddress.ip_address(ip)
+        except ValueError:
+            return
+        if candidate.version == 4 and candidate.is_private and ip != "127.0.0.1":
+            hosts.add(ip)
+
+    try:
+        hostname = socket.gethostname()
+        for ip in socket.gethostbyname_ex(hostname)[2]:
+            if ip:
+                add_if_private(ip)
+    except Exception:
+        pass
+
+    # UDP connect reveals the preferred outbound interface without sending traffic.
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.connect(("8.8.8.8", 80))
+            ip = sock.getsockname()[0]
+            if ip:
+                add_if_private(ip)
+    except Exception:
+        pass
+
+    return sorted(hosts)
+
+
 # SECURITY WARNING: keep the secret key used in production secret.
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-only-change-me")
 
@@ -50,9 +84,11 @@ DEFAULT_ALLOWED_HOSTS = [
 railway_public_domain = normalize_host(os.getenv("RAILWAY_PUBLIC_DOMAIN", ""))
 
 allowed_hosts_env = [normalize_host(item) for item in env_list("ALLOWED_HOSTS")]
+local_lan_hosts = discover_local_ipv4_hosts() if DEBUG else []
 ALLOWED_HOSTS = sorted({
     *DEFAULT_ALLOWED_HOSTS,
     *[item for item in allowed_hosts_env if item],
+    *local_lan_hosts,
     *([railway_public_domain] if railway_public_domain else []),
 })
 
